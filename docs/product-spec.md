@@ -52,11 +52,17 @@ ReguFlow 360 is an integrated, role-based regulatory operations platform featuri
 
 ### 3. Core Functional Modules
 
-#### 3.1 Dual-Portal Unified Core
+#### 3.1 Dual-Portal Unified Core & Distinct Operational Workspaces
 - Single backend API and single database instance.
-- Frontend delivers contextual role-driven workspaces:
-  - **Institution Portal**: My Applications, Action Centre, Compliance Passport, Documents & Renewals, Notifications, Submission History.
-  - **Officer Portal**: Command Centre, Application Registry, EVC Queue, Compliance Verification, Escalations, Reports, Rule Studio, Audit Trail.
+- Frontend delivers genuinely distinct, contextual role-driven workspaces for all 8 canonical roles:
+  - **Institution Administrator** (`/institution/dashboard`): Institution profile, active filings, deficiency cure memos, renewal countdowns.
+  - **Compliance Officer** (`/institution/compliance-workspace`): Statutory Compliance Covenants Desk, SHA-256 evidence submissions, lease/NOC validity desk.
+  - **Regional Officer** (`/officer/regional-workspace`): Regional Operational Command, scrutiny queue (Western region), deficiency issuance, undertaking sign-offs.
+  - **Bureau Officer** (`/officer/bureau-workspace`): National Regulatory Directorate, cross-regional comparison table, Tier-2 escalation queue, SLA scan triggers.
+  - **Committee Member** (`/officer/committee-workspace`): Standing Committee (SAC/CAC) Review Desk, docket cases awaiting hearing, panel observations.
+  - **EVC Coordinator** (`/officer/evc-workspace`): EVC Operations & Scheduling Desk, panel formation (Convener & Expert members), inspection visit rosters.
+  - **Competent Authority** (`/officer/authority-workspace`): Statutory Decision Desk, cases awaiting final statutory order, official gazette Approval/Rejection orders.
+  - **System Administrator** (`/officer/admin-workspace`): Platform Administration & Engine Telemetry, live DB ping latency, distributed lease health, Rule Studio lifecycle.
 
 #### 3.2 Guarded Workflow Engine
 - Supports distinct regulatory application categories:

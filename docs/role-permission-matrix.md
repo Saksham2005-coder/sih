@@ -114,3 +114,27 @@ Domain permissions are declared explicitly as constants (`Permission.*` in `back
 | `COMPETENT_AUTHORITY` | National Statutory Scope | Cases awaiting final statutory decision (`AWAITING_COMPETENT_AUTHORITY`), verified case brief evidence, Approval Order sign-off. |
 | `SYSTEM_ADMIN` | Platform Infrastructure | Telemetry, distributed scheduler lease health (`SchedulerLease`), Rule Studio version publishing, formula-safe audit CSV exports. **Strictly barred from statutory approvals or compliance sign-offs.** |
 
+---
+
+### 6. Dedicated Role Workspaces & Navigation Mapping (Critical Remediation 1)
+
+In Critical Remediation 1, ReguFlow 360 replaced generic dashboard views with dedicated operational workspaces for all 8 canonical roles:
+
+| Canonical Role | Workspace Route | Primary Information Architecture & Queues | Permitted Operational Actions |
+|---|---|---|---|
+| `INSTITUTION_ADMIN` | `/institution/dashboard` | Institution Filings, Deficiency Return Memos, Renewal countdowns, Application timeline | Create applications, edit application info, submit cure responses, upload renewals |
+| `COMPLIANCE_OFFICER` | `/institution/compliance-workspace` | Statutory Compliance Covenants Desk, SHA-256 evidence submissions, Expiring leases & NOCs | Submit compliance evidence, request lease/document renewal, track verification status |
+| `REGIONAL_OFFICER` | `/officer/regional-workspace` | Regional Priority Queue (scoped to `Western`), Regional Scrutiny Dossiers, Undertaking Verifications | Conduct scrutiny, issue deficiency notices, resolve cured deficiencies, verify undertakings |
+| `BUREAU_OFFICER` | `/officer/bureau-workspace` | National Filing Metrics, Cross-Regional Workload Table, Active Tier-2 Bureau Escalations | Trigger National SLA Scan, acknowledge Bureau-level escalations, analyze SLA trends |
+| `COMMITTEE_MEMBER` | `/officer/committee-workspace` | Standing Committee (SAC/CAC) Hearing Queue, Assigned EVC Panels, Observation Docket | Review hearing dossiers, record committee observations, recommend approval/rejection |
+| `EVC_COORDINATOR` | `/officer/evc-workspace` | Eligible Applications Awaiting EVC, Scheduled Field Visits, Completed Inspections Roster | Form inspection panels, assign Conveners & Expert panelists, schedule visit dates |
+| `COMPETENT_AUTHORITY` | `/officer/authority-workspace` | Statutory Decision Queue (`AWAITING_COMPETENT_AUTHORITY`), Verified Prerequisite Audits | Issue statutory Approval Orders (EoA) or Rejection Orders with official gazette remarks |
+| `SYSTEM_ADMIN` | `/officer/admin-workspace` | Live DB Ping Latency, Distributed Scheduler Leases, Rule Studio Lifecycle, Immutable Audit Log | Trigger on-demand deadline scans, publish validated rules, export formula-safe CSVs |
+
+#### Query Cache Isolation
+To prevent cross-persona data leakage in browser sessions:
+1. `AuthContext.tsx` invokes `queryClient.clear()` immediately upon `login()`, `logout()`, and `switchActiveRole()`.
+2. All React Query cached state is wiped before the authenticated identity transitions.
+3. Every API query and mutation strictly enforces backend multi-tenant and regional scoping (`verify_institution_access`, `verify_regional_access`, `check_case_assignment`).
+
+

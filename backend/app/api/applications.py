@@ -1,6 +1,7 @@
 import json
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List, Optional
 from datetime import datetime, timezone
 from app.core.database import get_db
@@ -8,6 +9,7 @@ from app.core.dependencies import get_current_user, require_roles, verify_instit
 from app.models.user import User
 from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.institution import Institution
+from app.models.evc import EVCInspection
 from app.schemas.application import (
     ApplicationResponse, ApplicationDetailResponse, ApplicationCreateRequest,
     ApplicationTransitionRequest, DeficiencyCreateRequest, DeficiencyCureRequest,
@@ -42,6 +44,26 @@ def list_applications(
     elif "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
         # Regional officer sees applications in their assigned region
         query = query.filter(Institution.region == current_user.region)
+    elif "EVC_COORDINATOR" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if current_user.region:
+            query = query.filter(Institution.region == current_user.region)
+        query = query.filter(or_(
+            Application.evc_required == True,
+            Application.current_stage.in_(["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"]),
+            Application.workflow_template_code == "NEW_INSTITUTION"
+        ))
+    elif "COMMITTEE_MEMBER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        assigned_evc_app_ids = db.query(EVCInspection.application_id).filter(
+            or_(
+                EVCInspection.convener_user_id == current_user.id,
+                EVCInspection.expert_user_id == current_user.id,
+                EVCInspection.completed_by_id == current_user.id
+            )
+        )
+        query = query.filter(or_(
+            Application.current_stage == "AWAITING_SAC_CAC_REVIEW",
+            Application.id.in_(assigned_evc_app_ids)
+        ))
 
     if stage:
         query = query.filter(Application.current_stage == stage)
@@ -171,6 +193,8 @@ def get_application_detail(
 
     # Isolation check
     verify_institution_access(app.institution_id, current_user)
+    if app.institution:
+        verify_regional_access(app.institution.region, current_user)
 
     score, factors = calculate_priority(app, db)
     open_defs = db.query(Deficiency).filter(Deficiency.application_id == app.id, Deficiency.status == "OPEN").count()

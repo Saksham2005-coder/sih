@@ -19,7 +19,7 @@ interface DemoUserItem {
 }
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, getWorkspaceHome } = useAuth();
   const navigate = useNavigate();
 
   // Portal selection: 'institution' or 'officer'
@@ -110,13 +110,9 @@ export const LoginPage: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
-      await login(targetEmail, targetPass);
-      // Navigate based on destination portal
-      if (targetEmail.includes('aicte.gov.in')) {
-        navigate('/officer/dashboard');
-      } else {
-        navigate('/institution/dashboard');
-      }
+      const loggedInUser = await login(targetEmail, targetPass);
+      const destination = getWorkspaceHome(loggedInUser?.roles?.[0]);
+      navigate(destination);
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please verify your credentials.');
     } finally {
@@ -170,6 +166,7 @@ export const LoginPage: React.FC = () => {
               {/* Option 1: Institution Portal */}
               <button
                 type="button"
+                id="tab-institution"
                 onClick={() => handlePortalSwitch('institution')}
                 className={`flex flex-col items-center justify-center py-3 px-3 rounded-lg text-xs font-bold transition-all ${
                   portalType === 'institution'
@@ -189,6 +186,7 @@ export const LoginPage: React.FC = () => {
               {/* Option 2: AICTE Officers Portal */}
               <button
                 type="button"
+                id="tab-officer"
                 onClick={() => handlePortalSwitch('officer')}
                 className={`flex flex-col items-center justify-center py-3 px-3 rounded-lg text-xs font-bold transition-all ${
                   portalType === 'officer'
@@ -229,6 +227,7 @@ export const LoginPage: React.FC = () => {
 
             <div className="relative">
               <select
+                id="persona-select"
                 value={selectedPersonaEmail}
                 onChange={(e) => handlePersonaSelect(e.target.value)}
                 className="w-full appearance-none px-3.5 py-2.5 bg-white border border-brand-border rounded-lg text-xs font-semibold text-brand-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-brand-teal pr-10 cursor-pointer"
@@ -266,6 +265,7 @@ export const LoginPage: React.FC = () => {
 
                 <button
                   type="button"
+                  id="btn-persona-login"
                   onClick={handleInstantPersonaLogin}
                   disabled={loading}
                   className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-brand-teal hover:bg-brand-teal-dark shadow-sm transition-all shrink-0"

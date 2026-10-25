@@ -174,3 +174,29 @@ Phase 5 elevates ReguFlow 360 into an operationally intelligent platform with fu
   - Deterministic fallback operates without requiring third-party LLM API keys.
   - Statutory boundary: Strictly informative case synthesis; cannot approve, reject, or overrule human regulatory decisions.
 
+---
+
+### 6. Role Workspaces, Multi-Tenant Data Scoping & Cache Isolation Architecture
+
+Critical Remediation 1 eliminates the generic single-dashboard defect by introducing dedicated operational workspaces and strict data boundary enforcement:
+
+1. **Role-Specific Workspace Composition**:
+   - `InstitutionDashboard`: Scoped strictly to Institution Administrator filings, deficiency returns, and renewal notices for their institution.
+   - `ComplianceOfficerWorkspace`: Focused exclusively on institutional compliance obligations, covenants desk, and evidence submission.
+   - `RegionalOfficerWorkspace`: Operational command for regional scrutiny queues, deficiency issuance, and undertaking verification (scoped to assigned region, e.g. Western).
+   - `BureauOfficerWorkspace`: Apex national oversight, cross-regional workload comparisons, and Tier-2 escalation acknowledgments.
+   - `CommitteeMemberWorkspace`: Standing hearing committee docket cases, review evidence, and hearing observation recording.
+   - `EVCCoordinatorWorkspace`: Expert visit scheduling, panel roster management (Convener + Expert members), and inspection logistics.
+   - `CompetentAuthorityWorkspace`: Statutory decision desk for cases awaiting final order with verified prerequisite audits.
+   - `SystemAdminWorkspace`: Platform telemetry, live database ping latency, Rule Studio lifecycle, distributed leases, and audit trail export.
+
+2. **Backend Scoping Enforcement (`rbac.py` & `dependencies.py`)**:
+   - `verify_institution_access`: Rejects cross-tenant attempts with HTTP 403.
+   - `verify_regional_access`: Enforced on list, detail, deficiency, and transition endpoints (`get_application_detail` verifies region for Regional Officers).
+   - `check_case_assignment`: Restricts hearing panel observation access.
+
+3. **Query Cache Isolation (`queryClient.clear()`)**:
+   - Centralized `queryClient` singleton in `src/queryClient.ts`.
+   - `AuthContext.tsx` triggers `queryClient.clear()` on login, logout, and role switching, guaranteeing zero residual cached records across persona transitions.
+
+

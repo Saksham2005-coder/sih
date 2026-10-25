@@ -21,7 +21,10 @@ def seed_database():
     try:
         # Check if already seeded
         if db.query(Institution).count() > 0:
-            print("Database already seeded. Skipping initial seeding.")
+            app5_exists = db.query(Application).filter(Application.application_number == "AICTE-2026-REV-77192").first()
+            if not app5_exists:
+                seed_supplementary_cases(db)
+            print("Database already seeded. Supplementary cases verified.")
             return
 
         print("Seeding ReguFlow 360 database with synthetic regulatory records...")
@@ -138,7 +141,32 @@ def seed_database():
             approved_at=now - timedelta(days=5),
             updated_at=now - timedelta(days=5)
         )
-        db.add_all([app1, app2, app3, app4])
+        # App 5: Apex New Institution Awaiting SAC/CAC Review
+        app5 = Application(
+            application_number="AICTE-2026-REV-77192",
+            institution_id=inst1.id,
+            academic_year="2026-2027",
+            application_type="NEW_INSTITUTION",
+            workflow_template_code="NEW_INSTITUTION",
+            current_stage="AWAITING_SAC_CAC_REVIEW",
+            evc_required=True,
+            priority_score=85,
+            submitted_at=now - timedelta(days=28),
+            updated_at=now - timedelta(days=2)
+        )
+        # App 6: Apex Intake Variation Awaiting Competent Authority Decision
+        app6 = Application(
+            application_number="AICTE-2026-DEC-33019",
+            institution_id=inst1.id,
+            academic_year="2026-2027",
+            application_type="INTAKE_VARIATION",
+            workflow_template_code="INTAKE_VARIATION",
+            current_stage="AWAITING_COMPETENT_AUTHORITY",
+            priority_score=90,
+            submitted_at=now - timedelta(days=40),
+            updated_at=now - timedelta(days=1)
+        )
+        db.add_all([app1, app2, app3, app4, app5, app6])
         db.flush()
 
         # 4. Timeline Stages for App 1
@@ -173,6 +201,132 @@ def seed_database():
             created_at=now - timedelta(days=4)
         )
         db.add_all([s1, s2, s3])
+
+        # Stages for App 5 (Awaiting SAC/CAC Review)
+        s5_1 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="DRAFT",
+            to_stage="SUBMITTED",
+            actor_id=created_users["admin@apex.edu.in"].id,
+            actor_role="INSTITUTION_ADMIN",
+            actor_name="Dr. Arvind Kulkarni",
+            remarks="New Technical Institution approval application filed.",
+            created_at=now - timedelta(days=28)
+        )
+        s5_2 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="SUBMITTED",
+            to_stage="UNDER_SCRUTINY",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="Scrutiny of land title, civil stability, and AICTE APH norms.",
+            created_at=now - timedelta(days=22)
+        )
+        s5_3 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="UNDER_SCRUTINY",
+            to_stage="SCRUTINY_COMPLETED",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="Scrutiny completed successfully. Recommended for Expert Visit Committee (EVC).",
+            created_at=now - timedelta(days=16)
+        )
+        s5_4 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="SCRUTINY_COMPLETED",
+            to_stage="AWAITING_EVC_SCHEDULE",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="Forwarded to EVC Coordination Directorate.",
+            created_at=now - timedelta(days=15)
+        )
+        s5_5 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="AWAITING_EVC_SCHEDULE",
+            to_stage="EVC_SCHEDULED",
+            actor_id=created_users["evc.coord@aicte.gov.in"].id,
+            actor_role="EVC_COORDINATOR",
+            actor_name="Dr. Vikram Sethi",
+            remarks="Physical on-site inspection scheduled with Convener Prof. R. C. Mathur and Expert Dr. Ananya Sen.",
+            created_at=now - timedelta(days=10)
+        )
+        s5_6 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="EVC_SCHEDULED",
+            to_stage="EVC_COMPLETED",
+            actor_id=created_users["committee.member@aicte.gov.in"].id,
+            actor_role="COMMITTEE_MEMBER",
+            actor_name="Prof. R. C. Mathur",
+            remarks="Physical inspection conducted. Laboratories, library, computing facilities verified.",
+            created_at=now - timedelta(days=3)
+        )
+        s5_7 = ApplicationStage(
+            application_id=app5.id,
+            from_stage="EVC_COMPLETED",
+            to_stage="AWAITING_SAC_CAC_REVIEW",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="EVC report accepted. Scheduled for Standing Appellate Committee (SAC/CAC) review.",
+            created_at=now - timedelta(days=2)
+        )
+        db.add_all([s5_1, s5_2, s5_3, s5_4, s5_5, s5_6, s5_7])
+
+        # Stages for App 6 (Awaiting Competent Authority Decision)
+        s6_1 = ApplicationStage(
+            application_id=app6.id,
+            from_stage="DRAFT",
+            to_stage="SUBMITTED",
+            actor_id=created_users["admin@apex.edu.in"].id,
+            actor_role="INSTITUTION_ADMIN",
+            actor_name="Dr. Arvind Kulkarni",
+            remarks="Application for intake variation in Artificial Intelligence and Data Science.",
+            created_at=now - timedelta(days=40)
+        )
+        s6_2 = ApplicationStage(
+            application_id=app6.id,
+            from_stage="SUBMITTED",
+            to_stage="UNDER_SCRUTINY",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="Scrutiny of faculty cadre and lab infrastructure.",
+            created_at=now - timedelta(days=30)
+        )
+        s6_3 = ApplicationStage(
+            application_id=app6.id,
+            from_stage="UNDER_SCRUTINY",
+            to_stage="SCRUTINY_COMPLETED",
+            actor_id=created_users["ro.western@aicte.gov.in"].id,
+            actor_role="REGIONAL_OFFICER",
+            actor_name="Shri Suresh Deshmukh",
+            remarks="Scrutiny completed with zero deficiencies.",
+            created_at=now - timedelta(days=20)
+        )
+        s6_4 = ApplicationStage(
+            application_id=app6.id,
+            from_stage="SCRUTINY_COMPLETED",
+            to_stage="AWAITING_SAC_CAC_REVIEW",
+            actor_id=created_users["bo.approval@aicte.gov.in"].id,
+            actor_role="BUREAU_OFFICER",
+            actor_name="Dr. Meenakshi Raman",
+            remarks="Referred to Standing Appellate / Scrutiny Committee for hearing review.",
+            created_at=now - timedelta(days=12)
+        )
+        s6_5 = ApplicationStage(
+            application_id=app6.id,
+            from_stage="AWAITING_SAC_CAC_REVIEW",
+            to_stage="AWAITING_COMPETENT_AUTHORITY",
+            actor_id=created_users["committee.member@aicte.gov.in"].id,
+            actor_role="COMMITTEE_MEMBER",
+            actor_name="Prof. R. C. Mathur",
+            remarks="SAC committee hearing completed. Infrastructure and faculty norms verified. Unanimously recommended for final statutory approval order.",
+            created_at=now - timedelta(days=1)
+        )
+        db.add_all([s6_1, s6_2, s6_3, s6_4, s6_5])
 
         # 5. Deficiencies for App 1
         d1 = Deficiency(
@@ -361,6 +515,25 @@ def seed_database():
         )
         db.add(evc1)
 
+        # EVC Inspection for App 5 (Completed by Committee Member Prof. R. C. Mathur)
+        evc2 = EVCInspection(
+            application_id=app5.id,
+            inspection_type="PHYSICAL_ONSITE",
+            scheduled_date=now - timedelta(days=6),
+            convener_name="Prof. R. C. Mathur (IIT Delhi)",
+            convener_user_id=created_users["committee.member@aicte.gov.in"].id,
+            expert_member_name="Dr. Ananya Sen (VJTI)",
+            coordinator_id=created_users["evc.coord@aicte.gov.in"].id,
+            status="REPORT_SUBMITTED",
+            report_url="/api/documents/download/sample_evc_report.pdf",
+            report_notes="Complete physical on-site inspection conducted. Laboratories, computing centers, library volumes, and Divyangjan ramps verified in strict conformity with APH 2026-2027 norms.",
+            recommendation="RECOMMENDED_APPROVAL",
+            completed_at=now - timedelta(days=3),
+            completed_by_id=created_users["committee.member@aicte.gov.in"].id,
+            created_at=now - timedelta(days=15)
+        )
+        db.add(evc2)
+
         # 9. Rule Studio Definitions
         rules = [
             RuleDefinition(
@@ -499,6 +672,87 @@ def seed_database():
         raise
     finally:
         db.close()
+
+def seed_supplementary_cases(db: Session):
+    """Inserts app5, app6, and evc2 if missing from pre-existing database."""
+    now = datetime.now(timezone.utc)
+    inst1 = db.query(Institution).filter(Institution.code == "1-3324901").first()
+    if not inst1:
+        return
+
+    admin_u = db.query(User).filter(User.email == "admin@apex.edu.in").first()
+    ro_u = db.query(User).filter(User.email == "ro.western@aicte.gov.in").first()
+    bo_u = db.query(User).filter(User.email == "bo.approval@aicte.gov.in").first()
+    cm_u = db.query(User).filter(User.email == "committee.member@aicte.gov.in").first()
+    evc_u = db.query(User).filter(User.email == "evc.coord@aicte.gov.in").first()
+
+    app5 = Application(
+        application_number="AICTE-2026-REV-77192",
+        institution_id=inst1.id,
+        academic_year="2026-2027",
+        application_type="NEW_INSTITUTION",
+        workflow_template_code="NEW_INSTITUTION",
+        current_stage="AWAITING_SAC_CAC_REVIEW",
+        evc_required=True,
+        priority_score=85,
+        submitted_at=now - timedelta(days=28),
+        updated_at=now - timedelta(days=2)
+    )
+    app6 = Application(
+        application_number="AICTE-2026-DEC-33019",
+        institution_id=inst1.id,
+        academic_year="2026-2027",
+        application_type="INTAKE_VARIATION",
+        workflow_template_code="INTAKE_VARIATION",
+        current_stage="AWAITING_COMPETENT_AUTHORITY",
+        priority_score=90,
+        submitted_at=now - timedelta(days=40),
+        updated_at=now - timedelta(days=1)
+    )
+    db.add_all([app5, app6])
+    db.flush()
+
+    # Stages for App 5
+    if admin_u and ro_u and cm_u and evc_u:
+        s5_1 = ApplicationStage(application_id=app5.id, from_stage="DRAFT", to_stage="SUBMITTED", actor_id=admin_u.id, actor_role="INSTITUTION_ADMIN", actor_name=admin_u.full_name, remarks="New Institution approval filing.", created_at=now - timedelta(days=28))
+        s5_2 = ApplicationStage(application_id=app5.id, from_stage="SUBMITTED", to_stage="UNDER_SCRUTINY", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="Scrutiny of land title & norms.", created_at=now - timedelta(days=22))
+        s5_3 = ApplicationStage(application_id=app5.id, from_stage="UNDER_SCRUTINY", to_stage="SCRUTINY_COMPLETED", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="Scrutiny completed. Recommended for EVC.", created_at=now - timedelta(days=16))
+        s5_4 = ApplicationStage(application_id=app5.id, from_stage="SCRUTINY_COMPLETED", to_stage="AWAITING_EVC_SCHEDULE", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="Forwarded to EVC Coordination.", created_at=now - timedelta(days=15))
+        s5_5 = ApplicationStage(application_id=app5.id, from_stage="AWAITING_EVC_SCHEDULE", to_stage="EVC_SCHEDULED", actor_id=evc_u.id, actor_role="EVC_COORDINATOR", actor_name=evc_u.full_name, remarks="On-site inspection scheduled.", created_at=now - timedelta(days=10))
+        s5_6 = ApplicationStage(application_id=app5.id, from_stage="EVC_SCHEDULED", to_stage="EVC_COMPLETED", actor_id=cm_u.id, actor_role="COMMITTEE_MEMBER", actor_name=cm_u.full_name, remarks="Physical inspection conducted. All norms verified.", created_at=now - timedelta(days=3))
+        s5_7 = ApplicationStage(application_id=app5.id, from_stage="EVC_COMPLETED", to_stage="AWAITING_SAC_CAC_REVIEW", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="EVC report accepted. Scheduled for SAC/CAC committee review.", created_at=now - timedelta(days=2))
+        db.add_all([s5_1, s5_2, s5_3, s5_4, s5_5, s5_6, s5_7])
+
+        # EVC for App 5
+        evc2 = EVCInspection(
+            application_id=app5.id,
+            inspection_type="PHYSICAL_ONSITE",
+            scheduled_date=now - timedelta(days=6),
+            convener_name=f"{cm_u.full_name} (IIT Delhi)",
+            convener_user_id=cm_u.id,
+            expert_member_name="Dr. Ananya Sen (VJTI)",
+            coordinator_id=evc_u.id,
+            status="REPORT_SUBMITTED",
+            report_url="/api/documents/download/sample_evc_report.pdf",
+            report_notes="Complete physical on-site inspection conducted. Laboratories, computing centers, library volumes, and Divyangjan ramps verified in strict conformity with APH 2026-2027 norms.",
+            recommendation="RECOMMENDED_APPROVAL",
+            completed_at=now - timedelta(days=3),
+            completed_by_id=cm_u.id,
+            created_at=now - timedelta(days=15)
+        )
+        db.add(evc2)
+
+    # Stages for App 6
+    if admin_u and ro_u and bo_u and cm_u:
+        s6_1 = ApplicationStage(application_id=app6.id, from_stage="DRAFT", to_stage="SUBMITTED", actor_id=admin_u.id, actor_role="INSTITUTION_ADMIN", actor_name=admin_u.full_name, remarks="Intake variation filing for AI & DS.", created_at=now - timedelta(days=40))
+        s6_2 = ApplicationStage(application_id=app6.id, from_stage="SUBMITTED", to_stage="UNDER_SCRUTINY", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="Faculty cadre scrutiny.", created_at=now - timedelta(days=30))
+        s6_3 = ApplicationStage(application_id=app6.id, from_stage="UNDER_SCRUTINY", to_stage="SCRUTINY_COMPLETED", actor_id=ro_u.id, actor_role="REGIONAL_OFFICER", actor_name=ro_u.full_name, remarks="Scrutiny completed.", created_at=now - timedelta(days=20))
+        s6_4 = ApplicationStage(application_id=app6.id, from_stage="SCRUTINY_COMPLETED", to_stage="AWAITING_SAC_CAC_REVIEW", actor_id=bo_u.id, actor_role="BUREAU_OFFICER", actor_name=bo_u.full_name, remarks="Referred to Standing Hearing Committee.", created_at=now - timedelta(days=12))
+        s6_5 = ApplicationStage(application_id=app6.id, from_stage="AWAITING_SAC_CAC_REVIEW", to_stage="AWAITING_COMPETENT_AUTHORITY", actor_id=cm_u.id, actor_role="COMMITTEE_MEMBER", actor_name=cm_u.full_name, remarks="SAC committee hearing completed. Recommended for final statutory approval order.", created_at=now - timedelta(days=1))
+        db.add_all([s6_1, s6_2, s6_3, s6_4, s6_5])
+
+    db.commit()
+    print("Supplementary demo applications AICTE-2026-REV-77192 and AICTE-2026-DEC-33019 successfully seeded.")
 
 if __name__ == "__main__":
     seed_database()

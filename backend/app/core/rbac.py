@@ -210,13 +210,13 @@ def check_institution_scope(user: User, target_institution_id: int):
 def check_regional_scope(user: User, target_region: Optional[str]):
     """
     Enforces regional boundary scoping.
-    Regional Officers can only mutate cases within their assigned region.
+    Regional Officers and EVC Coordinators can only mutate cases within their assigned region.
     National roles (Bureau Officer, Competent Authority, System Admin) bypass regional scope.
     """
     user_roles = [r.role for r in user.roles]
     
-    # If the user is a Regional Officer without higher national operational roles
-    if REGIONAL_OFFICER in user_roles and not any(r in [BUREAU_OFFICER, COMPETENT_AUTHORITY, SYSTEM_ADMIN] for r in user_roles):
+    # If the user is a Regional Officer or EVC Coordinator without higher national operational roles
+    if any(r in [REGIONAL_OFFICER, EVC_COORDINATOR] for r in user_roles) and not any(r in [BUREAU_OFFICER, COMPETENT_AUTHORITY, SYSTEM_ADMIN] for r in user_roles):
         if user.region and target_region and user.region.lower() != target_region.lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

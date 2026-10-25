@@ -7,9 +7,15 @@ import { Application, ComplianceUndertaking, DocumentRecord } from '../../types'
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { StatCard } from '../../components/common/StatCard';
 import { PriorityGauge } from '../../components/common/PriorityGauge';
+import { ComplianceOfficerWorkspace } from './ComplianceOfficerWorkspace';
 
 export const InstitutionDashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user, isComplianceOfficer } = useAuth();
+
+  if (isComplianceOfficer) {
+    return <ComplianceOfficerWorkspace />;
+  }
+
   const [applications, setApplications] = useState<Application[]>([]);
   const [undertakings, setUndertakings] = useState<ComplianceUndertaking[]>([]);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -50,13 +56,13 @@ export const InstitutionDashboard: React.FC = () => {
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-brand-teal border border-teal-300">
               AICTE APPROVED
             </span>
-            <span className="text-xs text-brand-muted">PID: 1-3324901</span>
+            <span className="text-xs text-brand-muted">PID: {user?.institution_id === 2 ? '1-7782104' : '1-3324901'}</span>
           </div>
           <h1 className="text-xl font-bold text-brand-ink mt-1">
-            {user?.institution_name || 'Apex Institute of Technology & Management'}
+            {user?.institution_name || 'Technical Institution Workspace'}
           </h1>
           <p className="text-xs text-brand-muted mt-0.5">
-            Western Region • Academic Year 2026-2027 Regulatory Filing Cycle
+            {user?.region || (user?.institution_id === 2 ? 'Northern' : 'Western')} Region • Academic Year 2026-2027 Regulatory Filing Cycle
           </p>
         </div>
 

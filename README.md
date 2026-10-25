@@ -2,8 +2,8 @@
 ## SIH 2026 Problem Statement 26262
 **Platform Repository:** `https://github.com/Saksham2005-coder/sih`  
 **Active Branch:** `main`  
-**Version:** 1.0.0 (Phase 6 Final Release & SIH Demo Ready)  
-**Quality Status:** 123 Passing Tests (100%), 0 Linter Warnings, Production Build Verified
+**Version:** 1.0.0 (Remediation 1 Hardened & SIH Demo Ready)  
+**Quality Status:** 130 Passing Tests (100%), 0 Linter Warnings, Production Build Verified
 
 ---
 
@@ -14,25 +14,21 @@ Built upon a cohesive **Modular Monolith** architecture with a single shared bac
 
 ---
 
-### 2. Dual Portal Experiences
+### 2. Dedicated Operational Workspaces Across All 8 Roles
 
-#### A. Institution Portal
-- **Institution Dashboard**: Operational status banner, pendency counts, imminent compliance milestones.
-- **My Applications**: Comprehensive regulatory docket (EoA Annual, New Institution, Intake Variation), priority indicators, and new filing modal.
-- **Application Dossier & Timeline**: Complete chronological milestone progression, itemized deficiency memos, cure submission forms, and resubmission triggers.
-- **Action Centre**: High-priority aggregated view of pending deficiency cures, expiring documents, and overdue undertakings.
-- **Compliance Passport**: Continuous tracking of time-bound undertakings with cryptographic (SHA-256) evidence submission and verification history.
-- **Documents & Renewals**: Multi-year validity management (33-year land lease deed, municipal fire NOC, structural stability) with versioned renewals.
-- **Notifications**: Real-time regulatory alerts and deficiency communication feed.
-- **Submission History**: Complete traceable record of institutional filings.
+ReguFlow 360 delivers genuinely distinct operational workspaces for all eight canonical roles over a coherent shared dataset:
 
-#### B. AICTE Officer Portal
-- **Officer Dashboard (Command Centre)**: Reconciled operational metrics, regional docket distribution, stage ageing, and explainable priority ranking.
-- **Application Registry**: Searchable national registry with multi-stage filters and scrutiny console links.
-- **Officer Scrutiny Console**: Itemized deficiency memo issuance, cure verification, and guarded stage transitions.
-- **EVC Inspection Queue**: Expert committee roster panel assignment (Convener + Expert), visit scheduling, and inspection report submissions.
-- **Compliance Monitoring**: Verification queue for institutional compliance evidence.
-- **Escalations & SLA Console**: Timezone-aware (Asia/Kolkata) idempotent alert scanner triggering progressive escalations (RO → BO → Apex).
+#### A. Institution Workspaces
+- **Institution Administrator Workspace** (`/institution/dashboard`): Institutional application pipeline, deficiency returns with itemized instructions, renewal countdowns, and authorized filings.
+- **Compliance Officer Workspace** (`/institution/compliance-workspace`): Dedicated institutional statutory compliance desk, mandatory covenants, SHA-256 evidence submissions, and lease/NOC validity desk.
+
+#### B. AICTE Officer Workspaces
+- **Regional Officer Command Workspace** (`/officer/regional-workspace`): Scoped to assigned region (`Western`), regional priority triage queue, deficiency issuance, resubmission review, and undertaking verification.
+- **Bureau Officer Oversight Workspace** (`/officer/bureau-workspace`): Apex national regulatory oversight, cross-regional workload and pendency comparisons, and Tier-2 escalation queue.
+- **Committee Member Review Workspace** (`/officer/committee-workspace`): Standing hearing committee (SAC/CAC) docket cases, review evidence, inspection findings, and hearing observations.
+- **EVC Coordinator Workspace** (`/officer/evc-workspace`): Inspection scheduling desk, Convener & Expert panel formation, future date picker, and visit rosters.
+- **Competent Authority Decision Workspace** (`/officer/authority-workspace`): Decision desk for cases awaiting statutory order (`AWAITING_COMPETENT_AUTHORITY`) with verified prerequisite audits, and official gazette Approval/Rejection orders.
+- **System Administrator Workspace** (`/officer/admin-workspace`): Telemetry command center, sub-millisecond database ping latency, distributed scheduler leases, on-demand deadline scan trigger, and formula-safe CSV audit export.
 - **Reports & Analytics**: 100% database-reconciled stage-wise pendency and regional workload distribution.
 - **Immutable Audit Trail**: Append-only non-repudiable audit log tracking every transition and action.
 - **Rule Studio**: Visual configuration of SLA thresholds and workflow templates with version increments.

@@ -1,16 +1,27 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from '../types';
 import { api } from '../api/client';
+import { queryClient } from '../queryClient';
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   activeRole: string | null;
-  login: (email: string, password?: string) => Promise<void>;
+  login: (email: string, password?: string) => Promise<User>;
   logout: () => void;
   switchActiveRole: (role: string) => void;
   isInstitutionUser: boolean;
   isOfficer: boolean;
+  isInstitutionAdmin: boolean;
+  isComplianceOfficer: boolean;
+  isRegionalOfficer: boolean;
+  isBureauOfficer: boolean;
+  isCommitteeMember: boolean;
+  isEvcCoordinator: boolean;
+  isCompetentAuthority: boolean;
+  isSystemAdmin: boolean;
+  getWorkspaceHome: (role?: string) => string;
+  hasPermission: (permission: string) => boolean;
   isLoading: boolean;
 }
 
@@ -41,9 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUser();
   }, [token]);
 
-  const login = async (email: string, password = 'Password123!') => {
+  const login = async (email: string, password = 'Password123!'): Promise<User> => {
     setIsLoading(true);
     try {
+      // Clear any stale cached queries from a prior session/persona
+      queryClient.clear();
       const res = await api.login(email, password);
       localStorage.setItem('reguflow_token', res.access_token);
       setToken(res.access_token);
@@ -51,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const initialRole = res.user.roles[0] || 'GUEST';
       setActiveRole(initialRole);
       localStorage.setItem('reguflow_active_role', initialRole);
+      return res.user;
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch {
       // ignore network errors on logout
     } finally {
+      // Invalidate and clear all cached queries
+      queryClient.clear();
       localStorage.removeItem('reguflow_token');
       localStorage.removeItem('reguflow_active_role');
       setToken(null);
@@ -73,6 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const switchActiveRole = async (role: string) => {
     if (user?.roles.includes(role)) {
       try {
+        queryClient.clear();
         const updated = await api.switchActiveRole(role);
         setUser(updated);
         setActiveRole(role);
@@ -91,6 +108,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ? ['INSTITUTION_ADMIN', 'COMPLIANCE_OFFICER'].includes(activeRole)
     : false;
 
+  const isInstitutionAdmin = activeRole === 'INSTITUTION_ADMIN';
+  const isComplianceOfficer = activeRole === 'COMPLIANCE_OFFICER';
+  const isRegionalOfficer = activeRole === 'REGIONAL_OFFICER';
+  const isBureauOfficer = activeRole === 'BUREAU_OFFICER';
+  const isCommitteeMember = activeRole === 'COMMITTEE_MEMBER';
+  const isEvcCoordinator = activeRole === 'EVC_COORDINATOR';
+  const isCompetentAuthority = activeRole === 'COMPETENT_AUTHORITY';
+  const isSystemAdmin = activeRole === 'SYSTEM_ADMIN';
+
+  const getWorkspaceHome = (role?: string): string => {
+    const target = role || activeRole;
+    switch (target) {
+      case 'INSTITUTION_ADMIN':
+        return '/institution/dashboard';
+      case 'COMPLIANCE_OFFICER':
+        return '/institution/compliance-workspace';
+      case 'REGIONAL_OFFICER':
+        return '/officer/regional-workspace';
+      case 'BUREAU_OFFICER':
+        return '/officer/bureau-workspace';
+      case 'COMMITTEE_MEMBER':
+        return '/officer/committee-workspace';
+      case 'EVC_COORDINATOR':
+        return '/officer/evc-workspace';
+      case 'COMPETENT_AUTHORITY':
+        return '/officer/authority-workspace';
+      case 'SYSTEM_ADMIN':
+        return '/officer/admin-workspace';
+      default:
+        return isOfficer ? '/officer/dashboard' : '/institution/dashboard';
+    }
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    return user?.permissions?.includes(permission) || false;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -102,6 +156,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchActiveRole,
         isInstitutionUser,
         isOfficer,
+        isInstitutionAdmin,
+        isComplianceOfficer,
+        isRegionalOfficer,
+        isBureauOfficer,
+        isCommitteeMember,
+        isEvcCoordinator,
+        isCompetentAuthority,
+        isSystemAdmin,
+        getWorkspaceHome,
+        hasPermission,
         isLoading,
       }}
     >
@@ -117,3 +181,5 @@ export const useAuth = () => {
   }
   return context;
 };
+
+export default AuthContext;

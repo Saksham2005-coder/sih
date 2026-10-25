@@ -48,6 +48,33 @@ def get_scoped_queries(db: Session, current_user: User):
         u_q = u_q.filter(Institution.region == current_user.region)
         doc_q = doc_q.filter(Institution.region == current_user.region)
         evc_q = evc_q.filter(Institution.region == current_user.region)
+    elif "EVC_COORDINATOR" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if current_user.region:
+            app_q = app_q.filter(Institution.region == current_user.region)
+            evc_q = evc_q.filter(Institution.region == current_user.region)
+        app_q = app_q.filter(or_(
+            Application.evc_required == True,
+            Application.current_stage.in_(["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"]),
+            Application.workflow_template_code == "NEW_INSTITUTION"
+        ))
+    elif "COMMITTEE_MEMBER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        assigned_evc_app_ids = db.query(EVCInspection.application_id).filter(
+            or_(
+                EVCInspection.convener_user_id == current_user.id,
+                EVCInspection.expert_user_id == current_user.id,
+                EVCInspection.completed_by_id == current_user.id
+            )
+        )
+        app_q = app_q.filter(or_(
+            Application.current_stage == "AWAITING_SAC_CAC_REVIEW",
+            Application.id.in_(assigned_evc_app_ids)
+        ))
+        evc_q = evc_q.filter(or_(
+            EVCInspection.convener_user_id == current_user.id,
+            EVCInspection.expert_user_id == current_user.id,
+            EVCInspection.completed_by_id == current_user.id,
+            EVCInspection.status.in_(["SCHEDULED", "REPORT_SUBMITTED", "IN_PROGRESS"])
+        ))
 
     return app_q, u_q, doc_q, evc_q
 
@@ -217,7 +244,18 @@ def get_command_centre(
     ]
 
     active_role_str = current_user.roles[0].role if current_user.roles else "OFFICER"
-    jurisdiction_str = f"{current_user.region} Region" if current_user.region else "National Apex Scope"
+    if active_role_str == "COMMITTEE_MEMBER":
+        jurisdiction_str = "Standing Hearing Committee (SAC/CAC)"
+    elif active_role_str == "EVC_COORDINATOR":
+        jurisdiction_str = f"{current_user.region or 'Regional'} EVC Directorate"
+    elif active_role_str == "COMPETENT_AUTHORITY":
+        jurisdiction_str = "Apex Council Competent Authority"
+    elif active_role_str == "SYSTEM_ADMIN":
+        jurisdiction_str = "Platform System Administration"
+    elif current_user.region:
+        jurisdiction_str = f"{current_user.region} Region"
+    else:
+        jurisdiction_str = "National Apex Scope"
 
     return CommandCentreResponse(
         summary=summary,

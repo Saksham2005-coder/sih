@@ -225,4 +225,25 @@
 14. `test_health_operational_readiness_endpoint`:
     - Operational Health: `/api/health` reports status, database connectivity, ping latency, scheduler status, and lease telemetry; `/health/liveness` and `/health/readiness` verify microservice orchestrator probes.
 
+---
+
+### 7. Critical Remediation 1 Test Coverage Summary (7 New Tests, Total 130 Tests)
+
+`tests/test_role_workspaces_and_scoping.py` (7 comprehensive role isolation & operational boundary tests):
+1. `test_canonical_identity_resolution_all_roles`:
+   - Validates that `/api/auth/me` resolves exact canonical roles (`INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER`, `REGIONAL_OFFICER`, `BUREAU_OFFICER`, `COMMITTEE_MEMBER`, `EVC_COORDINATOR`, `COMPETENT_AUTHORITY`, `SYSTEM_ADMIN`), tenant institutions, and regional jurisdictions.
+2. `test_institution_admin_vs_compliance_officer_capabilities`:
+   - Verifies that both institution roles access own applications; Compliance Officer is denied application creation (`403 Forbidden`) and denied issuing official deficiency notices (`403 Forbidden`).
+3. `test_regional_officer_jurisdiction_scoping`:
+   - Verifies that Regional Officer Western lists only Western applications and direct GET access to Northern region applications is rejected with `403 Forbidden`.
+4. `test_committee_member_scoping_and_forbidden_statutory_actions`:
+   - Verifies Committee Member application queue is scoped to cases at `AWAITING_SAC_CAC_REVIEW` or assigned EVC panels; attempting Competent Authority approval is rejected with `403 Forbidden`.
+5. `test_evc_coordinator_scoping_and_forbidden_compliance_verification`:
+   - Verifies EVC Coordinator application list is scoped to Western region applications requiring EVC; attempting compliance undertaking verification is rejected with `403 Forbidden`.
+6. `test_competent_authority_statutory_decision_flow`:
+   - Verifies Competent Authority accesses application queue with cases at `AWAITING_COMPETENT_AUTHORITY` (e.g. `AICTE-2026-DEC-33019`), and Command Centre reports role scope `COMPETENT_AUTHORITY` with Apex Council jurisdiction.
+7. `test_system_admin_regulatory_boundary`:
+   - Verifies System Administrator can access system health, engine status, and audit logs, but is strictly barred from granting statutory approvals (`403 Forbidden`).
+
+
 

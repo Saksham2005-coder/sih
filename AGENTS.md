@@ -134,5 +134,14 @@ This platform bridges two synchronized experiences over a single unified backend
 4. **Production Demo Fail-Closed**: In production environments (`ENVIRONMENT=production` or `DEMO_MODE=false`), demo persona routes fail closed with HTTP 403 Forbidden.
 5. **Single Main Release Commit**: Release commit message must strictly match: `Harden end-to-end flows and prepare SIH demo release`.
 
+---
+
+### 8. Critical Remediation 1: Role-Based Workspaces & Scoped Operational UX
+1. **Genuine Workspace Differentiation**: The platform provides dedicated operational workspaces for each of the 8 canonical roles (`INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER`, `REGIONAL_OFFICER`, `BUREAU_OFFICER`, `COMMITTEE_MEMBER`, `EVC_COORDINATOR`, `COMPETENT_AUTHORITY`, `SYSTEM_ADMIN`). Generic collapsing of dashboards is strictly prohibited.
+2. **Zero Cross-Tenant & Cross-Region Data Leaks**: Multi-tenant institutional boundaries and regional jurisdictions are strictly verified on both list and detail endpoints (`get_application_detail` enforces `verify_regional_access` and `verify_institution_access`).
+3. **Query Cache Isolation**: Client-side query caches (`queryClient.clear()`) are flushed on login, logout, and role switching, ensuring zero stale data leakage across persona sessions.
+4. **Shared Coherent Regulatory Dataset**: Single database records (`app1` to `app6`) are shared across all workspaces at their respective lifecycle stages, preserving complete relationship integrity, audit trails, and prerequisite chains.
+5. **Remediation Release Commit**: Release commit message must strictly match: `Differentiate role workspaces and enforce scoped data`.
+
 
 

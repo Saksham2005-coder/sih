@@ -6,11 +6,14 @@
 ---
 
 ### Demo Personas & Credentials (Development Mode)
-- **Institution Admin**: `admin@apex.edu.in` / `Password123!` (Apex Institute of Technology, Mumbai — Western Region)
-- **Regional Officer (RO)**: `ro.western@aicte.gov.in` / `Password123!` (Western Regional Office, Bhopal/Mumbai)
-- **EVC Coordinator**: `evc.coord@aicte.gov.in` / `Password123!` (AICTE HQ / Western Roster)
-- **Bureau Officer (BO)**: `bo.approval@aicte.gov.in` / `Password123!` (Approval Bureau, New Delhi)
-- **Competent Authority (CA)**: `member.sec@aicte.gov.in` / `Password123!` (Member Secretary, AICTE Apex)
+- **Institution Admin**: `admin@apex.edu.in` / `Password123!` (Apex Institute, Western Region -> `/institution/dashboard`)
+- **Compliance Officer**: `compliance@apex.edu.in` / `Password123!` (Apex Institute, Western Region -> `/institution/compliance-workspace`)
+- **Regional Officer (RO)**: `ro.western@aicte.gov.in` / `Password123!` (Western Regional Office -> `/officer/regional-workspace`)
+- **Bureau Officer (BO)**: `bo.approval@aicte.gov.in` / `Password123!` (Approval Bureau, New Delhi -> `/officer/bureau-workspace`)
+- **Committee Member (SAC/CAC)**: `committee.member@aicte.gov.in` / `Password123!` (Standing Hearing Committee -> `/officer/committee-workspace`)
+- **EVC Coordinator**: `evc.coord@aicte.gov.in` / `Password123!` (EVC Directorate, Western Roster -> `/officer/evc-workspace`)
+- **Competent Authority (CA)**: `member.sec@aicte.gov.in` / `Password123!` (Member Secretary, Council -> `/officer/authority-workspace`)
+- **System Administrator**: `sysadmin@aicte.gov.in` / `Password123!` (Platform Infrastructure -> `/officer/admin-workspace`)
 
 ---
 

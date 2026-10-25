@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './queryClient';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/auth/LoginPage';
 
 // Institution Pages
 import { InstitutionDashboard } from './pages/institution/InstitutionDashboard';
+import { ComplianceOfficerWorkspace } from './pages/institution/ComplianceOfficerWorkspace';
 import { MyApplications } from './pages/institution/MyApplications';
 import { ApplicationDetail } from './pages/institution/ApplicationDetail';
 import { ActionCentre } from './pages/institution/ActionCentre';
@@ -17,6 +19,12 @@ import { SubmissionHistory } from './pages/institution/SubmissionHistory';
 
 // Officer Pages
 import { OfficerDashboard } from './pages/officer/OfficerDashboard';
+import { RegionalOfficerWorkspace } from './pages/officer/RegionalOfficerWorkspace';
+import { BureauOfficerWorkspace } from './pages/officer/BureauOfficerWorkspace';
+import { CommitteeMemberWorkspace } from './pages/officer/CommitteeMemberWorkspace';
+import { EVCCoordinatorWorkspace } from './pages/officer/EVCCoordinatorWorkspace';
+import { CompetentAuthorityWorkspace } from './pages/officer/CompetentAuthorityWorkspace';
+import { SystemAdminWorkspace } from './pages/officer/SystemAdminWorkspace';
 import { ApplicationRegistry } from './pages/officer/ApplicationRegistry';
 import { OfficerApplicationDetail } from './pages/officer/OfficerApplicationDetail';
 import { EVCQueue } from './pages/officer/EVCQueue';
@@ -26,8 +34,6 @@ import { ReportsPage } from './pages/officer/ReportsPage';
 import { AuditTrailPage } from './pages/officer/AuditTrailPage';
 import { RuleStudioPage } from './pages/officer/RuleStudioPage';
 import { AdminPage } from './pages/officer/AdminPage';
-
-const queryClient = new QueryClient();
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
@@ -41,10 +47,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const RootRedirect: React.FC = () => {
-  const { user, isOfficer } = useAuth();
+  const { user, getWorkspaceHome } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
-  if (isOfficer) return <Navigate to="/officer/dashboard" replace />;
-  return <Navigate to="/institution/dashboard" replace />;
+  return <Navigate to={getWorkspaceHome()} replace />;
 };
 
 export const App: React.FC = () => {
@@ -66,6 +71,7 @@ export const App: React.FC = () => {
             >
               {/* Institution Portal */}
               <Route path="/institution/dashboard" element={<InstitutionDashboard />} />
+              <Route path="/institution/compliance-workspace" element={<ComplianceOfficerWorkspace />} />
               <Route path="/institution/applications" element={<MyApplications />} />
               <Route path="/institution/applications/:id" element={<ApplicationDetail />} />
               <Route path="/institution/action-centre" element={<ActionCentre />} />
@@ -74,8 +80,16 @@ export const App: React.FC = () => {
               <Route path="/institution/notifications" element={<NotificationsPage />} />
               <Route path="/institution/history" element={<SubmissionHistory />} />
 
-              {/* AICTE Officer Portal */}
+              {/* AICTE Officer Portal & Dedicated Role Workspaces */}
               <Route path="/officer/dashboard" element={<OfficerDashboard />} />
+              <Route path="/officer/regional-workspace" element={<RegionalOfficerWorkspace />} />
+              <Route path="/officer/bureau-workspace" element={<BureauOfficerWorkspace />} />
+              <Route path="/officer/committee-workspace" element={<CommitteeMemberWorkspace />} />
+              <Route path="/officer/evc-workspace" element={<EVCCoordinatorWorkspace />} />
+              <Route path="/officer/authority-workspace" element={<CompetentAuthorityWorkspace />} />
+              <Route path="/officer/admin-workspace" element={<SystemAdminWorkspace />} />
+
+              {/* Functional Officer Modules */}
               <Route path="/officer/applications" element={<ApplicationRegistry />} />
               <Route path="/officer/applications/:id" element={<OfficerApplicationDetail />} />
               <Route path="/officer/evc" element={<EVCQueue />} />
