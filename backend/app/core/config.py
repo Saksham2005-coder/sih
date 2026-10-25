@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     ALGORITHM: str = "HS256"
     
+    # Demonstration & Persona Switcher Control
+    DEMO_MODE: bool = True
+    
     # Database
     DATABASE_URL: str = "sqlite:///./reguflow.db"
     
@@ -34,6 +37,16 @@ class Settings(BaseSettings):
     
     # Optional AI Case Brief Assistant
     GEMINI_API_KEY: str = ""
+
+    @property
+    def is_demo_allowed(self) -> bool:
+        """
+        Fail closed: Demo features (such as persona listing and one-click login)
+        are strictly prohibited in production mode even if DEMO_MODE was set to True.
+        """
+        if self.ENVIRONMENT.lower() == "production":
+            return False
+        return self.DEMO_MODE
 
     model_config = SettingsConfigDict(
         env_file=".env",

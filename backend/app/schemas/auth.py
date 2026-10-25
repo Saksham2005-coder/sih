@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
@@ -10,12 +10,11 @@ class SwitchRoleRequest(BaseModel):
     role: str
 
 class UserRoleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     role: str
 
-    class Config:
-        from_attributes = True
-
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     email: str
     full_name: str
@@ -25,9 +24,7 @@ class UserResponse(BaseModel):
     roles: List[str]
     active_role: Optional[str] = None
     institution_name: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+    permissions: Optional[List[str]] = None
 
 class Token(BaseModel):
     access_token: str

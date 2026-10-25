@@ -8,6 +8,7 @@ from app.models.evc import EVCInspection
 from app.models.alert import Notification, AlertEscalation
 from app.models.audit import AuditEvent
 from app.models.rule import RuleDefinition
+from app.models.token_blacklist import RevokedToken
 
 __all__ = [
     "Base",
@@ -26,4 +27,5 @@ __all__ = [
     "AlertEscalation",
     "AuditEvent",
     "RuleDefinition",
+    "RevokedToken",
 ]
