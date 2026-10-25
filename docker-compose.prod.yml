@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-reguflow}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD must be specified in production}
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD must be specified in production}"
       POSTGRES_DB: ${POSTGRES_DB:-reguflow360}
     # Security: Database port is NOT published to the host network in production.
     # It is accessible strictly through the internal Docker network.
@@ -33,6 +33,25 @@ services:
     networks:
       - reguflow_prod_net
 
+  migration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reguflow_prod_migration
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      DEMO_MODE: "false"
+      SECRET_KEY: "${SECRET_KEY:?Error: SECRET_KEY must be specified in production (minimum 32 characters)}"
+      DATABASE_URL: "${DATABASE_URL:?Error: DATABASE_URL must be specified in production}"
+    command: ["alembic", "upgrade", "head"]
+    networks:
+      - reguflow_prod_net
+
   backend:
     build:
       context: ./backend
@@ -42,12 +61,14 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
     environment:
       ENVIRONMENT: production
       DEBUG: "false"
       DEMO_MODE: "false"
-      SECRET_KEY: ${SECRET_KEY:?Error: SECRET_KEY must be specified in production (minimum 32 characters)}
-      DATABASE_URL: ${DATABASE_URL:?Error: DATABASE_URL must be specified in production}
+      SECRET_KEY: "${SECRET_KEY:?Error: SECRET_KEY must be specified in production (minimum 32 characters)}"
+      DATABASE_URL: "${DATABASE_URL:?Error: DATABASE_URL must be specified in production}"
       TIMEZONE: ${TIMEZONE:-Asia/Kolkata}
     ports:
       - "8000:8000"

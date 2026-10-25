@@ -211,6 +211,7 @@ ReguFlow 360 separates local development ergonomics from production deployment s
      - Includes automated healthchecks and ordered service dependency (`depends_on: backend: condition: service_healthy`) to eliminate startup race conditions.
    - `docker-compose.prod.yml` (Hardened Production):
      - Database port `5432` is omitted from port mapping; database container communicates solely through the internal Docker network.
+     - Includes a dedicated one-shot `migration` service running `alembic upgrade head` before backend web workers start, preventing concurrent DDL execution across workers (`condition: service_completed_successfully`).
      - Requires external provisioning of `SECRET_KEY` and `DATABASE_URL` via environment variables.
      - Disables debug and demo capabilities (`ENVIRONMENT=production`, `DEBUG=false`, `DEMO_MODE=false`).
 

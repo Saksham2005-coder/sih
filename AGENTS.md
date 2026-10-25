@@ -160,3 +160,11 @@ This platform bridges two synchronized experiences over a single unified backend
 3. **Network & Database Port Isolation**: Development Docker Compose binds PostgreSQL strictly to loopback `127.0.0.1:5432:5432`. A dedicated `docker-compose.prod.yml` runs with internal database networking and zero published host database ports.
 4. **Statutory Decision Exclusivity Invariant**: All approval routes (including "Only Scrutiny") require an explicit, authorized Competent Authority decision order. Bypassing EVC does not grant automated approval.
 5. **Remediation Release Commit**: Release commit message must strictly match: `Harden deployment security and verify final acceptance`.
+
+---
+
+### 11. Final Release Sign-Off: Deployment & Acceptance Verification Directives
+1. **Explicit One-Shot Migration Service**: In production Compose (`docker-compose.prod.yml`), database schema migrations are executed once via a dedicated `migration` container running `alembic upgrade head`, ensuring backend web workers never execute concurrent DDL migrations (`condition: service_completed_successfully`).
+2. **Third-Party Warning Filtration**: Pytest warning configuration (`pytest.ini`) explicitly ignores deprecated third-party `python-jose` datetime calls while maintaining zero project-origin warnings across all 145 tests and 15 modules.
+3. **Dual Liveness & Readiness Mounting**: Health probes are available at both root (`/health/liveness`, `/health/readiness`) and API (`/api/health/liveness`, `/api/health/readiness`) for universal container orchestrator compatibility.
+4. **Final Sign-Off Commit**: If release reconciliation changes are made, commit message must strictly match: `Verify release deployment and acceptance evidence`.

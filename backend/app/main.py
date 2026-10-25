@@ -12,10 +12,12 @@ from app.services.scheduler import scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist
-    Base.metadata.create_all(bind=engine)
-    if settings.is_demo_allowed and not settings.is_production:
-        seed_database()
+    # Startup: ensure tables exist in development mode
+    # In production, schema migrations are executed once per release via Alembic
+    if not settings.is_production:
+        Base.metadata.create_all(bind=engine)
+        if settings.is_demo_allowed:
+            seed_database()
     # Start autonomous background deadline engine
     await scheduler.start(interval_seconds=60)
     yield
@@ -40,7 +42,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register routers under /api
+# Register routers under /api and root health
+app.include_router(health.router)
 app.include_router(health.router, prefix=settings.API_V1_STR)
 app.include_router(auth.router, prefix=settings.API_V1_STR)
 app.include_router(applications.router, prefix=settings.API_V1_STR)
