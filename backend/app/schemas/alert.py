@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
 class NotificationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     user_id: Optional[int] = None
     institution_id: Optional[int] = None
@@ -14,10 +15,8 @@ class NotificationResponse(BaseModel):
     link_url: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class AlertEscalationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     idempotency_key: str
     entity_type: str
@@ -31,9 +30,6 @@ class AlertEscalationResponse(BaseModel):
     acknowledged_by_id: Optional[int] = None
     acknowledged_at: Optional[datetime] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 class AlertScanResponse(BaseModel):
     scanned_entities: int

@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Any
 from datetime import datetime
 
 class RuleDefinitionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     rule_code: str
     name: str
@@ -11,9 +12,6 @@ class RuleDefinitionResponse(BaseModel):
     config_json: str
     is_active: bool
     updated_at: datetime
-
-    class Config:
-        from_attributes = True
 
 class RuleDefinitionUpdate(BaseModel):
     config_json: str

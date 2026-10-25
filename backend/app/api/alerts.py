@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_roles
 from app.models.user import User
 from app.models.alert import Notification, AlertEscalation
 from app.schemas.alert import NotificationResponse, AlertEscalationResponse, AlertScanResponse
@@ -46,7 +46,7 @@ def get_escalations(
 @router.post("/run-scan", response_model=AlertScanResponse)
 def trigger_deadline_scan(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_roles(["SYSTEM_ADMIN"]))
 ):
     """Triggers the idempotent deadline evaluation scanner"""
     result = run_deadline_and_escalation_scan(db)
@@ -58,7 +58,7 @@ def trigger_deadline_scan(
         entity_id=0,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role=current_user.roles[0].role if current_user.roles else "OFFICER",
+        actor_role=current_user.roles[0].role if current_user.roles else "SYSTEM_ADMIN",
         details=result
     )
     db.commit()
@@ -69,7 +69,7 @@ def trigger_deadline_scan(
 def acknowledge_escalation(
     id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"]))
 ):
     esc = db.query(AlertEscalation).filter(AlertEscalation.id == id).first()
     if not esc:

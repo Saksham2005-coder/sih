@@ -6,7 +6,7 @@ from typing import List, Optional
 from datetime import datetime, date, timezone
 from app.core.config import settings
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, require_roles, verify_institution_access
+from app.core.dependencies import get_current_user, require_roles, verify_institution_access, verify_regional_access
 from app.models.user import User
 from app.models.document import DocumentRecord, DocumentVersion
 from app.models.institution import Institution
@@ -121,11 +121,14 @@ def verify_document_version(
     version_id: int,
     request: DocumentVerifyRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     doc = db.query(DocumentRecord).filter(DocumentRecord.id == id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document record not found")
+
+    if doc.institution:
+        verify_regional_access(doc.institution.region, current_user)
 
     version = db.query(DocumentVersion).filter(
         DocumentVersion.id == version_id,
@@ -146,6 +149,7 @@ def verify_document_version(
 
     db.commit()
 
+    actor_role = current_user.roles[0].role if current_user.roles else "REGIONAL_OFFICER"
     log_audit_event(
         db=db,
         action="DOCUMENT_VERSION_VERIFIED",
@@ -153,17 +157,23 @@ def verify_document_version(
         entity_id=doc.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="REGIONAL_OFFICER",
+        actor_role=actor_role,
         details={"version_id": version.id, "outcome": request.verification_status}
     )
 
     return {"message": f"Document version marked as {request.verification_status}", "doc_status": doc.status}
 
 @router.get("/download/{filename}")
-def download_file(filename: str):
+def download_file(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
     # Sanitize filename to prevent directory traversal
     clean_filename = os.path.basename(filename)
-    file_path = os.path.join(settings.UPLOAD_DIR, clean_filename)
-    if not os.path.exists(file_path):
+    file_path = os.path.abspath(os.path.join(settings.UPLOAD_DIR, clean_filename))
+    base_upload_path = os.path.abspath(settings.UPLOAD_DIR)
+
+    # Prevent escaping UPLOAD_DIR
+    if not file_path.startswith(base_upload_path) or not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Requested file not found on server")
     return FileResponse(path=file_path, filename=clean_filename)

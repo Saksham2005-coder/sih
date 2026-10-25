@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Any
 from datetime import datetime
 
@@ -12,6 +12,7 @@ class DeficiencyCureRequest(BaseModel):
     cure_document_url: Optional[str] = None
 
 class DeficiencyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     application_id: int
     category: str
@@ -24,10 +25,8 @@ class DeficiencyResponse(BaseModel):
     resolved_by_officer_id: Optional[int] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class ApplicationStageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     application_id: int
     from_stage: Optional[str] = None
@@ -38,9 +37,6 @@ class ApplicationStageResponse(BaseModel):
     remarks: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class ApplicationCreateRequest(BaseModel):
     application_type: str = "EOA_ANNUAL"
     academic_year: str = "2026-2027"
@@ -48,8 +44,10 @@ class ApplicationCreateRequest(BaseModel):
 class ApplicationTransitionRequest(BaseModel):
     to_stage: str
     remarks: Optional[str] = None
+    expected_version: Optional[int] = None
 
 class ApplicationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     application_number: str
     institution_id: int
@@ -62,15 +60,13 @@ class ApplicationResponse(BaseModel):
     scrutiny_officer_id: Optional[int] = None
     priority_score: int
     priority_factors: Optional[Any] = None
+    version: int = 1
     submitted_at: datetime
     approved_at: Optional[datetime] = None
     rejected_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     open_deficiencies_count: int = 0
-
-    class Config:
-        from_attributes = True
 
 class ApplicationDetailResponse(ApplicationResponse):
     stages: List[ApplicationStageResponse] = []

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, require_roles
+from app.core.dependencies import get_current_user, require_roles, verify_regional_access
 from app.models.user import User
 from app.models.evc import EVCInspection
 from app.models.application import Application
@@ -46,11 +46,14 @@ def get_evc_queue(
 def schedule_evc_inspection(
     request: EVCScheduleRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "REGIONAL_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     app = db.query(Application).filter(Application.id == request.application_id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
+
+    if app.institution:
+        verify_regional_access(app.institution.region, current_user)
 
     inspection = db.query(EVCInspection).filter(EVCInspection.application_id == app.id).first()
     if not inspection:
@@ -77,6 +80,7 @@ def schedule_evc_inspection(
 
     db.refresh(inspection)
 
+    actor_role = current_user.roles[0].role if current_user.roles else "EVC_COORDINATOR"
     log_audit_event(
         db=db,
         action="EVC_SCHEDULED",
@@ -84,7 +88,7 @@ def schedule_evc_inspection(
         entity_id=inspection.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="EVC_COORDINATOR",
+        actor_role=actor_role,
         details={
             "application_id": app.id,
             "scheduled_date": request.scheduled_date.isoformat(),
@@ -117,7 +121,7 @@ def submit_evc_report(
     id: int,
     request: EVCReportSubmitRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "COMMITTEE_MEMBER", "REGIONAL_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "COMMITTEE_MEMBER"]))
 ):
     inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
     if not inspection:
@@ -142,6 +146,7 @@ def submit_evc_report(
 
     db.refresh(inspection)
 
+    actor_role = current_user.roles[0].role if current_user.roles else "COMMITTEE_MEMBER"
     log_audit_event(
         db=db,
         action="EVC_REPORT_SUBMITTED",
@@ -149,7 +154,7 @@ def submit_evc_report(
         entity_id=inspection.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="COMMITTEE_MEMBER",
+        actor_role=actor_role,
         details={
             "application_id": app.id,
             "recommendation": request.recommendation,

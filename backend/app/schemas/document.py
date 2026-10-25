@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import date, datetime
 
 class DocumentVersionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     document_record_id: int
     version: int
@@ -16,10 +17,8 @@ class DocumentVersionResponse(BaseModel):
     verified_at: Optional[datetime] = None
     verification_notes: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
 class DocumentRecordResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     institution_id: int
     institution_name: Optional[str] = None
@@ -32,9 +31,6 @@ class DocumentRecordResponse(BaseModel):
     current_version: int
     created_at: datetime
     versions: List[DocumentVersionResponse] = []
-
-    class Config:
-        from_attributes = True
 
 class DocumentVerifyRequest(BaseModel):
     verification_status: str # VERIFIED or REJECTED

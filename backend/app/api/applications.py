@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, require_roles, verify_institution_access
+from app.core.dependencies import get_current_user, require_roles, verify_institution_access, verify_regional_access
 from app.models.user import User
 from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.institution import Institution
@@ -75,6 +75,7 @@ def list_applications(
             scrutiny_officer_id=app.scrutiny_officer_id,
             priority_score=score,
             priority_factors=factors,
+            version=app.version,
             submitted_at=app.submitted_at,
             approved_at=app.approved_at,
             rejected_at=app.rejected_at,
@@ -151,6 +152,7 @@ def create_application(
         scrutiny_officer_id=new_app.scrutiny_officer_id,
         priority_score=score,
         priority_factors=factors,
+        version=new_app.version,
         submitted_at=new_app.submitted_at,
         created_at=new_app.created_at,
         updated_at=new_app.updated_at,
@@ -186,6 +188,7 @@ def get_application_detail(
         scrutiny_officer_id=app.scrutiny_officer_id,
         priority_score=score,
         priority_factors=factors,
+        version=app.version,
         submitted_at=app.submitted_at,
         approved_at=app.approved_at,
         rejected_at=app.rejected_at,
@@ -208,13 +211,16 @@ def transition_application_stage(
         raise HTTPException(status_code=404, detail="Application not found")
 
     verify_institution_access(app.institution_id, current_user)
+    if app.institution:
+        verify_regional_access(app.institution.region, current_user)
 
     updated_app = execute_transition(
         db=db,
         application=app,
         to_stage=request.to_stage,
         actor=current_user,
-        remarks=request.remarks
+        remarks=request.remarks,
+        expected_version=request.expected_version
     )
 
     return get_application_detail(id=updated_app.id, db=db, current_user=current_user)
@@ -224,11 +230,14 @@ def issue_deficiency(
     id: int,
     request: DeficiencyCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     app = db.query(Application).filter(Application.id == id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
+
+    if app.institution:
+        verify_regional_access(app.institution.region, current_user)
 
     deficiency = Deficiency(
         application_id=app.id,
@@ -280,6 +289,7 @@ def cure_deficiency(
         deficiency.cure_document_url = request.cure_document_url
     deficiency.cured_at = datetime.now(timezone.utc)
 
+    actor_role = current_user.roles[0].role if current_user.roles else "INSTITUTION_ADMIN"
     log_audit_event(
         db=db,
         action="DEFICIENCY_CURE_SUBMITTED",
@@ -287,7 +297,7 @@ def cure_deficiency(
         entity_id=deficiency.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="INSTITUTION_ADMIN",
+        actor_role=actor_role,
         details={"application_id": app.id, "remarks": request.cure_remarks}
     )
 
@@ -300,11 +310,14 @@ def resolve_deficiency(
     id: int,
     deficiency_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     app = db.query(Application).filter(Application.id == id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
+
+    if app.institution:
+        verify_regional_access(app.institution.region, current_user)
 
     deficiency = db.query(Deficiency).filter(
         Deficiency.id == deficiency_id,
@@ -316,6 +329,7 @@ def resolve_deficiency(
     deficiency.status = "CURED"
     deficiency.resolved_by_officer_id = current_user.id
 
+    actor_role = current_user.roles[0].role if current_user.roles else "REGIONAL_OFFICER"
     log_audit_event(
         db=db,
         action="DEFICIENCY_RESOLVED",
@@ -323,7 +337,7 @@ def resolve_deficiency(
         entity_id=deficiency.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="REGIONAL_OFFICER",
+        actor_role=actor_role,
         details={"application_id": app.id, "deficiency_id": deficiency.id}
     )
 

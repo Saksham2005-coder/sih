@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional, Any
 from datetime import datetime
 
 class AuditEventResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     actor_id: Optional[int] = None
     actor_name: Optional[str] = None
@@ -13,6 +14,3 @@ class AuditEventResponse(BaseModel):
     details: Optional[str] = None
     ip_address: Optional[str] = None
     created_at: datetime
-
-    class Config:
-        from_attributes = True

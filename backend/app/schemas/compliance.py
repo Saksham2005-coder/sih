@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
 class ComplianceEvidenceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     undertaking_id: int
     version: int
@@ -13,9 +14,6 @@ class ComplianceEvidenceResponse(BaseModel):
     submitted_by_id: Optional[int] = None
     submitted_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class ComplianceUndertakingCreate(BaseModel):
     title: str
     category: str
@@ -23,6 +21,7 @@ class ComplianceUndertakingCreate(BaseModel):
     due_date: datetime
 
 class ComplianceUndertakingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     institution_id: int
     institution_name: Optional[str] = None
@@ -35,9 +34,6 @@ class ComplianceUndertakingResponse(BaseModel):
     verified_by_id: Optional[int] = None
     created_at: datetime
     evidences: List[ComplianceEvidenceResponse] = []
-
-    class Config:
-        from_attributes = True
 
 class ComplianceVerifyRequest(BaseModel):
     status: str # VERIFIED or DEFICIENT

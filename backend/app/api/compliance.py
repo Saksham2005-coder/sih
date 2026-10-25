@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timezone
 from app.core.database import get_db
-from app.core.dependencies import get_current_user, require_roles, verify_institution_access
+from app.core.dependencies import get_current_user, require_roles, verify_institution_access, verify_regional_access
 from app.models.user import User
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.institution import Institution
@@ -70,6 +70,8 @@ def create_undertaking(
     inst = db.query(Institution).filter(Institution.id == institution_id).first()
     if not inst:
         raise HTTPException(status_code=404, detail="Institution not found")
+
+    verify_regional_access(inst.region, current_user)
 
     undertaking = ComplianceUndertaking(
         institution_id=inst.id,
@@ -144,6 +146,7 @@ def submit_compliance_evidence(
     undertaking.status = "PENDING_VERIFICATION"
     db.commit()
 
+    actor_role = current_user.roles[0].role if current_user.roles else "COMPLIANCE_OFFICER"
     log_audit_event(
         db=db,
         action="COMPLIANCE_EVIDENCE_SUBMITTED",
@@ -151,7 +154,7 @@ def submit_compliance_evidence(
         entity_id=undertaking.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="COMPLIANCE_OFFICER",
+        actor_role=actor_role,
         details={"version": new_version, "file_name": orig_name, "checksum": checksum}
     )
 
@@ -162,11 +165,14 @@ def verify_compliance_evidence(
     id: int,
     request: ComplianceVerifyRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     undertaking = db.query(ComplianceUndertaking).filter(ComplianceUndertaking.id == id).first()
     if not undertaking:
         raise HTTPException(status_code=404, detail="Compliance undertaking not found")
+
+    if undertaking.institution:
+        verify_regional_access(undertaking.institution.region, current_user)
 
     if request.status not in ["VERIFIED", "DEFICIENT"]:
         raise HTTPException(status_code=400, detail="Status must be either 'VERIFIED' or 'DEFICIENT'")
@@ -179,6 +185,7 @@ def verify_compliance_evidence(
     
     db.commit()
 
+    actor_role = current_user.roles[0].role if current_user.roles else "REGIONAL_OFFICER"
     log_audit_event(
         db=db,
         action="COMPLIANCE_EVIDENCE_VERIFIED",
@@ -186,7 +193,7 @@ def verify_compliance_evidence(
         entity_id=undertaking.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role="REGIONAL_OFFICER",
+        actor_role=actor_role,
         details={"outcome": request.status, "notes": request.notes}
     )
 
