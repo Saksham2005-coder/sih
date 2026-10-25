@@ -16,6 +16,7 @@ class Application(Base):
     scrutiny_officer_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     priority_score = Column(Integer, default=0, nullable=False) # 0-100
     priority_factors = Column(Text, nullable=True) # JSON string explaining score
+    version = Column(Integer, default=1, nullable=False)
     
     submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     approved_at = Column(DateTime, nullable=True)
