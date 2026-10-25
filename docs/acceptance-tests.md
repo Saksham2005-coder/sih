@@ -1,7 +1,7 @@
 # Acceptance Tests & Quality Criteria — ReguFlow 360
 ## End-to-End Test Plan & Verification Procedures
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 4.0.0 (Phase 4 Hardened)
 
 ---
 
@@ -47,10 +47,18 @@
 - [x] Frontend TypeScript type check (`tsc --noEmit`) and production build (`tsc && vite build`) passing with 0 errors.
 
 #### Phase 4: Deterministic Deadline Engine & Escalations
-- [ ] Timestamps evaluated and displayed in `Asia/Kolkata`.
-- [ ] Running deadline scanner twice produces zero duplicate alerts (idempotency key enforcement).
-- [ ] Overdue deficiency triggers Tier-1 notification, then escalates to Bureau Officer (Tier-2) after SLA breach.
-- [ ] Resolving an underlying deficiency automatically clears or marks resolved related pending alerts.
+- [x] Timestamps evaluated and displayed in `Asia/Kolkata` with UTC database storage.
+- [x] Running deadline scanner repeatedly produces zero duplicate alerts (SHA-256 cycle-aware idempotency key enforcement).
+- [x] Multi-vector deadline discovery across Application stage SLAs, Compliance undertakings, Document expiries, and EVC visits.
+- [x] Overdue deficiency triggers Tier-1 notification, then escalates through configured chain (`REMINDER_L1`, `REMINDER_L2`, `ESCALATION_L1_RO`, `ESCALATION_L2_BO`, `ESCALATION_L3_MEMBER_SEC`).
+- [x] Resolving or curing an underlying deficiency/obligation automatically resolves related pending alerts.
+- [x] Autonomous background scheduler (`scheduler.py`) runs periodic scans without requiring an open browser or manual intervention.
+- [x] Strict tenant isolation on notifications and regional scoping on escalations (`check_regional_scope`).
+- [x] Cross-region escalation acknowledgement is denied with `HTTP 403 Forbidden`.
+- [x] Single notification mark-as-read validates resource ownership before updating read state.
+- [x] Alembic migration (`b978968a8caa`) upgrades and downgrades cleanly.
+- [x] Total automated tests: 92 automated backend tests passing in pytest suite (`92 passed, 0 failed`).
+- [x] Frontend TypeScript type check (`tsc --noEmit`) and production build (`tsc && vite build`) passing with 0 errors.
 
 #### Phase 5: Command Centre, Rule Studio & Differentiators
 - [ ] Command Centre aggregate metrics reconcile 100% with underlying record counts.
@@ -134,3 +142,23 @@
    - `test_evc_report_submission_success`: Panel report upload advances inspection to `REPORT_SUBMITTED` and application to `EVC_COMPLETED` without prematurely approving.
    - `test_invalid_evc_recommendation_rejected`: Non-canonical recommendations rejected with 400.
    - `test_missing_evc_report_notes_rejected`: Missing report notes rejected with 400.
+
+---
+
+### 4. Phase 4 Test Coverage Summary (14 New Tests, Total 92 Tests)
+
+`tests/test_deadline_engine.py` (14 comprehensive tests):
+1. `test_deadline_condition_derivation_boundaries`: Verifies deterministic condition derivation (`ON_TRACK`, `DUE_SOON`, `DUE_TODAY`, `OVERDUE`) across UTC/Asia-Kolkata boundaries and threshold days.
+2. `test_multi_vector_deadline_scan_executes_successfully`: Verifies execution across all vectors (Application stage SLAs, Compliance undertakings, Document renewals, EVC scheduling, EVC report submissions).
+3. `test_zero_duplicate_alerts_on_repeated_scans`: Verifies strict idempotency; running the scanner consecutively yields 0 new alerts and records `duplicates_prevented > 0`.
+4. `test_cycle_aware_idempotency_allows_new_cycle_alert`: Verifies that cycle discriminators (`v1` vs. `v2`) permit legitimate alert generation when an obligation enters a new workflow cycle.
+5. `test_auto_resolution_of_cured_deficiency_escalations`: Verifies that curing a deficiency or verifying compliance atomically transitions active escalations to `RESOLVED` with justification reasons.
+6. `test_multi_tier_escalation_chain_exists`: Verifies progressive escalation generation through configured tiers (`REMINDER_L1`, `REMINDER_L2`, `ESCALATION_L1_RO`, `ESCALATION_L2_BO`, `ESCALATION_L3_MEMBER_SEC`).
+7. `test_regional_officer_scoping_on_escalations`: Verifies Regional Officers query escalations strictly within their jurisdiction.
+8. `test_cross_region_escalation_acknowledgment_blocked`: Verifies that an officer attempting to acknowledge an out-of-jurisdiction escalation is denied with `HTTP 403 Forbidden`.
+9. `test_officer_acknowledges_in_scope_escalation`: Verifies successful escalation acknowledgement with official follow-up remarks and audit event generation.
+10. `test_institution_isolation_on_notifications`: Verifies multi-tenant isolation on `/api/alerts/notifications` preventing leakage across institutions.
+11. `test_mark_notification_read_ownership_enforcement`: Verifies single notification mark-as-read requires recipient or tenant ownership (denies cross-tenant tampering with 403).
+12. `test_engine_status_endpoint_returns_metrics`: Verifies `GET /api/alerts/engine-status` reports scheduler health, interval, and aggregate run counts.
+13. `test_unauthorized_user_cannot_trigger_scan`: Verifies RBAC protection on `POST /api/alerts/run-scan` (denies regular institution users with 403).
+14. `test_rule_studio_updates_affect_deadline_service`: Verifies dynamic integration with Rule Studio; modifying SLA thresholds in `RuleDefinition` config alters scanner calculations.

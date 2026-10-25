@@ -58,12 +58,17 @@
    - Show Officer verification of the renewed version.
 
 #### Step 6: Deadline Engine & Automated Escalations (0:45)
-1. Navigate to the **Escalations** console.
-2. Show an application whose cure SLA was breached:
-   - Trigger level: `ESCALATION_L2_BO`.
-   - Recipient: Bureau Officer.
-   - Idempotency key displayed to prove non-duplication.
-3. Demonstrate clicking "Run Deadline Scan" which re-evaluates all SLA clocks idempotently.
+1. Navigate to the **Escalations** console (`/officer/escalations`):
+   - Review the **Deadline Engine Health** status card displaying scheduler status (`RUNNING`), 300s polling interval, lifetime scans, and last run telemetry.
+   - Show an application or compliance undertaking whose cure SLA was breached:
+     - Multi-tier escalation level: `ESCALATION_L1_RO`, `ESCALATION_L2_BO`, or `ESCALATION_L3_MEMBER_SEC`.
+     - Recipient Role and regional scoping (`Western Region`).
+     - SHA-256 idempotency key displayed to prove zero duplicate alerts across repeated runs.
+2. Click **Acknowledge Escalation**: Provide official follow-up remarks in the modal and record acknowledgment, observing the status badge update and audit trail entry.
+3. Switch to Institution Portal **Notifications Center** (`/institution/notifications`):
+   - Filter by unread and severity (`INFO`, `WARNING`, `CRITICAL`).
+   - Demonstrate clicking deep action links (e.g., "View Application" or "View Passport") taking the user directly to the affected record.
+4. Demonstrate clicking "Run Deadline Scan" which idempotently executes a multi-vector pass with persistent telemetry logging.
 
 #### Step 7: Rule Studio & Audit Trail (0:45)
 1. Visit **Rule Studio**: Show configurable SLA thresholds, stage progression rules, and version control.

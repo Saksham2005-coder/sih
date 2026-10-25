@@ -158,11 +158,29 @@ export const api = {
     }),
 
   // Alerts & Deadlines
-  getNotifications: () => request<NotificationItem[]>('/alerts/notifications'),
-  getEscalations: () => request<AlertEscalationItem[]>('/alerts/escalations'),
+  getNotifications: (params?: { unread_only?: boolean; level?: string; entity_type?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.unread_only) query.set('unread_only', 'true');
+    if (params?.level) query.set('level', params.level);
+    if (params?.entity_type) query.set('entity_type', params.entity_type);
+    return request<NotificationItem[]>(`/alerts/notifications?${query.toString()}`);
+  },
+  getEscalations: (params?: { status_filter?: string; entity_type?: string; escalation_level?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.status_filter) query.set('status_filter', params.status_filter);
+    if (params?.entity_type) query.set('entity_type', params.entity_type);
+    if (params?.escalation_level) query.set('escalation_level', params.escalation_level);
+    return request<AlertEscalationItem[]>(`/alerts/escalations?${query.toString()}`);
+  },
   runDeadlineScan: () => request<any>('/alerts/run-scan', { method: 'POST' }),
-  acknowledgeEscalation: (id: number) => request<any>(`/alerts/${id}/acknowledge`, { method: 'POST' }),
+  acknowledgeEscalation: (id: number, remarks?: string) =>
+    request<any>(`/alerts/${id}/acknowledge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ remarks }),
+    }),
   markNotificationRead: (id: number) => request<any>(`/alerts/notifications/${id}/read`, { method: 'POST' }),
+  getEngineStatus: () => request<any>('/alerts/engine-status'),
 
   // Rules & Audit
   getRules: () => request<RuleDefinitionItem[]>('/rules'),

@@ -5,7 +5,7 @@ from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.document import DocumentRecord, DocumentVersion
 from app.models.evc import EVCInspection
-from app.models.alert import Notification, AlertEscalation
+from app.models.alert import Notification, AlertEscalation, DeadlineEngineRun
 from app.models.audit import AuditEvent
 from app.models.rule import RuleDefinition
 from app.models.token_blacklist import RevokedToken
@@ -25,6 +25,7 @@ __all__ = [
     "EVCInspection",
     "Notification",
     "AlertEscalation",
+    "DeadlineEngineRun",
     "AuditEvent",
     "RuleDefinition",
     "RevokedToken",

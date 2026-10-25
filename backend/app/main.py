@@ -8,13 +8,18 @@ from app.seed.seed_data import seed_database
 # Routers
 from app.api import health, auth, applications, compliance, documents, evc, alerts, rules, audit, reports
 
+from app.services.scheduler import scheduler
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: ensure tables and seed data exist
     Base.metadata.create_all(bind=engine)
     seed_database()
+    # Start autonomous background deadline engine
+    await scheduler.start(interval_seconds=60)
     yield
-    # Shutdown
+    # Graceful shutdown
+    await scheduler.stop()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

@@ -1,13 +1,14 @@
 # Data Model Specification — ReguFlow 360
 ## Relational Schema & Entity Relationship Definitions
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 3.0.0 (Phase 4 Hardened)
 
 ---
 
 ### 1. Schema Overview & Relational Integrity
 ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchemy 2.0 with strict foreign key constraints, explicit indexing on frequently filtered lookup columns (`institution_id`, `current_stage`, `due_date`, `expiry_date`, `idempotency_key`), monotonic versioning for optimistic locking, and UTC-timestamped audit triggers.
 Phase 3 establishes an immutable, versioned document store, explicit institutional compliance passport undertakings with structured evidence histories, and EVC inspection panel coordination with prerequisite enforcement in the workflow state machine.
+Phase 4 introduces a deterministic, multi-vector deadline and escalation engine with an autonomous background scheduler, cycle-aware deduplication keys, persistent engine run telemetry, and multi-tier escalation chains across application stages, compliance undertakings, document renewals, and EVC visits.
 
 ```
                   +-------------------+
@@ -45,10 +46,10 @@ Phase 3 establishes an immutable, versioned document store, explicit institution
 | compliance_evidence |            | document_versions | (storage_key, mime_type, file_size, SHA-256)
 +---------------------+            +-------------------+
 
-+---------------------+     +-----------------------+     +-------------------+     +-------------------+
-|    notifications    |     |   alert_escalations   |     |   audit_events    |     |  revoked_tokens   |
-| (user / inst scope) |     | (idempotent triggers) |     | (immutable log)   |     | (session jti ban) |
-+---------------------+     +-----------------------+     +-------------------+     +-------------------+
++---------------------+     +-----------------------+     +-----------------------+     +-------------------+
+|    notifications    |     |   alert_escalations   |     | deadline_engine_runs  |     |   audit_events    |
+| (user / role / inst)|     | (cycle-aware key)     |     | (scheduler telemetry) |     | (immutable log)   |
++---------------------+     +-----------------------+     +-----------------------+     +-------------------+
 ```
 
 ---
@@ -216,29 +217,55 @@ Phase 3 establishes an immutable, versioned document store, explicit institution
 - `recommendation` (VARCHAR(64), NULLABLE) — `"RECOMMENDED_APPROVAL"`, `"DEFICIENCY_NOTED"`, `"RECOMMENDED_REJECTION"`
 - `created_at`, `updated_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.9 `notifications` & `alert_escalations`
+#### 2.9 `notifications`, `alert_escalations` & `deadline_engine_runs`
 - `notifications`:
   - `id` (Primary Key)
-  - `user_id` (FK -> `users.id`, NULLABLE)
-  - `institution_id` (FK -> `institutions.id`, NULLABLE)
+  - `user_id` (FK -> `users.id`, NULLABLE) — Specific recipient user record
+  - `recipient_role` (VARCHAR(64), NULLABLE, INDEXED) — Role-targeted broadcasts (e.g. `REGIONAL_OFFICER`, `BUREAU_OFFICER`)
+  - `institution_id` (FK -> `institutions.id`, NULLABLE, INDEXED) — Tenant isolation scope
+  - `entity_type` (VARCHAR(64), NULLABLE, INDEXED) — Regulatory entity reference (`APPLICATION`, `UNDERTAKING`, `DOCUMENT`, `EVC`)
+  - `entity_id` (INTEGER, NULLABLE, INDEXED) — Foreign reference identifier
   - `title` (VARCHAR(255), NOT NULL)
   - `message` (TEXT, NOT NULL)
   - `channel` (VARCHAR(32), DEFAULT `"IN_APP"`)
-  - `level` (VARCHAR(32), DEFAULT `"INFO"`)
+  - `level` (VARCHAR(32), DEFAULT `"INFO"`) — `"INFO"`, `"WARNING"`, `"CRITICAL"`
+  - `delivery_channel` (VARCHAR(32), DEFAULT `"IN_APP"`) — `"IN_APP"`, `"EMAIL"`, `"SMS"`
+  - `delivery_status` (VARCHAR(32), DEFAULT `"DELIVERED"`) — `"PENDING"`, `"DELIVERED"`, `"FAILED"`, `"SIMULATED"`
   - `is_read` (BOOLEAN, DEFAULT FALSE)
-  - `link_url` (VARCHAR(255))
+  - `read_at` (TIMESTAMP WITH TIME ZONE, NULLABLE)
+  - `link_url` (VARCHAR(255)) — Deep action link to application/passport/EVC view
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 - `alert_escalations`:
   - `id` (Primary Key)
-  - `idempotency_key` (VARCHAR(128), UNIQUE, INDEXED)
-  - `entity_type` (VARCHAR(64), NOT NULL)
+  - `idempotency_key` (VARCHAR(128), UNIQUE, INDEXED) — Deterministic SHA-256 deduplication key: `hash(f"{entity_type}:{entity_id}:{trigger_type}:{threshold_days}:{escalation_level}:{recipient_role}:{cycle_id}")`
+  - `entity_type` (VARCHAR(64), NOT NULL) — `"APPLICATION"`, `"UNDERTAKING"`, `"DOCUMENT"`, `"EVC"`
   - `entity_id` (INTEGER, NOT NULL)
-  - `trigger_type` (VARCHAR(64), NOT NULL)
+  - `trigger_type` (VARCHAR(64), NOT NULL) — `"REMINDER_UPCOMING"`, `"OVERDUE_ESCALATION"`, `"EXPIRY_WARNING"`, `"VISIT_COMPLETION"`
   - `threshold_days` (INTEGER, NOT NULL)
-  - `escalation_level` (VARCHAR(64), NOT NULL)
+  - `escalation_level` (VARCHAR(64), NOT NULL) — `"REMINDER_L1"`, `"REMINDER_L2"`, `"ESCALATION_L1_RO"`, `"ESCALATION_L2_BO"`, `"ESCALATION_L3_MEMBER_SEC"`
   - `recipient_role` (VARCHAR(64))
-  - `status` (VARCHAR(32), DEFAULT `"ACTIVE"`)
+  - `status` (VARCHAR(32), DEFAULT `"ACTIVE"`) — `"ACTIVE"`, `"ACKNOWLEDGED"`, `"RESOLVED"`, `"CLOSED"`
+  - `cycle_id` (VARCHAR(64), DEFAULT `"v1"`, INDEXED) — Cycle discriminator enabling alert generation on reopened/returned cycles
+  - `rule_code` (VARCHAR(64), NULLABLE) — Originating Rule Studio policy code
+  - `rule_version` (VARCHAR(16), NULLABLE) — Snapshot of rule configuration version at trigger time
+  - `region` (VARCHAR(64), NULLABLE, INDEXED) — Regional boundary for RO scoping
+  - `institution_id` (INTEGER, NULLABLE, INDEXED) — Institution tenancy identifier
+  - `resolved_at` (TIMESTAMP WITH TIME ZONE, NULLABLE) — Auto-resolution or official closure timestamp
+  - `resolved_reason` (TEXT, NULLABLE) — E.g. `"Deficiency cured by institution"`, `"Document renewal verified"`
   - `created_at` (TIMESTAMP WITH TIME ZONE)
+- `deadline_engine_runs`:
+  - `id` (Primary Key)
+  - `run_id` (VARCHAR(64), UNIQUE, INDEXED, NOT NULL) — UUID string for run trace
+  - `trigger_mode` (VARCHAR(32), NOT NULL) — `"SCHEDULED_WORKER"`, `"ON_DEMAND_MANUAL"`
+  - `scanned_entities` (INTEGER, DEFAULT 0)
+  - `reminders_created` (INTEGER, DEFAULT 0)
+  - `escalations_created` (INTEGER, DEFAULT 0)
+  - `duplicates_prevented` (INTEGER, DEFAULT 0)
+  - `resolved_count` (INTEGER, DEFAULT 0)
+  - `execution_time_ms` (INTEGER, DEFAULT 0)
+  - `status` (VARCHAR(32), DEFAULT `"SUCCESS"`) — `"SUCCESS"`, `"FAILED"`, `"PARTIAL"`
+  - `error_message` (TEXT, NULLABLE)
+  - `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT UTC)
 
 #### 2.10 `audit_events` & `rule_definitions`
 - `audit_events`:

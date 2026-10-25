@@ -1,7 +1,7 @@
 # Limitations, Assumptions & Prototype Boundaries — ReguFlow 360
 ## Regulatory Integrity & Engineering Disclaimers
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 3.0.0 (Phase 4 Hardened)
 
 ---
 
@@ -17,9 +17,10 @@
 - In this prototype, submitted documents (PDFs, NOCs, Land Deeds) are saved securely in local persistent storage (`backend/uploads/`) with strict path sanitation, randomized file identifiers, authenticated stream endpoints (`GET /api/documents/download/{filename}`), and SHA-256 integrity checksums.
 - In enterprise production, this storage module should interface directly with encrypted Cloud Object Storage (e.g. AWS S3 with Object Lock or Azure Blob Storage) with ClamAV/anti-malware scanning pipeline before acceptance.
 
-#### 2.2 Notification Delivery Channels
-- Real-time in-app notifications and durable escalation logs are fully implemented and stored in the database.
-- External SMS (e.g. CDAC/NIC SMS gateway) and SMTP email dispatches are simulated with structured event logging to ensure that lack of third-party SMS/email API credentials does not impede local execution.
+#### 2.2 Notification Delivery Channels & Idempotent Escalations
+- **Core In-App Persistence**: All in-app notifications and multi-tier escalations are authoritative, durable records stored directly in the database (`notifications` and `alert_escalations` tables). They do not rely on transient caches or active browser sessions.
+- **Simulated External Delivery**: External SMS (e.g. CDAC/NIC SMS gateway) and SMTP email channels are designed with clean outbox/adapter interfaces (`delivery_channel="EMAIL"` or `"SMS"`, `delivery_status="SIMULATED"`). In the local prototype environment, external dispatches log structured simulation payloads without faking live transmission receipts. In production, these adapters can be swapped for real gateway SDKs without changing the underlying domain models or database transactions.
+- **Autonomous Scheduling**: The background scheduler runs as an uncoupled singleton process in FastAPI lifespan, ensuring scans occur repeatedly even when no user or browser is connected. On-demand scans share the identical execution engine and cycle-aware idempotency keys.
 
 #### 2.3 AI Case Brief Assistant & Fallback Mode
 - The system includes a deterministic Case Brief synthesis engine that summarizes application milestones, resolved deficiencies, and verified evidence without requiring external paid LLM APIs.

@@ -1,7 +1,7 @@
 # API Contracts & OpenAPI Specification — ReguFlow 360
 ## RESTful Endpoints, Schemas, and Response Envelopes
 **SIH 2026 Problem Statement 26262**  
-**Version:** 3.0.0 (Phase 3 Completed)
+**Version:** 4.0.0 (Phase 4 Completed)
 
 ---
 
@@ -94,9 +94,14 @@ Standard error codes:
 - `POST /api/evc/{id}/submit-report`: Upload signed committee inspection findings and recommendation (`RECOMMENDED_APPROVAL`, `DEFICIENCY_NOTED`, `RECOMMENDED_REJECTION`). Transitions application to `EVC_COMPLETED` without prematurely approving.
 
 #### 2.6 Alerts, Deadlines & Escalations (`/api/alerts`)
-- `GET /api/alerts`: List notifications and active escalations for the current user/tenant.
-- `POST /api/alerts/run-scan`: Trigger idempotent deadline and escalation evaluation pass.
-- `POST /api/alerts/{id}/acknowledge`: Mark escalation acknowledged by an authorized officer.
+- `GET /api/alerts`: Aggregate payload containing both user/tenant notifications and active escalations (backward-compatible).
+- `GET /api/alerts/notifications`: List notifications with query parameters (`is_read`, `channel`, `page`, `limit`). Tenant-scoped for institutions; role-targeted and broadcast-scoped for AICTE officers. Response metadata includes total and unread counts.
+- `POST /api/alerts/notifications/{id}/read`: Mark a single notification as read. Enforces strict ownership checks (user or institution scope).
+- `POST /api/alerts/notifications/mark-all-read`: Mark all scoped notifications as read for current user/institution.
+- `GET /api/alerts/escalations`: List active and historical escalations with query parameters (`status`, `entity_type`, `page`, `limit`). Regional Officers are strictly restricted to escalations within their assigned region or unassigned regional scope (`region == current_user.region`). Bureau Officers, Competent Authority, and System Admins access national scope.
+- `POST /api/alerts/escalations/{id}/acknowledge`: Mark escalation acknowledged with optional officer follow-up remarks (`AcknowledgeEscalationRequest`). Validates regional jurisdiction guard (cross-region returns `403 Forbidden`) and appends an immutable audit event.
+- `GET /api/alerts/engine-status`: Operational telemetry endpoint returning `is_running`, `scan_interval_seconds`, `last_run` summary (items examined, reminders, escalations, duplicates prevented, execution time), and lifetime aggregate statistics (`total_runs`, `total_reminders_created`, `total_escalations_created`).
+- `POST /api/alerts/run-scan`: Trigger an on-demand, multi-vector deadline and escalation scan pass. Protected by RBAC (`rules.manage` or `application.transition` permission required). Records run metadata in `deadline_engine_runs` table and returns `DeadlineEngineRunResponse`.
 
 #### 2.7 Rule Studio & Audit Trail (`/api/rules`, `/api/audit`, `/api/reports`)
 - `GET /api/rules`: List configurable workflow templates and SLA thresholds.

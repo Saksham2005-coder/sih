@@ -183,11 +183,17 @@ export interface NotificationItem {
   id: number;
   user_id?: number | null;
   institution_id?: number | null;
+  recipient_role?: string | null;
+  entity_type?: string | null;
+  entity_id?: number | null;
   title: string;
   message: string;
   channel: string;
+  delivery_channel?: string | null;
+  delivery_status?: string | null;
   level: 'INFO' | 'WARNING' | 'DANGER' | 'SUCCESS';
   is_read: boolean;
+  read_at?: string | null;
   link_url?: string | null;
   created_at: string;
 }
@@ -202,10 +208,43 @@ export interface AlertEscalationItem {
   escalation_level: string;
   recipient_role: string;
   recipient_user_id?: number | null;
-  status: string;
+  region?: string | null;
+  institution_id?: number | null;
+  cycle_id?: string | null;
+  rule_code?: string | null;
+  rule_version?: string | null;
+  status: 'ACTIVE' | 'ACKNOWLEDGED' | 'RESOLVED';
   acknowledged_by_id?: number | null;
   acknowledged_at?: string | null;
+  resolved_at?: string | null;
+  resolved_reason?: string | null;
   created_at: string;
+}
+
+export interface DeadlineEngineRunItem {
+  id: number;
+  run_id: string;
+  trigger_mode: string;
+  scanned_entities: number;
+  reminders_created: number;
+  escalations_created: number;
+  duplicates_prevented: number;
+  resolved_count: number;
+  execution_time_ms: number;
+  status: string;
+  error_message?: string | null;
+  created_at: string;
+}
+
+export interface DeadlineEngineStatus {
+  is_running: boolean;
+  scan_interval_seconds: number;
+  last_run?: DeadlineEngineRunItem | null;
+  total_runs: number;
+  total_scanned: number;
+  total_reminders: number;
+  total_escalations: number;
+  total_duplicates_prevented: number;
 }
 
 export interface AuditEventItem {

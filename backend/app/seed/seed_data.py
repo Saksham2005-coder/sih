@@ -391,11 +391,26 @@ def seed_database():
                 version="1.0.0",
                 config_json=json.dumps({"warning_threshold_days": [60, 30, 15, 7], "is_illustrative_demo": True})
             ),
+            RuleDefinition(
+                rule_code="RULE_COMPLIANCE_UNDERTAKING",
+                name="Time-Bound Undertakings SLA & Escalation Tiers",
+                category="COMPLIANCE",
+                version="1.0.0",
+                config_json=json.dumps({
+                    "warning_threshold_days": [15, 7, 0],
+                    "escalation_chain": [
+                        {"min_overdue_days": 1, "tier": "ESCALATION_L1_RO", "target_role": "REGIONAL_OFFICER"},
+                        {"min_overdue_days": 7, "tier": "ESCALATION_L2_BO", "target_role": "BUREAU_OFFICER"},
+                        {"min_overdue_days": 14, "tier": "ESCALATION_L3_MEMBER_SEC", "target_role": "COMPETENT_AUTHORITY"}
+                    ],
+                    "is_illustrative_demo": True
+                })
+            ),
         ]
         db.add_all(rules)
 
         # 10. Initial Escalations and Notifications
-        esc_key = generate_idempotency_key("UNDERTAKING", u2.id, "SLA_OVERDUE", 5, "ESCALATION_L1_RO", "REGIONAL_OFFICER")
+        esc_key = generate_idempotency_key("UNDERTAKING", u2.id, "SLA_OVERDUE", 5, "ESCALATION_L1_RO", "REGIONAL_OFFICER", "1")
         esc1 = AlertEscalation(
             idempotency_key=esc_key,
             entity_type="UNDERTAKING",
@@ -404,6 +419,11 @@ def seed_database():
             threshold_days=5,
             escalation_level="ESCALATION_L1_RO",
             recipient_role="REGIONAL_OFFICER",
+            region=inst2.region,
+            institution_id=u2.institution_id,
+            cycle_id="1",
+            rule_code="RULE_COMPLIANCE_UNDERTAKING",
+            rule_version="1.0.0",
             status="ACTIVE",
             created_at=now - timedelta(days=2)
         )

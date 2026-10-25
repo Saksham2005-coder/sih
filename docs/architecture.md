@@ -1,7 +1,7 @@
 # Architecture Specification — ReguFlow 360
 ## Integrated Modular Monolith Architecture
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 3.0.0 (Phase 4 Hardened)
 
 ---
 
@@ -100,9 +100,38 @@ Crafted with React, TypeScript in strict mode, Vite, and Tailwind CSS configured
 
 ---
 
-### 4. Background Processing & Deadline Engine
-The deadline engine runs synchronously on-demand (via an authorized API endpoint `/api/alerts/run-scan`) or asynchronously in a standalone cron/worker daemon.
-- **Idempotency Guarantee**: Every alert event generated calculates a deterministic idempotency key:
-  `idempotency_key = sha256(f"{obligation_type}:{obligation_id}:{stage}:{threshold_days}:{escalation_level}:{target_user_id or target_role}")`
-- If an alert with this key already exists in the database, the alert generation is skipped.
-- When an underlying obligation is satisfied (e.g., deficiency cured or document verified), all pending unresolved alerts linked to that obligation are automatically closed.
+### 4. Background Processing & Deadline Engine Architecture
+Phase 4 implements a deterministic, multi-vector deadline monitoring, automated notification, and escalation engine that operates continuously without requiring an open browser or manual trigger.
+
+- **Unified Multi-Vector Deadline Service (`DeadlineService`)**:
+  - Encapsulates deadline discovery and SLA evaluation across 5 regulatory vectors:
+    1. *Application Stage SLAs*: Scrutiny pendency (e.g. 7-day SLA), deficiency cure window (15 days), EVC scheduling window (10 days).
+    2. *Compliance Undertakings*: Explicit calendar due dates with upcoming reminder windows (T-15, T-7, T-0) and overdue escalation triggers.
+    3. *Document Records & Expiry*: Lease deeds (33-year), Fire NOCs, Building Plans with warning thresholds (T-45, T-30, T-7, T-0) and renewal tracking.
+    4. *EVC Scheduling SLAs*: Inspection queue age monitoring for EVC Coordinators.
+    5. *EVC Report Submission SLAs*: Post-visit report upload compliance for inspection panels.
+  - Dynamic Rule Studio Integration: Reads SLA thresholds, reminder offsets, and escalation recipient chains directly from active `RuleDefinition` records (`RULE_EOA_SLA`, `RULE_COMPLIANCE_UNDERTAKING`, `RULE_DOCUMENT_VALIDITY`, `RULE_EVC_SLA`) with safe fallback defaults.
+
+- **Cycle-Aware Deduplication & Idempotency**:
+  - Formulates a deterministic SHA-256 idempotency key:
+    `idempotency_key = sha256(f"{entity_type}:{entity_id}:{trigger_type}:{threshold_days}:{escalation_level}:{recipient_role}:{cycle_id}")`
+  - Injected `cycle_id` (e.g. `v1`, `v2`) ensures that if a deficiency is returned for a second round of scrutiny, legitimate new alerts are emitted without being suppressed by previous cycle records.
+  - Backed by a database unique constraint on `alert_escalations.idempotency_key` ensuring zero duplicate records across concurrent worker executions.
+
+- **Multi-Tier Escalation Model**:
+  - Overdue conditions trigger progressive, role-authorized escalation steps:
+    - `REMINDER_L1`: Institution Admin / Compliance Officer reminder.
+    - `REMINDER_L2`: Urgent notice to Institution and Regional Officer.
+    - `ESCALATION_L1_RO`: Breached SLA routed to Regional Officer for action.
+    - `ESCALATION_L2_BO`: Breached SLA (> 3-5 days overdue) escalated to Bureau Officer.
+    - `ESCALATION_L3_MEMBER_SEC`: Severe breach (> 7-10 days overdue) escalated to Member Secretary / Competent Authority.
+  - Prevents automated statutory decisions: Escalation generates actionable operational alerts and records, never an automated approval or rejection.
+
+- **Auto-Resolution of Obsolete Alerts**:
+  - When an underlying obligation is resolved (e.g. deficiency cured, compliance verified, or document renewal verified), all related unresolved alerts are atomically updated to `status = "RESOLVED"` with a recorded timestamp and justification reason.
+
+- **Autonomous Background Scheduler (`DeadlineScheduler`)**:
+  - Managed singleton running an asynchronous non-blocking loop via `asyncio.create_task` initialized during FastAPI `lifespan`.
+  - Configurable polling interval (`DEADLINE_SCAN_INTERVAL_SECONDS`, default 300s).
+  - Telemetry and Audit: Each run generates an immutable record in `deadline_engine_runs` capturing items scanned, alerts generated, duplicates prevented, execution time, and error status.
+  - On-Demand Scan Trigger: Authorized officers (`rules.manage` or `application.transition`) can trigger manual scans via `POST /api/alerts/run-scan`, sharing identical service logic and idempotency guarantees.
