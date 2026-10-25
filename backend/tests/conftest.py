@@ -6,6 +6,7 @@ from app.seed.seed_data import seed_database
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     seed_database()
     yield
