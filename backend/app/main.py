@@ -12,9 +12,10 @@ from app.services.scheduler import scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables and seed data exist
+    # Startup: ensure tables exist
     Base.metadata.create_all(bind=engine)
-    seed_database()
+    if settings.is_demo_allowed and not settings.is_production:
+        seed_database()
     # Start autonomous background deadline engine
     await scheduler.start(interval_seconds=60)
     yield

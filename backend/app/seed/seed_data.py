@@ -15,6 +15,12 @@ from app.models.rule import RuleDefinition
 from app.services.deadline_service import generate_idempotency_key
 
 def seed_database():
+    from app.core.config import settings
+    if settings.is_production:
+        raise RuntimeError(
+            "Production safety violation: Automatic seeding of shared demo identities and synthetic data is prohibited in production mode."
+        )
+
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 

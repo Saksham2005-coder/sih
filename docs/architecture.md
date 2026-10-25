@@ -1,7 +1,7 @@
 # Architecture Specification — ReguFlow 360
 ## Integrated Modular Monolith Architecture
 **SIH 2026 Problem Statement 26262**  
-**Version:** 3.0.0 (Phase 4 Hardened)
+**Version:** 4.0.0 (Remediation 3 Production-Safety Hardened & Release Integrity Verified)
 
 ---
 
@@ -198,5 +198,34 @@ Critical Remediation 1 eliminates the generic single-dashboard defect by introdu
 3. **Query Cache Isolation (`queryClient.clear()`)**:
    - Centralized `queryClient` singleton in `src/queryClient.ts`.
    - `AuthContext.tsx` triggers `queryClient.clear()` on login, logout, and role switching, guaranteeing zero residual cached records across persona transitions.
+
+---
+
+### 7. Deployment Security Architecture, Container Hardening & Settings Validation
+
+ReguFlow 360 separates local development ergonomics from production deployment security:
+
+1. **Dual Docker Compose Architecture**:
+   - `docker-compose.yml` (Development):
+     - PostgreSQL port is bound strictly to `127.0.0.1:5432:5432` on the loopback adapter, ensuring the database is accessible for local development tools while preventing host LAN/WAN exposure.
+     - Includes automated healthchecks and ordered service dependency (`depends_on: backend: condition: service_healthy`) to eliminate startup race conditions.
+   - `docker-compose.prod.yml` (Hardened Production):
+     - Database port `5432` is omitted from port mapping; database container communicates solely through the internal Docker network.
+     - Requires external provisioning of `SECRET_KEY` and `DATABASE_URL` via environment variables.
+     - Disables debug and demo capabilities (`ENVIRONMENT=production`, `DEBUG=false`, `DEMO_MODE=false`).
+
+2. **Fail-Closed Configuration Validation (`config.py`)**:
+   - Built on Pydantic v2 `model_validator(mode="after")`.
+   - In production mode (`is_production == True`):
+     - `SECRET_KEY` must be explicitly provided, must be >= 32 characters, and cannot match known development keys or substrings (`supersecret_dev_key`, `dev_key`, `change_in_production`, `secret`, `changeme`).
+     - `DEBUG=True` is rejected.
+     - `DEMO_MODE=True` is rejected.
+     - SQLite `DATABASE_URL` is rejected.
+     - Default development passwords in `DATABASE_URL` (`:reguflow_secret@`, `:reguflow_secure_pass@`, `:postgres@`) are rejected.
+     - Validation exceptions never print, format, or leak the actual secret values.
+
+3. **Database Seeding Lifecycle**:
+   - `seed_database()` executes conditionally in development mode only when `is_demo_allowed and not is_production`.
+   - In production mode, `seed_database()` actively raises a `RuntimeError`, guaranteeing that shared demo accounts and synthetic fixtures cannot be inadvertently inserted into a production database.
 
 

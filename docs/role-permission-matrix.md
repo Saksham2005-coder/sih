@@ -1,7 +1,7 @@
 # Role & Permission Matrix — ReguFlow 360
 ## Fine-Grained Role-Based Access Control (RBAC) Specification
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 3.0.0 (Remediation 3 Production-Safety Hardened & Release Integrity Verified)
 
 ---
 
@@ -99,6 +99,10 @@ Domain permissions are declared explicitly as constants (`Permission.*` in `back
    - Regional Officers cannot issue final statutory approvals (`APPROVED` / `REJECTED`).
    - System Administrators cannot perform statutory scrutiny sign-offs or approvals.
    - Final approval/rejection is exclusively reserved for `COMPETENT_AUTHORITY`.
+
+4. **Statutory Decision Exclusivity Across All Approval Routes**:
+   - Regardless of whether an application follows "Only Scrutiny", "Scrutiny + EVC", "EVC + SAC/SHC", or "Only EVC", statutory approval (`APPROVED`) and rejection (`REJECTED`) strictly require an explicit decision order by `COMPETENT_AUTHORITY`.
+   - Automated routing may fast-track an application past unnecessary stages (e.g., bypassing EVC for "Only Scrutiny" applications), but no automated workflow engine, officer, committee, or platform administrator can bypass the final statutory decision order.
 
 ---
 

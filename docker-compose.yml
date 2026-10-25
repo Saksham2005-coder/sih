@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: reguflow_secret
       POSTGRES_DB: reguflow360
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -35,6 +35,11 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/health\")' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   frontend:
     build:
@@ -43,7 +48,8 @@ services:
     container_name: reguflow_frontend
     restart: always
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "80:80"
 

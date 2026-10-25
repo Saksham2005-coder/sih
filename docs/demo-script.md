@@ -1,11 +1,15 @@
 # Demonstration Script — ReguFlow 360
 ## 5-to-7 Minute Regulatory Walkthrough
 **SIH 2026 Problem Statement 26262**  
-**Version:** 1.0.0
+**Version:** 2.0.0 (Remediation 3 Production-Safety Hardened & Release Integrity Verified)
 
 ---
 
-### Demo Personas & Credentials (Development Mode)
+### Demo Personas & Credentials (Local Development / Prototype Only)
+
+> [!NOTE]
+> Demo personas and 1-click login chips operate strictly in development mode (`ENVIRONMENT=development` and `DEMO_MODE=true`). In production, demo persona switching and synthetic database seeding are permanently disabled and fail closed.
+
 - **Institution Admin**: `admin@apex.edu.in` / `Password123!` (Apex Institute, Western Region -> `/institution/dashboard`)
 - **Compliance Officer**: `compliance@apex.edu.in` / `Password123!` (Apex Institute, Western Region -> `/institution/compliance-workspace`)
 - **Regional Officer (RO)**: `ro.western@aicte.gov.in` / `Password123!` (Western Regional Office -> `/officer/regional-workspace`)
@@ -100,7 +104,7 @@
 #### Step 9: APH Route Combinations & Dual Theme Accessibility (0:45)
 1. **APH Workflow Route Demonstration**:
    - File application as Institution Admin: show selection among all 4 canonical APH routes:
-     - `Extension of Approval (EoA) [Route: Only Scrutiny]` -> proves fast-track direct movement to Competent Authority.
+     - `Extension of Approval (EoA) [Route: Only Scrutiny]` -> proves fast-track direct movement to Competent Authority Review (`AWAITING_COMPETENT_AUTHORITY`) by bypassing EVC, strictly requiring explicit Competent Authority statutory decision (no automated approval).
      - `Establishment of New Program [Route: Scrutiny + EVC]` -> proves strict EVC completion prerequisite guard.
      - `Intake Expansion [Route: EVC + SAC/SHC Hearing]` -> proves Standing Hearing Committee deficiency return and resumption.
      - `Campus Relocation / Verification [Route: Only EVC]` -> proves direct entry from `SUBMITTED` into `AWAITING_EVC_SCHEDULE`.

@@ -1,7 +1,7 @@
 import os
 from typing import List, Union
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import AnyHttpUrl, validator
+from pydantic import model_validator
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "ReguFlow 360"
@@ -39,14 +39,87 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
 
     @property
+    def is_production(self) -> bool:
+        return self.ENVIRONMENT.lower() == "production"
+
+    @property
     def is_demo_allowed(self) -> bool:
         """
         Fail closed: Demo features (such as persona listing and one-click login)
         are strictly prohibited in production mode even if DEMO_MODE was set to True.
         """
-        if self.ENVIRONMENT.lower() == "production":
+        if self.is_production:
             return False
         return self.DEMO_MODE
+
+    @model_validator(mode="after")
+    def validate_production_invariants(self) -> "Settings":
+        """
+        Production-safety invariant guards:
+        When ENVIRONMENT=production, startup fails closed immediately if insecure
+        development keys, debug mode, SQLite database, or demo settings are active.
+        """
+        if self.ENVIRONMENT.lower() == "production":
+            # 1. SECRET_KEY validation
+            if not self.SECRET_KEY or not self.SECRET_KEY.strip():
+                raise ValueError(
+                    "Production safety violation: SECRET_KEY must not be empty. "
+                    "Supply a strong, cryptographically secure key (minimum 32 characters) via the SECRET_KEY environment variable."
+                )
+
+            insecure_key_patterns = [
+                "supersecret_dev_key_change_in_production_reguflow360",
+                "secret",
+                "changeme",
+                "development",
+                "password",
+                "insecure_default_secret_key_change_in_production",
+                "reguflow360_secret_key_change_in_production",
+                "dev_key",
+                "change_in_production",
+            ]
+            key_lower = self.SECRET_KEY.lower()
+            if any(p in key_lower for p in insecure_key_patterns):
+                raise ValueError(
+                    "Production safety violation: SECRET_KEY matches a known development default or insecure pattern. "
+                    "A unique production secret key (minimum 32 characters) must be provided."
+                )
+
+            if len(self.SECRET_KEY) < 32:
+                raise ValueError(
+                    f"Production safety violation: SECRET_KEY is too short ({len(self.SECRET_KEY)} characters). "
+                    "Production signing keys must be at least 32 characters long."
+                )
+
+            # 2. DEBUG mode check
+            if self.DEBUG:
+                raise ValueError(
+                    "Production safety violation: DEBUG mode must be False in production."
+                )
+
+            # 3. DEMO_MODE check
+            if self.DEMO_MODE:
+                raise ValueError(
+                    "Production safety violation: DEMO_MODE must be False in production. "
+                    "Shared demo identities and mock authentications are prohibited."
+                )
+
+            # 4. DATABASE_URL validation
+            db_url = self.DATABASE_URL.lower()
+            if db_url.startswith("sqlite"):
+                raise ValueError(
+                    "Production safety violation: SQLite is prohibited in production. "
+                    "Configure a resilient PostgreSQL connection string via DATABASE_URL."
+                )
+
+            insecure_db_passwords = ["reguflow_secret", "reguflow_secure_pass", ":postgres@", ":password@"]
+            if any(p in db_url for p in insecure_db_passwords):
+                raise ValueError(
+                    "Production safety violation: DATABASE_URL contains known default development credentials. "
+                    "Production deployments must use unique, securely provisioned credentials."
+                )
+
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env",

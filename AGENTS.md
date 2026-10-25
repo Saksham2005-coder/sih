@@ -151,3 +151,12 @@ This platform bridges two synchronized experiences over a single unified backend
 3. **Anti-Flash Pre-Hydration**: An inline head script resolves stored preferences (`localStorage.getItem('reguflow_theme')`) or system preference (`prefers-color-scheme: dark`) before hydration, preventing any wrong-theme flicker.
 4. **Accessible Theme Controllers**: The application provides accessible, keyboard-operable theme switchers in both authenticated and unauthenticated layouts, supporting Light, Dark, and live OS System synchronization.
 5. **Remediation Release Commit**: Release commit message must strictly match: `Add accessible application-wide light and dark themes`.
+
+---
+
+### 10. Critical Remediation 3: Production-Safety Hardening, End-to-End Acceptance, and Release Integrity
+1. **Fail-Closed Production Invariants**: In production (`ENVIRONMENT=production`), application startup immediately aborts if `SECRET_KEY` is missing/empty/weak (<32 chars) or contains development defaults, if `DEBUG=True`, if `DEMO_MODE=True`, or if `DATABASE_URL` is SQLite or uses development passwords. Error messages never print or leak secret keys.
+2. **Zero Synthetic Seeding in Production**: Automatic database seeding is strictly prohibited in production mode. Calling `seed_database()` in production mode raises an immediate `RuntimeError`.
+3. **Network & Database Port Isolation**: Development Docker Compose binds PostgreSQL strictly to loopback `127.0.0.1:5432:5432`. A dedicated `docker-compose.prod.yml` runs with internal database networking and zero published host database ports.
+4. **Statutory Decision Exclusivity Invariant**: All approval routes (including "Only Scrutiny") require an explicit, authorized Competent Authority decision order. Bypassing EVC does not grant automated approval.
+5. **Remediation Release Commit**: Release commit message must strictly match: `Harden deployment security and verify final acceptance`.

@@ -1,0 +1,84 @@
+# ReguFlow 360 — Production Docker Compose Deployment
+# AICTE Problem Statement 26262 — Production Hardened Configuration
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up --build -d
+#
+# Pre-requisite: Provide a production .env file with strong, random credentials:
+#   ENVIRONMENT=production
+#   DEBUG=false
+#   DEMO_MODE=false
+#   SECRET_KEY=<32+ char cryptographically random key from openssl rand -hex 32>
+#   POSTGRES_PASSWORD=<strong database password>
+#   DATABASE_URL=postgresql+psycopg2://reguflow:<strong password>@db:5432/reguflow360
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: reguflow_prod_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-reguflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Error: POSTGRES_PASSWORD must be specified in production}
+      POSTGRES_DB: ${POSTGRES_DB:-reguflow360}
+    # Security: Database port is NOT published to the host network in production.
+    # It is accessible strictly through the internal Docker network.
+    volumes:
+      - prod_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reguflow} -d ${POSTGRES_DB:-reguflow360}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - reguflow_prod_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reguflow_prod_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "false"
+      DEMO_MODE: "false"
+      SECRET_KEY: ${SECRET_KEY:?Error: SECRET_KEY must be specified in production (minimum 32 characters)}
+      DATABASE_URL: ${DATABASE_URL:?Error: DATABASE_URL must be specified in production}
+      TIMEZONE: ${TIMEZONE:-Asia/Kolkata}
+    ports:
+      - "8000:8000"
+    volumes:
+      - prod_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/api/health\")' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - reguflow_prod_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: reguflow_prod_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - reguflow_prod_net
+
+volumes:
+  prod_postgres_data:
+  prod_uploads:
+
+networks:
+  reguflow_prod_net:
+    driver: bridge

@@ -1,7 +1,7 @@
 # Acceptance Tests & Quality Criteria — ReguFlow 360
 ## End-to-End Test Plan & Verification Procedures
 **SIH 2026 Problem Statement 26262**  
-**Version:** 4.0.0 (Phase 4 Hardened)
+**Version:** 5.0.0 (Remediation 3 Production-Safety Hardened & Release Integrity Verified)
 
 ---
 
@@ -260,6 +260,32 @@
    - Proves Route 4 (Only EVC): Applications filed under `CLOSURE_PROGRAM` / `ONLY_EVC` are permitted to enter the EVC queue directly from `SUBMITTED` to `AWAITING_EVC_SCHEDULE`. Verifies that non-EVC applications attempting the same direct transition are strictly rejected (`HTTP 400 Bad Request`).
 5. `test_statutory_safeguard_approval_reserved_for_competent_authority`:
    - Regulatory Safeguard Invariant: Verifies that automation supports processing but strictly denies approval authority to unauthorized roles (`REGIONAL_OFFICER`, `BUREAU_OFFICER`, `INSTITUTION_ADMIN` receive `HTTP 403 Forbidden`). Verifies that Competent Authority rejections enforce mandatory recorded justifications.
+
+---
+
+### 9. Production-Safety Hardening & Deployment Security Test Coverage Summary (10 New Tests, Total 145 Tests)
+
+`tests/test_production_configuration_hardening.py` (10 automated security & fail-closed startup tests):
+1. `test_production_startup_rejects_missing_or_empty_secret_key`:
+   - Validates that setting `ENVIRONMENT=production` with an empty or whitespace-only `SECRET_KEY` raises a Pydantic `ValidationError` containing `"SECRET_KEY is mandatory and cannot be empty"`.
+2. `test_production_startup_rejects_weak_short_secret_key`:
+   - Validates that a `SECRET_KEY` shorter than 32 characters raises a `ValidationError` containing `"must be at least 32 characters in production"`.
+3. `test_production_startup_rejects_known_development_default_keys`:
+   - Validates that known development defaults (e.g., `"supersecret_dev_key_change_in_production_reguflow360"`, `"dev_secret_key"`, `"changeme"`) are identified and refused with a `ValidationError` containing `"cannot use development default key"`.
+4. `test_production_startup_rejects_debug_mode_true`:
+   - Validates that setting `DEBUG=True` when `ENVIRONMENT=production` immediately aborts startup with `"DEBUG mode must be disabled in production"`.
+5. `test_production_startup_rejects_demo_mode_true`:
+   - Validates that setting `DEMO_MODE=True` when `ENVIRONMENT=production` immediately aborts startup with `"DEMO_MODE cannot be enabled in production"`.
+6. `test_production_startup_rejects_sqlite_database`:
+   - Validates that setting `DATABASE_URL=sqlite:///./test.db` when `ENVIRONMENT=production` immediately aborts startup with `"SQLite is prohibited in production; use an enterprise PostgreSQL database"`.
+7. `test_production_startup_rejects_known_development_database_passwords`:
+   - Validates that known dev passwords in `DATABASE_URL` (e.g. `:reguflow_secret@`, `:reguflow_secure_pass@`, `:postgres@`) are caught and refused with `"Insecure development database credentials detected in DATABASE_URL"`.
+8. `test_production_startup_validation_does_not_leak_secret_value`:
+   - Proves that validation failure messages never echo, log, or leak secret keys in plaintext.
+9. `test_development_startup_allows_standard_dev_defaults`:
+   - Proves regression safety: standard local development configuration (`ENVIRONMENT=development`, `DEBUG=True`, `DEMO_MODE=True`) initializes cleanly and `is_demo_allowed` resolves to `True`.
+10. `test_seed_database_prohibited_in_production_runtime`:
+    - Proves that calling `seed_database()` in production mode raises `RuntimeError("Production safety violation: Automatic seeding of shared demo identities and synthetic data is prohibited in production mode.")`, preventing accidental demo seed execution.
 
 
 

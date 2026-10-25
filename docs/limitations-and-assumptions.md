@@ -1,7 +1,7 @@
 # Limitations, Assumptions & Prototype Boundaries — ReguFlow 360
 ## Regulatory Integrity & Engineering Disclaimers
 **SIH 2026 Problem Statement 26262**  
-**Version:** 3.0.0 (Phase 4 Hardened)
+**Version:** 4.0.0 (Remediation 3 Production-Safety Hardened & Release Integrity Verified)
 
 ---
 
@@ -31,6 +31,7 @@
 - Passwords in development seed data (`Password123!`) are provided strictly for demonstration and testing purposes.
 - In production, authentication should integrate with Government of India Single Sign-On (Parichay / MeriPehchaan) and multi-factor authentication (MFA/TOTP).
 - **Session Revocation**: JWT tokens carry a unique `jti` claim. Calling `POST /api/auth/logout` places the `jti` in the `revoked_tokens` table. In multi-instance production clusters, this table can be mirrored in an in-memory Redis cluster for sub-millisecond lookup latency.
+
 #### 2.5 Document Integrity vs. Statutory Legal Authenticity
 - A computed SHA-256 checksum provides bit-level tamper-evidence for stored bytes; it does not legally attest that a document is genuine, authentic, or verified by an issuing municipal or state authority. Verification sign-off by an authorized AICTE official remains a mandatory, non-automatable requirement.
 - Multi-year documents (such as 33-year land deeds or building approvals) support continuous or non-expiring validity profiles without artificial expiration enforcement.
@@ -49,5 +50,14 @@
 #### 2.8 Explainable Priority Scores vs Statutory Regulatory Decisions
 - The Explainable Priority score (0–100) is an operational triage tool designed to help human officers navigate heavy application queues.
 - **Strict Regulatory Invariant**: Operational scores do NOT constitute legal determinations, statutory non-compliance findings, or automatic approvals/rejections. All statutory decisions require explicit human action by authorized regulatory officials.
+
+#### 2.9 Production-Safety Deployment Hardening & Fail-Closed Invariants
+- **Fail-Closed Startup**: In production mode (`ENVIRONMENT=production`), the backend validates that `SECRET_KEY` is present, at least 32 characters, and does not match any development default or pattern. Startup refuses to initialize if `DEBUG=True`, `DEMO_MODE=True`, or if `DATABASE_URL` is SQLite or contains development passwords. Validation error messages never print or leak secret keys.
+- **Zero Demo Seeding**: Automatic database seeding of synthetic accounts and test applications is strictly forbidden in production. Calling `seed_database()` in production raises an immediate runtime error.
+- **Network Isolation**: The development Docker Compose setup binds PostgreSQL strictly to loopback `127.0.0.1:5432:5432` to prevent unintended host LAN/WAN exposure. The dedicated `docker-compose.prod.yml` configuration completely omits published database ports.
+
+#### 2.10 Workflow Route Invariants & Statutory Decision Safeguard
+- **Only Scrutiny Route**: Applications under the "Only Scrutiny" route (such as routine Extension of Approval renewals) bypass EVC inspection because physical inspection is not prescribed. Upon scrutiny sign-off (`SCRUTINY_COMPLETED`), the application advances directly to `AWAITING_COMPETENT_AUTHORITY`.
+- **Preservation of Explicit Human Decision**: Bypassing EVC does **NOT** grant automatic statutory approval. Final statutory approval or rejection strictly requires an explicit, recorded decision by the Competent Authority (`member.sec@aicte.gov.in`). No scheduler, report generator, AI summary, or officer can bypass this final statutory requirement.
 
 
