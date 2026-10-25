@@ -284,6 +284,7 @@ def cure_deficiency(
     if not deficiency:
         raise HTTPException(status_code=404, detail="Deficiency item not found")
 
+    deficiency.status = "CURED"
     deficiency.cure_remarks = request.cure_remarks
     if request.cure_document_url:
         deficiency.cure_document_url = request.cure_document_url

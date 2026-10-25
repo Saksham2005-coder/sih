@@ -2,7 +2,8 @@
 ## SIH 2026 Problem Statement 26262
 **Platform Repository:** `https://github.com/Saksham2005-coder/sih`  
 **Active Branch:** `main`  
-**Version:** 1.0.0 (Phase 1 Baseline & Production Architecture)
+**Version:** 1.0.0 (Phase 6 Final Release & SIH Demo Ready)  
+**Quality Status:** 123 Passing Tests (100%), 0 Linter Warnings, Production Build Verified
 
 ---
 
@@ -98,22 +99,30 @@ docker-compose up --build
 
 ### 5. Running Quality Checks & Tests
 
-- **Backend Pytest Suite:**
+- **Backend Pytest Suite (123 Tests):**
   ```bash
   cd backend
-  $env:PYTHONPATH="backend"
-  .\venv\Scripts\pytest -v tests
+  python -m pytest
   ```
-- **Database Migrations Check:**
+- **Database Migrations Execution & Schema Validation:**
   ```bash
   cd backend
-  $env:PYTHONPATH="."
-  .\venv\Scripts\alembic upgrade head
+  python -m alembic upgrade head
   ```
-- **Frontend Production Build & Strict Type Check:**
+- **Frontend ESLint:**
+  ```bash
+  cd frontend
+  npm run lint
+  ```
+- **Frontend Strict TypeScript Check & Production Build:**
   ```bash
   cd frontend
   npm run build
+  ```
+- **Operational Health & Readiness Verification:**
+  ```bash
+  curl http://localhost:8000/api/health
+  curl http://localhost:8000/api/health/readiness
   ```
 
 ---

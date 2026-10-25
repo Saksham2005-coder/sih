@@ -137,6 +137,7 @@ def get_escalations(
     return query.order_by(AlertEscalation.created_at.desc()).all()
 
 @router.post("/{id}/acknowledge")
+@router.post("/escalations/{id}/acknowledge")
 def acknowledge_escalation(
     id: int,
     request: Optional[AcknowledgeEscalationRequest] = None,

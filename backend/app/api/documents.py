@@ -190,6 +190,7 @@ def submit_document_renewal(
         )
         db.add(version)
         db.commit()
+        db.refresh(version)
 
         actor_role = current_user.roles[0].role if current_user.roles else "INSTITUTION_ADMIN"
         log_audit_event(
@@ -211,6 +212,8 @@ def submit_document_renewal(
         return {
             "message": "Document renewal submitted successfully",
             "version": new_version_num,
+            "current_version": new_version_num,
+            "version_id": version.id,
             "checksum": meta["checksum_sha256"],
             "file_name": meta["file_name"]
         }
@@ -333,14 +336,14 @@ def download_file(
             owning_inst_id = comp_ev.undertaking.institution_id
             owning_region = comp_ev.undertaking.institution.region if comp_ev.undertaking.institution else None
 
+    user_roles = [r.role for r in current_user.roles]
+    is_officer = any(r in [
+        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
+        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
+    ] for r in user_roles)
+
     # Check access scope if owning institution identified
     if owning_inst_id:
-        user_roles = [r.role for r in current_user.roles]
-        is_officer = any(r in [
-            "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
-            "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
-        ] for r in user_roles)
-
         if not is_officer:
             if current_user.institution_id != owning_inst_id:
                 raise HTTPException(
@@ -353,5 +356,12 @@ def download_file(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Access denied: Regional Officer cannot download documents outside assigned region."
                 )
+    else:
+        # If file is not associated with any recorded document or evidence in DB, reject non-admins
+        if "SYSTEM_ADMIN" not in user_roles:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Requested document is not associated with an authorized record."
+            )
 
     return FileResponse(path=file_path, filename=clean_filename)

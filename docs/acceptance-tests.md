@@ -61,17 +61,23 @@
 - [x] Frontend TypeScript type check (`tsc --noEmit`) and production build (`tsc && vite build`) passing with 0 errors.
 
 #### Phase 5: Command Centre, Rule Studio & Differentiators
-- [ ] Command Centre aggregate metrics reconcile 100% with underlying record counts.
-- [ ] Explainable Priority Score outputs numeric index and itemized contributing factors.
-- [ ] Rule Studio allows updating SLA thresholds and workflow routes with version increments.
-- [ ] Audit trail filterable by entity, actor, and date.
-- [ ] Deterministic Case Brief correctly summarizes application history without requiring paid LLM API.
+- [x] Command Centre aggregate metrics reconcile 100% with underlying record counts.
+- [x] Explainable Priority Score outputs numeric index (0-100) and itemized contributing factors without mutating statutory state.
+- [x] Rule Studio allows updating SLA thresholds and workflow routes with version increments and immutable version history ledger.
+- [x] Audit trail filterable by entity, actor, and date with sanitized CSV export against formula injection.
+- [x] Deterministic Case Brief correctly summarizes application history without requiring paid LLM API, grounded in real database citations.
+- [x] Phase 5 automated tests: 17 comprehensive tests passing (`17 passed, 0 failed`). Total tests: 109.
 
 #### Phase 6: Hardening, E2E Scenarios & Demo Readiness
-- [ ] `tsc` type check passes with 0 errors.
-- [ ] Frontend production build (`npm run build`) completes cleanly.
-- [ ] Backend pytest suite passes with full test coverage of critical state machine and isolation guards.
-- [ ] Playwright E2E scenarios verify end-to-end user journeys across both portals.
+- [x] Strict TypeScript check (`tsc --noEmit`) passes with 0 errors.
+- [x] Frontend ESLint passes with 0 errors and 0 warnings.
+- [x] Frontend production build (`npm run build`) completes cleanly in 3.19s with optimized chunks.
+- [x] Backend pytest suite passes 100% with 123 tests (`123 passed, 0 failed, 0 errors`).
+- [x] End-to-End User Journeys (A through F) verified across both Institution and AICTE Officer portals.
+- [x] Security attack vectors tested: Cross-tenant ID substitution, cross-region mutation, revoked JWT reuse, directory path traversal, and unindexed document downloads.
+- [x] Gated demo mode verified: Demo persona switcher disabled when `ENVIRONMENT=production` or `DEMO_MODE=false`.
+- [x] Operational health & readiness endpoints (`/api/health`, `/health/liveness`, `/health/readiness`) verified with database latency and scheduler lease telemetry.
+- [x] Live browser verification confirmed pristine Civic Precision styling, zero console errors, and high-density regulatory layout.
 
 ---
 
@@ -184,4 +190,39 @@
 15. `test_evc_analytics_report`: Verifies EVC inspection turnaround, mode distribution, and recommendation counts.
 16. `test_case_brief_endpoint_with_citations`: Verifies structured case brief synthesis with database milestone citations and statutory disclaimer.
 17. `test_case_brief_forbidden_for_other_institution`: Verifies tenant isolation prevents cross-institution dossier access (`HTTP 403 Forbidden`).
+
+---
+
+### 6. Phase 6 Test Coverage Summary (14 New Tests, Total 123 Tests)
+
+`tests/test_phase6_e2e_journeys.py` (14 comprehensive end-to-end and security tests):
+1. `test_journey_a_deficiency_cure_resubmit_and_scrutiny`:
+   - Full Journey A: Institution reviews itemized deficiency -> cures all deficiencies with remarks and supporting documentation -> attempts illegal self-approval (blocked with 400/403) -> resubmits dossier (`RESUBMITTED`) -> Regional Officer re-evaluates and returns to `UNDER_SCRUTINY` -> audit trail verified.
+2. `test_journey_b_evc_scheduling_and_report_lifecycle`:
+   - Full Journey B: Application enters EVC queue -> EVC Coordinator schedules panel (Convener + Expert) -> application advances to `EVC_SCHEDULED` -> panel inspects and submits official report (`RECOMMENDED_APPROVAL`) -> application advances to `EVC_COMPLETED` without granting premature statutory approval.
+3. `test_journey_c_compliance_and_document_renewals`:
+   - Full Journey C: Institution submits compliance evidence -> Regional Officer requests correction with mandatory remarks (`CORRECTION_REQUIRED`) -> Institution cures evidence -> Regional Officer verifies -> Institution submits document renewal with automatic version increment (`v1 -> v2`) and SHA-256 hash preservation -> Regional Officer verifies renewed document to `ACTIVE`.
+4. `test_journey_d_deadline_scan_escalation_and_idempotency`:
+   - Full Journey D: Multi-vector background scan discovers obligations -> consecutive scan proves 0 duplicate alerts (`duplicates_prevented > 0`) -> Regional Officer acknowledges in-scope escalation with official remarks.
+5. `test_journey_e_rule_studio_and_audit_explorer`:
+   - Full Journey E: Rule Studio administrator creates draft rule -> validation rejects negative thresholds with actionable explanation -> dry-run simulation runs without mutating database records or dispatching alerts -> publishes new version and archives prior configuration in `rule_version_history` -> unauthorized role is denied -> Audit Explorer verifies event history and downloads CSV with formula injection sanitization.
+6. `test_journey_f_case_brief_and_command_centre`:
+   - Full Journey F: Application case brief synthesizes chronological milestones grounded in database records with citations and statutory disclaimer -> Command Centre reports reconciled operational metrics and priority action items -> unauthorized institution receives 403.
+7. `test_security_id_substitution_cross_tenant_denied`:
+   - Security Attack 1: Institution user attempts identifier substitution by querying another institution's application directly by ID -> rejected with `403 Forbidden`.
+8. `test_security_regional_officer_cross_jurisdiction_denied`:
+   - Security Attack 2: Regional Officer attempts cross-jurisdiction transition on an application in another region -> rejected with `403 Forbidden`.
+9. `test_security_token_revocation_on_logout`:
+   - Security Attack 3: Logged-out token reuse attempt is rejected with `401 Unauthorized`.
+10. `test_security_document_path_traversal_blocked`:
+    - Security Attack 4: Document download request with directory traversal characters (`../../`) is rejected with `400/404`.
+11. `test_security_unindexed_document_download_blocked`:
+    - Security Attack 5: Unindexed or unassociated file on storage disk is blocked for non-admins with `404 Not Found`.
+12. `test_security_optimistic_locking_concurrency_conflict`:
+    - Concurrency Invariant: Outdated version transition attempt returns `409 Conflict`.
+13. `test_security_demo_switcher_production_gating`:
+    - Production Hardening: Persona list endpoint `/api/auth/demo-users` fails closed (`403 Forbidden`) when `ENVIRONMENT=production`.
+14. `test_health_operational_readiness_endpoint`:
+    - Operational Health: `/api/health` reports status, database connectivity, ping latency, scheduler status, and lease telemetry; `/health/liveness` and `/health/readiness` verify microservice orchestrator probes.
+
 

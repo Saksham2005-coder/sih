@@ -199,10 +199,8 @@ class DeadlineService:
                 )
                 continue
 
-            due = u.due_date
-            if due.tzinfo is None:
-                due = due.replace(tzinfo=timezone.utc)
-            days_remaining = (due - now).days
+            cond = cls.calculate_deadline_condition(u.due_date, reference_time=now)
+            days_remaining = cond["days_remaining"]
             cycle_id = f"v{len(u.evidences) + 1}"
 
             # Approaching deadline reminders: T-15, T-7, T-0
@@ -240,7 +238,7 @@ class DeadlineService:
                         entity_type="UNDERTAKING",
                         entity_id=u.id,
                         title=f"Compliance Due Soon: {u.title}",
-                        message=f"Statutory undertaking '{u.title}' is due in {max(0, days_remaining)} days ({due.strftime('%d %b %Y')}). Please upload required evidence.",
+                        message=f"Statutory undertaking '{u.title}' is due in {max(0, days_remaining)} days ({u.due_date.strftime('%d %b %Y')}). Please upload required evidence.",
                         level="WARNING" if threshold > 0 else "DANGER",
                         link_url="/compliance"
                     )
@@ -307,9 +305,8 @@ class DeadlineService:
             inst = db.query(Institution).filter(Institution.id == doc.institution_id).first()
             region = inst.region if inst else None
 
-            # Convert date to midnight UTC datetime
-            exp_dt = datetime(doc.expiry_date.year, doc.expiry_date.month, doc.expiry_date.day, tzinfo=timezone.utc)
-            days_to_expiry = (exp_dt - now).days
+            cond = cls.calculate_deadline_condition(doc.expiry_date, reference_time=now)
+            days_to_expiry = cond["days_remaining"]
             cycle_id = f"v{doc.current_version}"
 
             # Auto-resolve old expiry escalations if renewed and verified

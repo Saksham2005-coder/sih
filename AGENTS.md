@@ -125,4 +125,14 @@ This platform bridges two synchronized experiences over a single unified backend
 5. **Distributed Scheduler Coordination**: Multi-worker background deadline scans coordinate through database leases (`scheduler_leases`), ensuring mutual exclusion and preventing overlapping execution.
 6. **Statutory AI Boundary**: Case brief summaries are strictly informational syntheses grounded in database facts and citations. AI must never approve, reject, verify compliance, or overrule human officers.
 
+---
+
+### 7. Phase 6 Hardening, End-to-End Scenarios & SIH Demo Release Directives
+1. **End-to-End Regulatory Integrity**: All 6 acceptance journeys (Journeys A through F) are backed by automated tests, verifying application deficiency cures, EVC scheduling & panel reporting, compliance undertakings & document renewals, automated deadline scans & deduplicated escalations, Rule Studio simulations & audit logs, and explainable case briefs.
+2. **Unindexed Storage Boundary**: Storage downloads reject unindexed files on disk for non-administrators with HTTP 404, eliminating arbitrary storage path probing.
+3. **Deep Operational Telemetry**: The `/api/health` endpoint reports sub-millisecond database ping latencies, scheduler thread state, distributed lease telemetry, and scan staleness alongside dedicated `/health/liveness` and `/health/readiness` orchestrator probes.
+4. **Production Demo Fail-Closed**: In production environments (`ENVIRONMENT=production` or `DEMO_MODE=false`), demo persona routes fail closed with HTTP 403 Forbidden.
+5. **Single Main Release Commit**: Release commit message must strictly match: `Harden end-to-end flows and prepare SIH demo release`.
+
+
 

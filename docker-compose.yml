@@ -27,9 +27,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+psycopg2://reguflow:reguflow_secret@db:5432/reguflow360
-      SECRET_KEY: supersecret_dev_key_change_in_production_reguflow360
-      ENVIRONMENT: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://reguflow:reguflow_secret@db:5432/reguflow360}
+      SECRET_KEY: ${SECRET_KEY:-supersecret_dev_key_change_in_production_reguflow360}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEMO_MODE: ${DEMO_MODE:-true}
     ports:
       - "8000:8000"
     volumes:
