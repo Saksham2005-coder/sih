@@ -245,5 +245,21 @@
 7. `test_system_admin_regulatory_boundary`:
    - Verifies System Administrator can access system health, engine status, and audit logs, but is strictly barred from granting statutory approvals (`403 Forbidden`).
 
+---
+
+### 8. Problem Statement Acceptance & APH Route Test Coverage Summary (5 New Tests, Total 135 Tests)
+
+`tests/test_workflow_routes_and_aph_combinations.py` (5 authoritative APH route combination and statutory safeguard tests):
+1. `test_route_1_only_scrutiny_lifecycle`:
+   - Proves Route 1 (Only Scrutiny): Applications filed under `EOA_ANNUAL` / `ONLY_SCRUTINY` with `evc_required=False` progress through preliminary scrutiny (`UNDER_SCRUTINY` -> `SCRUTINY_COMPLETED`) and advance directly to Competent Authority (`AWAITING_COMPETENT_AUTHORITY` -> `APPROVED`) without requiring an EVC inspection.
+2. `test_route_2_scrutiny_plus_evc_prerequisite_enforcement`:
+   - Proves Route 2 (Scrutiny + EVC): Applications requiring EVC (`SCRUTINY_EVC` / `NEW_INSTITUTION`) cannot bypass the inspection stage (`HTTP 400 Bad Request: Route requires mandatory EVC inspection, but no completed inspection report exists`). Advances through EVC scheduling, panel inspection report submission, and onward to statutory approval.
+3. `test_route_3_evc_plus_sac_shc_hearing_and_deficiency_cure`:
+   - Proves Route 3 (EVC + SAC/SHC Hearing): Applications with hearing requirements (`EVC_SAC_SHC` / `INTAKE_VARIATION`) progress through EVC to `AWAITING_SAC_CAC_REVIEW`. Committee Member logs itemized hearing deficiency (`DEFICIENCY_COMMUNICATED`), institution cures and resubmits (`RESUBMITTED`), Committee Member verifies cure, resumes hearing, and recommends approval.
+4. `test_route_4_only_evc_direct_queue_entry`:
+   - Proves Route 4 (Only EVC): Applications filed under `CLOSURE_PROGRAM` / `ONLY_EVC` are permitted to enter the EVC queue directly from `SUBMITTED` to `AWAITING_EVC_SCHEDULE`. Verifies that non-EVC applications attempting the same direct transition are strictly rejected (`HTTP 400 Bad Request`).
+5. `test_statutory_safeguard_approval_reserved_for_competent_authority`:
+   - Regulatory Safeguard Invariant: Verifies that automation supports processing but strictly denies approval authority to unauthorized roles (`REGIONAL_OFFICER`, `BUREAU_OFFICER`, `INSTITUTION_ADMIN` receive `HTTP 403 Forbidden`). Verifies that Competent Authority rejections enforce mandatory recorded justifications.
+
 
 

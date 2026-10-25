@@ -25,7 +25,8 @@ ALLOWED_TRANSITIONS: Dict[str, List[Tuple[str, List[str]]]] = {
         ("SUBMITTED", [INSTITUTION_ADMIN])
     ],
     "SUBMITTED": [
-        ("UNDER_SCRUTINY", [REGIONAL_OFFICER, BUREAU_OFFICER])
+        ("UNDER_SCRUTINY", [REGIONAL_OFFICER, BUREAU_OFFICER]),
+        ("AWAITING_EVC_SCHEDULE", [REGIONAL_OFFICER, BUREAU_OFFICER])
     ],
     "UNDER_SCRUTINY": [
         ("DEFICIENCY_COMMUNICATED", [REGIONAL_OFFICER, BUREAU_OFFICER]),
@@ -37,7 +38,9 @@ ALLOWED_TRANSITIONS: Dict[str, List[Tuple[str, List[str]]]] = {
         ("RESUBMITTED", [INSTITUTION_ADMIN, COMPLIANCE_OFFICER])
     ],
     "RESUBMITTED": [
-        ("UNDER_SCRUTINY", [REGIONAL_OFFICER, BUREAU_OFFICER])
+        ("UNDER_SCRUTINY", [REGIONAL_OFFICER, BUREAU_OFFICER]),
+        ("AWAITING_SAC_CAC_REVIEW", [COMMITTEE_MEMBER, BUREAU_OFFICER]),
+        ("AWAITING_COMPETENT_AUTHORITY", [COMPETENT_AUTHORITY, BUREAU_OFFICER])
     ],
     "SCRUTINY_COMPLETED": [
         ("AWAITING_EVC_SCHEDULE", [REGIONAL_OFFICER, BUREAU_OFFICER]),
@@ -141,6 +144,17 @@ def execute_transition(
             )
 
     # 5. Domain Invariant Guards
+    if from_stage == "SUBMITTED" and to_stage == "AWAITING_EVC_SCHEDULE":
+        is_evc_route = (application.workflow_template_code in ["ONLY_EVC", "EVC_SAC_SHC"] or application.evc_required)
+        if not is_evc_route:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Direct transition from 'SUBMITTED' to 'AWAITING_EVC_SCHEDULE' is only permitted for 'ONLY_EVC' or 'EVC_SAC_SHC' routes."
+            )
+
+    if to_stage == "AWAITING_EVC_SCHEDULE":
+        application.evc_required = True
+
     if to_stage == "SCRUTINY_COMPLETED":
         # Prohibit transition if unresolved open deficiencies exist
         open_defs = db.query(Deficiency).filter(
@@ -178,7 +192,11 @@ def execute_transition(
             )
 
     if to_stage in ["AWAITING_SAC_CAC_REVIEW", "AWAITING_COMPETENT_AUTHORITY", "APPROVED"]:
-        if application.workflow_template_code == "NEW_INSTITUTION" or application.evc_required:
+        requires_evc = (
+            application.workflow_template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"]
+            or application.evc_required
+        )
+        if requires_evc:
             completed_evc = db.query(EVCInspection).filter(
                 EVCInspection.application_id == application.id,
                 EVCInspection.status.in_(["REPORT_SUBMITTED", "RECOMMENDED_APPROVAL", "RECOMMENDED_REJECTION", "DEFICIENCY_NOTED"])

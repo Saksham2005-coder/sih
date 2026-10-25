@@ -97,3 +97,16 @@
    - Click **Inspect**: View formatted JSON state deltas and regional/institution tenancy tags.
    - Click **Export CSV**: Download sanitized audit logs, showing that cells with formula operators (`=`, `+`, `-`, `@`) are safely escaped with single quotes to prevent CSV formula injection (DDE) attacks.
 
+#### Step 9: APH Route Combinations & Dual Theme Accessibility (0:45)
+1. **APH Workflow Route Demonstration**:
+   - File application as Institution Admin: show selection among all 4 canonical APH routes:
+     - `Extension of Approval (EoA) [Route: Only Scrutiny]` -> proves fast-track direct movement to Competent Authority.
+     - `Establishment of New Program [Route: Scrutiny + EVC]` -> proves strict EVC completion prerequisite guard.
+     - `Intake Expansion [Route: EVC + SAC/SHC Hearing]` -> proves Standing Hearing Committee deficiency return and resumption.
+     - `Campus Relocation / Verification [Route: Only EVC]` -> proves direct entry from `SUBMITTED` into `AWAITING_EVC_SCHEDULE`.
+2. **Civic Precision Dual-Theme (Light & Dark Mode)**:
+   - Click the theme toggle icon in the navigation bar to switch between Light, Dark, and System modes.
+   - Show that all 8 role dashboards, tables, dialogs, charts, and status badges preserve WCAG 2.1 AA contrast without page reload, form state loss, or wrong-theme flicker.
+
+
+

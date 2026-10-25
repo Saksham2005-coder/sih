@@ -60,7 +60,7 @@ Domain permissions are declared explicitly as constants (`Permission.*` in `back
 | `application.create` | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY | DENY |
 | `application.submit` | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY | DENY |
 | `application.resubmit` | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
-| `application.return` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `application.return` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | **ALLOW** (Hearing) | DENY | DENY | DENY |
 | `application.assign` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
 | `application.scrutiny_signoff`| DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
 | `application.transition` | **ALLOW** (Sub) | **ALLOW** (Resub)| **ALLOW** (Reg) | **ALLOW** | **ALLOW** (Recom)| **ALLOW** (EVC)| **ALLOW** (Dec) | DENY* |

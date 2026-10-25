@@ -50,7 +50,7 @@ def list_applications(
         query = query.filter(or_(
             Application.evc_required == True,
             Application.current_stage.in_(["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"]),
-            Application.workflow_template_code == "NEW_INSTITUTION"
+            Application.workflow_template_code.in_(["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"])
         ))
     elif "COMMITTEE_MEMBER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
         assigned_evc_app_ids = db.query(EVCInspection.application_id).filter(
@@ -98,6 +98,7 @@ def list_applications(
             priority_score=score,
             priority_factors=factors,
             version=app.version,
+            evc_required=app.evc_required,
             submitted_at=app.submitted_at,
             approved_at=app.approved_at,
             rejected_at=app.rejected_at,
@@ -119,14 +120,29 @@ def create_application(
     # Generate sequential application number
     now = datetime.now(timezone.utc)
     count = db.query(Application).count() + 101
-    app_num = f"AICTE-2026-EOA-{count:05d}"
+    
+    template_code = request.workflow_template_code or request.application_type
+    requires_evc = request.evc_required if request.evc_required is not None else (
+        template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"]
+    )
+    
+    prefix = "EOA"
+    if template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC"]:
+        prefix = "NEW"
+    elif template_code == "EVC_SAC_SHC":
+        prefix = "EXP"
+    elif template_code == "ONLY_EVC":
+        prefix = "INSP"
+
+    app_num = f"AICTE-2026-{prefix}-{count:05d}"
 
     new_app = Application(
         application_number=app_num,
         institution_id=current_user.institution_id,
         academic_year=request.academic_year,
         application_type=request.application_type,
-        workflow_template_code=request.application_type,
+        workflow_template_code=template_code,
+        evc_required=requires_evc,
         current_stage="SUBMITTED",
         submitted_at=now,
         priority_score=30
@@ -154,7 +170,7 @@ def create_application(
         actor_id=current_user.id,
         actor_name=current_user.full_name,
         actor_role="INSTITUTION_ADMIN",
-        details={"application_number": app_num, "type": request.application_type}
+        details={"application_number": app_num, "type": request.application_type, "template": template_code}
     )
 
     db.commit()
@@ -175,6 +191,7 @@ def create_application(
         priority_score=score,
         priority_factors=factors,
         version=new_app.version,
+        evc_required=new_app.evc_required,
         submitted_at=new_app.submitted_at,
         created_at=new_app.created_at,
         updated_at=new_app.updated_at,
@@ -213,6 +230,7 @@ def get_application_detail(
         priority_score=score,
         priority_factors=factors,
         version=app.version,
+        evc_required=app.evc_required,
         submitted_at=app.submitted_at,
         approved_at=app.approved_at,
         rejected_at=app.rejected_at,
@@ -254,7 +272,7 @@ def issue_deficiency(
     id: int,
     request: DeficiencyCreateRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER"]))
 ):
     app = db.query(Application).filter(Application.id == id).first()
     if not app:
@@ -335,7 +353,7 @@ def resolve_deficiency(
     id: int,
     deficiency_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER"]))
 ):
     app = db.query(Application).filter(Application.id == id).first()
     if not app:

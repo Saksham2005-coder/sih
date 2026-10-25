@@ -22,8 +22,11 @@ class EVCService:
     @staticmethod
     def is_evc_eligible(app: Application) -> bool:
         """Determines whether an application requires and is eligible for EVC inspection."""
-        # EVC required for NEW_INSTITUTION or when explicitly flagged
-        requires_evc = (app.workflow_template_code == "NEW_INSTITUTION" or app.evc_required)
+        # EVC required for NEW_INSTITUTION, SCRUTINY_EVC, EVC_SAC_SHC, ONLY_EVC, or when explicitly flagged
+        requires_evc = (
+            app.workflow_template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"]
+            or app.evc_required
+        )
         is_at_stage = app.current_stage in ["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"]
         return requires_evc or is_at_stage
 

@@ -40,6 +40,8 @@ class ApplicationStageResponse(BaseModel):
 class ApplicationCreateRequest(BaseModel):
     application_type: str = "EOA_ANNUAL"
     academic_year: str = "2026-2027"
+    workflow_template_code: Optional[str] = None
+    evc_required: Optional[bool] = None
 
 class ApplicationTransitionRequest(BaseModel):
     to_stage: str
@@ -61,6 +63,7 @@ class ApplicationResponse(BaseModel):
     priority_score: int
     priority_factors: Optional[Any] = None
     version: int = 1
+    evc_required: bool = False
     submitted_at: datetime
     approved_at: Optional[datetime] = None
     rejected_at: Optional[datetime] = None

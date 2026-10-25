@@ -44,9 +44,19 @@ export const MyApplications: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const templateMap: Record<string, { template: string; evc: boolean }> = {
+        EOA_ANNUAL: { template: 'ONLY_SCRUTINY', evc: false },
+        NEW_INSTITUTION: { template: 'SCRUTINY_EVC', evc: true },
+        INTAKE_VARIATION: { template: 'EVC_SAC_SHC', evc: true },
+        CLOSURE_PROGRAM: { template: 'ONLY_EVC', evc: true },
+      };
+      const routeConfig = templateMap[appType] || { template: appType, evc: false };
+
       await api.createApplication({
         application_type: appType,
         academic_year: academicYear,
+        workflow_template_code: routeConfig.template,
+        evc_required: routeConfig.evc,
       });
       setIsModalOpen(false);
       fetchApps();
@@ -197,10 +207,10 @@ export const MyApplications: React.FC = () => {
               onChange={(e) => setAppType(e.target.value)}
               className="w-full border border-brand-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brand-teal"
             >
-              <option value="EOA_ANNUAL">Extension of Approval (EoA) — Annual Cycle</option>
-              <option value="NEW_INSTITUTION">Establishment of New Technical Program / Institution</option>
-              <option value="INTAKE_VARIATION">Increase in Intake / Introduction of Emerging Areas</option>
-              <option value="CLOSURE_PROGRAM">Closure of Program / Relocation</option>
+              <option value="EOA_ANNUAL">Extension of Approval (EoA) — Annual Cycle [Route: Only Scrutiny]</option>
+              <option value="NEW_INSTITUTION">Establishment of New Technical Program / Institution [Route: Scrutiny + EVC]</option>
+              <option value="INTAKE_VARIATION">Increase in Intake / Emerging Areas [Route: EVC + SAC/SHC Hearing]</option>
+              <option value="CLOSURE_PROGRAM">Closure of Program / Relocation [Route: Only EVC]</option>
             </select>
           </div>
 

@@ -77,7 +77,7 @@ export const api = {
     return request<Application[]>(`/applications?${query.toString()}`);
   },
   getApplicationDetail: (id: number) => request<ApplicationDetailResponse>(`/applications/${id}`),
-  createApplication: (payload: { application_type: string; academic_year: string }) =>
+  createApplication: (payload: { application_type: string; academic_year: string; workflow_template_code?: string; evc_required?: boolean }) =>
     request<Application>('/applications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

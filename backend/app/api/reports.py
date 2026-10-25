@@ -55,7 +55,7 @@ def get_scoped_queries(db: Session, current_user: User):
         app_q = app_q.filter(or_(
             Application.evc_required == True,
             Application.current_stage.in_(["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"]),
-            Application.workflow_template_code == "NEW_INSTITUTION"
+            Application.workflow_template_code.in_(["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"])
         ))
     elif "COMMITTEE_MEMBER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
         assigned_evc_app_ids = db.query(EVCInspection.application_id).filter(

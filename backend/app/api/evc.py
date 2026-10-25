@@ -104,6 +104,7 @@ def schedule_evc_inspection(
     )
 
 @router.post("/{id}/submit-report", response_model=EVCInspectionResponse)
+@router.post("/inspections/{id}/report", response_model=EVCInspectionResponse)
 def submit_evc_report(
     id: int,
     request: EVCReportSubmitRequest,
