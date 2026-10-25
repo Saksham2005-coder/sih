@@ -77,7 +77,7 @@ export const Header: React.FC = () => {
             >
               {demoUsers.map((u) => (
                 <option key={u.email} value={u.email} className="bg-brand-ink text-white">
-                  {u.full_name} ({u.roles[0].replace(/_/g, ' ')})
+                  {u.full_name} ({u.roles?.[0] ? u.roles[0].replace(/_/g, ' ') : 'USER'})
                 </option>
               ))}
             </select>
