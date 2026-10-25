@@ -143,5 +143,11 @@ This platform bridges two synchronized experiences over a single unified backend
 4. **Shared Coherent Regulatory Dataset**: Single database records (`app1` to `app6`) are shared across all workspaces at their respective lifecycle stages, preserving complete relationship integrity, audit trails, and prerequisite chains.
 5. **Remediation Release Commit**: Release commit message must strictly match: `Differentiate role workspaces and enforce scoped data`.
 
+---
 
-
+### 9. Critical Remediation 2: Production-Quality Light and Dark Mode
+1. **Civic Precision Theme Parity**: ReguFlow 360 provides a complete, accessible dual-theme system (Light: `#F4F6F8` Cool Porcelain canvas, `#FFFFFF` surfaces, `#152536` ink; Dark: `#101820` obsidian canvas, `#1B2835` primary surface, `#233342` elevated surface, `#F1F5F8` primary text, `#354653` slate borders, `#14B8A6` high-contrast teal).
+2. **Design-Token Architecture**: Theme styles are governed by centralized CSS variables mapped into Tailwind configuration (`var(--brand-*)`), preventing scattered hardcoded colors and ensuring robust dark mode support across all 8 role workspaces.
+3. **Anti-Flash Pre-Hydration**: An inline head script resolves stored preferences (`localStorage.getItem('reguflow_theme')`) or system preference (`prefers-color-scheme: dark`) before hydration, preventing any wrong-theme flicker.
+4. **Accessible Theme Controllers**: The application provides accessible, keyboard-operable theme switchers in both authenticated and unauthenticated layouts, supporting Light, Dark, and live OS System synchronization.
+5. **Remediation Release Commit**: Release commit message must strictly match: `Add accessible application-wide light and dark themes`.

@@ -18,10 +18,10 @@ export const StatCard: React.FC<StatCardProps> = ({
   onClick,
 }) => {
   const variantStyles = {
-    default: 'border-brand-border bg-white',
-    teal: 'border-teal-200 bg-teal-50/40 text-brand-teal',
-    amber: 'border-amber-200 bg-amber-50/40 text-[#C5892B]',
-    red: 'border-red-200 bg-red-50/40 text-[#B9474F]',
+    default: 'border-brand-border bg-white dark:bg-brand-surface text-brand-ink',
+    teal: 'border-teal-200 dark:border-teal-800/60 bg-teal-50/40 dark:bg-teal-950/25 text-brand-teal dark:text-teal-300',
+    amber: 'border-amber-200 dark:border-amber-800/60 bg-amber-50/40 dark:bg-amber-950/25 text-[#C5892B] dark:text-amber-300',
+    red: 'border-red-200 dark:border-red-800/60 bg-red-50/40 dark:bg-red-950/25 text-[#B9474F] dark:text-red-300',
   };
 
   return (
@@ -42,3 +42,5 @@ export const StatCard: React.FC<StatCardProps> = ({
     </div>
   );
 };
+
+export default StatCard;

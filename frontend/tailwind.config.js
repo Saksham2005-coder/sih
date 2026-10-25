@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,18 +9,20 @@ export default {
     extend: {
       colors: {
         brand: {
-          ink: "#152536",
-          porcelain: "#F4F6F8",
-          teal: "#0E746B",
-          "teal-light": "#E6F5F3",
-          "teal-dark": "#0B5B54",
-          amber: "#C5892B",
-          "amber-light": "#FEF7ED",
-          red: "#B9474F",
-          "red-light": "#FDF2F2",
-          border: "#DFE5E9",
-          muted: "#526473",
-          surface: "#FFFFFF",
+          ink: "var(--brand-ink)",
+          porcelain: "var(--brand-porcelain)",
+          teal: "var(--brand-teal)",
+          "teal-light": "var(--brand-teal-light)",
+          "teal-dark": "var(--brand-teal-dark)",
+          amber: "var(--brand-amber)",
+          "amber-light": "var(--brand-amber-light)",
+          red: "var(--brand-red)",
+          "red-light": "var(--brand-red-light)",
+          border: "var(--brand-border)",
+          muted: "var(--brand-muted)",
+          surface: "var(--brand-surface)",
+          "surface-secondary": "var(--brand-surface-secondary)",
+          "surface-elevated": "var(--brand-surface-elevated)",
         }
       },
       fontFamily: {

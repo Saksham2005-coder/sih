@@ -132,10 +132,10 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-brand-border flex flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)]">
+    <aside className="w-64 bg-white dark:bg-brand-surface border-r border-brand-border flex flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)] transition-colors">
       <div className="p-4">
         {/* Scoped Workspace Identifier */}
-        <div className="mb-4 px-3 py-2.5 bg-brand-porcelain rounded-lg border border-brand-border">
+        <div className="mb-4 px-3 py-2.5 bg-brand-porcelain dark:bg-brand-surface-secondary rounded-lg border border-brand-border">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-muted">Operational Scope</p>
           <p className="text-xs font-bold text-brand-ink mt-0.5 truncate">
             {workspaceTitle}
@@ -143,9 +143,9 @@ export const Sidebar: React.FC = () => {
           <p className="text-[11px] text-brand-teal font-medium mt-0.5 truncate">
             {workspaceSubtitle}
           </p>
-          <div className="mt-1.5 pt-1.5 border-t border-gray-200 flex items-center justify-between text-[10px]">
+          <div className="mt-1.5 pt-1.5 border-t border-gray-200 dark:border-brand-border flex items-center justify-between text-[10px]">
             <span className="font-semibold text-brand-muted">Role:</span>
-            <span className="font-mono font-bold text-brand-ink bg-white px-1.5 py-0.5 rounded border border-gray-200">
+            <span className="font-mono font-bold text-brand-ink bg-white dark:bg-brand-surface px-1.5 py-0.5 rounded border border-gray-200 dark:border-brand-border">
               {activeRole}
             </span>
           </div>
@@ -163,7 +163,7 @@ export const Sidebar: React.FC = () => {
                   `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                     isActive
                       ? 'bg-brand-teal text-white shadow-sm font-semibold'
-                      : 'text-brand-muted hover:bg-gray-100 hover:text-brand-ink'
+                      : 'text-brand-muted hover:bg-gray-100 dark:hover:bg-brand-surface-elevated hover:text-brand-ink'
                   }`
                 }
               >
@@ -172,7 +172,7 @@ export const Sidebar: React.FC = () => {
                   <span className="truncate">{link.label}</span>
                 </div>
                 {link.badge && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-[#C5892B] border border-amber-300">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-[#C5892B] dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
                     {link.badge}
                   </span>
                 )}
@@ -183,7 +183,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Footer Info */}
-      <div className="p-4 border-t border-brand-border bg-brand-porcelain/40">
+      <div className="p-4 border-t border-brand-border bg-brand-porcelain/40 dark:bg-brand-surface-secondary/40">
         <div className="flex items-center justify-between text-[11px] text-brand-muted">
           <span>AICTE PS 26262</span>
           <span>v1.0.0</span>

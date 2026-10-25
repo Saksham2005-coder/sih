@@ -3,6 +3,7 @@ import { Bell, Shield, User as UserIcon, LogOut, CheckCircle2, AlertTriangle, La
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import { NotificationItem } from '../../types';
+import { ThemeToggle } from '../common/ThemeToggle';
 
 export const Header: React.FC = () => {
   const { user, activeRole, switchActiveRole, logout, login } = useAuth();
@@ -36,7 +37,7 @@ export const Header: React.FC = () => {
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-brand-ink text-white border-b border-gray-800 shadow-md">
+    <header className="sticky top-0 z-40 w-full bg-brand-ink text-white border-b border-gray-800 dark:border-brand-border shadow-md">
       <div className="px-6 h-16 flex items-center justify-between">
         {/* Brand identity */}
         <div className="flex items-center gap-4">
@@ -101,6 +102,9 @@ export const Header: React.FC = () => {
             </div>
           )}
 
+          {/* Theme Switcher Toggle */}
+          <ThemeToggle variant="dropdown" />
+
           {/* Notifications Drawer Toggle */}
           <div className="relative">
             <button
@@ -117,17 +121,17 @@ export const Header: React.FC = () => {
             </button>
 
             {showNotifDropdown && (
-              <div className="absolute right-0 mt-2 w-80 bg-white text-brand-ink rounded-lg shadow-2xl border border-brand-border py-2 z-50">
+              <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-brand-surface text-brand-ink rounded-lg shadow-2xl border border-brand-border py-2 z-50">
                 <div className="px-4 py-2 border-b border-brand-border flex items-center justify-between">
                   <span className="font-semibold text-xs text-brand-ink">Notifications & Alerts</span>
                   <span className="text-[11px] text-brand-muted">{notifications.length} total</span>
                 </div>
-                <div className="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                <div className="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-brand-border">
                   {notifications.length === 0 ? (
                     <div className="p-4 text-center text-xs text-brand-muted">No pending alerts.</div>
                   ) : (
                     notifications.map(n => (
-                      <div key={n.id} className="p-3 hover:bg-gray-50 text-xs">
+                      <div key={n.id} className="p-3 hover:bg-gray-50 dark:hover:bg-brand-surface-elevated text-xs transition-colors">
                         <div className="flex items-center gap-1.5 font-medium text-brand-ink mb-1">
                           {n.level === 'DANGER' ? (
                             <AlertTriangle className="w-3.5 h-3.5 text-brand-red" />

@@ -95,17 +95,22 @@ docker-compose up --build
 
 ### 5. Running Quality Checks & Tests
 
-- **Backend Pytest Suite (123 Tests):**
+- **Backend Pytest Suite (130 Tests):**
   ```bash
   cd backend
   python -m pytest
+  ```
+- **Frontend Theme & Accessibility Test Suite (10 Tests):**
+  ```bash
+  cd frontend
+  npm test
   ```
 - **Database Migrations Execution & Schema Validation:**
   ```bash
   cd backend
   python -m alembic upgrade head
   ```
-- **Frontend ESLint:**
+- **Frontend ESLint (0 Warnings):**
   ```bash
   cd frontend
   npm run lint
@@ -123,7 +128,16 @@ docker-compose up --build
 
 ---
 
-### 6. Source of Truth Documentation (`/docs`)
+### 6. Production-Quality Light and Dark Theme Architecture
+ReguFlow 360 features a full design-token driven light and dark theme system based on the **Civic Precision** regulatory aesthetic:
+- **Light Theme**: Bright, crisp regulatory workspace (`#F4F6F8` Cool Porcelain canvas, `#FFFFFF` card surface, `#152536` ink, `#DFE5E9` slate borders, `#0E746B` Meridian Teal accent).
+- **Dark Theme**: Restrained operational command workspace (`#101820` obsidian background, `#1B2835` card surface, `#233342` elevated surface, `#F1F5F8` primary text, `#354653` borders, `#14B8A6` high-contrast teal).
+- **System Synchronization**: Dynamic OS preference tracking with zero-flash pre-hydration bootstrap script.
+- **Accessible Controls**: Segmented and dropdown theme toggles available globally across both the authenticated header and unauthenticated login portals.
+
+---
+
+### 7. Source of Truth Documentation (`/docs`)
 1. [`docs/product-spec.md`](./docs/product-spec.md): Product vision, regulatory context, personas, and modules.
 2. [`docs/architecture.md`](./docs/architecture.md): Modular monolith design, idempotent background scans, data flows.
 3. [`docs/workflow-matrix.md`](./docs/workflow-matrix.md): Guarded state machine transitions and permissions.

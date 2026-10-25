@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './queryClient';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { AppLayout } from './components/layout/AppLayout';
 import { LoginPage } from './pages/auth/LoginPage';
 
@@ -55,8 +56,9 @@ const RootRedirect: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/" element={<RootRedirect />} />
@@ -105,8 +107,9 @@ export const App: React.FC = () => {
           </Routes>
         </BrowserRouter>
       </AuthProvider>
-    </QueryClientProvider>
-  );
+    </ThemeProvider>
+  </QueryClientProvider>
+);
 };
 
 export default App;
