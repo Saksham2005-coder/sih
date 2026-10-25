@@ -9,8 +9,8 @@ from app.models.evc import EVCInspection
 from app.models.application import Application
 from app.models.institution import Institution
 from app.schemas.evc import EVCScheduleRequest, EVCReportSubmitRequest, EVCInspectionResponse
-from app.services.workflow_engine import execute_transition
-from app.services.audit_service import log_audit_event
+from app.services.evc_service import EVCService
+from app.core.rbac import check_regional_scope, has_permission, Permission
 
 router = APIRouter(prefix="/evc", tags=["EVC Management"])
 
@@ -19,24 +19,46 @@ def get_evc_queue(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    inspections = db.query(EVCInspection).join(Application, EVCInspection.application_id == Application.id).join(Institution, Application.institution_id == Institution.id).all()
+    query = db.query(EVCInspection).join(
+        Application, EVCInspection.application_id == Application.id
+    ).join(
+        Institution, Application.institution_id == Institution.id
+    )
+
+    user_roles = [r.role for r in current_user.roles]
+    is_officer = any(r in [
+        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
+        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
+    ] for r in user_roles)
+
+    if not is_officer:
+        if not current_user.institution_id:
+            return []
+        query = query.filter(Application.institution_id == current_user.institution_id)
+    elif "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        query = query.filter(Institution.region == current_user.region)
+
+    inspections = query.order_by(EVCInspection.scheduled_date.asc().nullslast()).all()
     results = []
     for insp in inspections:
         results.append(EVCInspectionResponse(
             id=insp.id,
             application_id=insp.application_id,
-            application_number=insp.application.application_number,
-            institution_id=insp.application.institution_id,
-            institution_name=insp.application.institution.name,
-            region=insp.application.institution.region,
+            application_number=insp.application.application_number if insp.application else None,
+            institution_id=insp.application.institution_id if insp.application else None,
+            institution_name=insp.application.institution.name if (insp.application and insp.application.institution) else None,
+            region=insp.application.institution.region if (insp.application and insp.application.institution) else None,
             inspection_type=insp.inspection_type,
             scheduled_date=insp.scheduled_date,
             convener_name=insp.convener_name,
             expert_member_name=insp.expert_member_name,
+            coordinator_id=insp.coordinator_id,
             status=insp.status,
             report_url=insp.report_url,
             report_notes=insp.report_notes,
             recommendation=insp.recommendation,
+            completed_at=insp.completed_at,
+            completed_by_id=insp.completed_by_id,
             created_at=insp.created_at,
             updated_at=insp.updated_at
         ))
@@ -46,72 +68,37 @@ def get_evc_queue(
 def schedule_evc_inspection(
     request: EVCScheduleRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER"]))
+    current_user: User = Depends(get_current_user)
 ):
-    app = db.query(Application).filter(Application.id == request.application_id).first()
-    if not app:
-        raise HTTPException(status_code=404, detail="Application not found")
-
-    if app.institution:
-        verify_regional_access(app.institution.region, current_user)
-
-    inspection = db.query(EVCInspection).filter(EVCInspection.application_id == app.id).first()
-    if not inspection:
-        inspection = EVCInspection(application_id=app.id)
-        db.add(inspection)
-
-    inspection.inspection_type = request.inspection_type
-    inspection.scheduled_date = request.scheduled_date
-    inspection.convener_name = request.convener_name
-    inspection.expert_member_name = request.expert_member_name
-    inspection.status = "SCHEDULED"
-
-    # Automatically transition application to EVC_SCHEDULED if at AWAITING_EVC_SCHEDULE
-    if app.current_stage == "AWAITING_EVC_SCHEDULE":
-        execute_transition(
-            db=db,
-            application=app,
-            to_stage="EVC_SCHEDULED",
-            actor=current_user,
-            remarks=f"EVC Inspection scheduled for {request.scheduled_date.strftime('%d %b %Y')} with Convener {request.convener_name}."
-        )
-    else:
-        db.commit()
-
-    db.refresh(inspection)
-
-    actor_role = current_user.roles[0].role if current_user.roles else "EVC_COORDINATOR"
-    log_audit_event(
+    inspection = EVCService.schedule_inspection(
         db=db,
-        action="EVC_SCHEDULED",
-        entity_type="EVC",
-        entity_id=inspection.id,
-        actor_id=current_user.id,
-        actor_name=current_user.full_name,
-        actor_role=actor_role,
-        details={
-            "application_id": app.id,
-            "scheduled_date": request.scheduled_date.isoformat(),
-            "convener": request.convener_name,
-            "expert": request.expert_member_name
-        }
+        application_id=request.application_id,
+        inspection_type=request.inspection_type,
+        scheduled_date=request.scheduled_date,
+        convener_name=request.convener_name,
+        expert_member_name=request.expert_member_name,
+        actor=current_user
     )
 
+    app = inspection.application
     return EVCInspectionResponse(
         id=inspection.id,
         application_id=inspection.application_id,
-        application_number=app.application_number,
-        institution_id=app.institution_id,
-        institution_name=app.institution.name,
-        region=app.institution.region,
+        application_number=app.application_number if app else None,
+        institution_id=app.institution_id if app else None,
+        institution_name=app.institution.name if (app and app.institution) else None,
+        region=app.institution.region if (app and app.institution) else None,
         inspection_type=inspection.inspection_type,
         scheduled_date=inspection.scheduled_date,
         convener_name=inspection.convener_name,
         expert_member_name=inspection.expert_member_name,
+        coordinator_id=inspection.coordinator_id,
         status=inspection.status,
         report_url=inspection.report_url,
         report_notes=inspection.report_notes,
         recommendation=inspection.recommendation,
+        completed_at=inspection.completed_at,
+        completed_by_id=inspection.completed_by_id,
         created_at=inspection.created_at,
         updated_at=inspection.updated_at
     )
@@ -121,62 +108,36 @@ def submit_evc_report(
     id: int,
     request: EVCReportSubmitRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["EVC_COORDINATOR", "COMMITTEE_MEMBER"]))
+    current_user: User = Depends(get_current_user)
 ):
-    inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
-    if not inspection:
-        raise HTTPException(status_code=404, detail="EVC Inspection not found")
-
-    inspection.report_url = request.report_url
-    inspection.report_notes = request.report_notes
-    inspection.recommendation = request.recommendation
-    inspection.status = "REPORT_SUBMITTED"
-
-    app = inspection.application
-    if app.current_stage == "EVC_SCHEDULED":
-        execute_transition(
-            db=db,
-            application=app,
-            to_stage="EVC_COMPLETED",
-            actor=current_user,
-            remarks=f"EVC Inspection report submitted. Committee Recommendation: {request.recommendation}."
-        )
-    else:
-        db.commit()
-
-    db.refresh(inspection)
-
-    actor_role = current_user.roles[0].role if current_user.roles else "COMMITTEE_MEMBER"
-    log_audit_event(
+    inspection = EVCService.submit_report(
         db=db,
-        action="EVC_REPORT_SUBMITTED",
-        entity_type="EVC",
-        entity_id=inspection.id,
-        actor_id=current_user.id,
-        actor_name=current_user.full_name,
-        actor_role=actor_role,
-        details={
-            "application_id": app.id,
-            "recommendation": request.recommendation,
-            "notes": request.report_notes
-        }
+        inspection_id=id,
+        report_url=request.report_url,
+        report_notes=request.report_notes,
+        recommendation=request.recommendation,
+        actor=current_user
     )
 
+    app = inspection.application
     return EVCInspectionResponse(
         id=inspection.id,
         application_id=inspection.application_id,
-        application_number=app.application_number,
-        institution_id=app.institution_id,
-        institution_name=app.institution.name,
-        region=app.institution.region,
+        application_number=app.application_number if app else None,
+        institution_id=app.institution_id if app else None,
+        institution_name=app.institution.name if (app and app.institution) else None,
+        region=app.institution.region if (app and app.institution) else None,
         inspection_type=inspection.inspection_type,
         scheduled_date=inspection.scheduled_date,
         convener_name=inspection.convener_name,
         expert_member_name=inspection.expert_member_name,
+        coordinator_id=inspection.coordinator_id,
         status=inspection.status,
         report_url=inspection.report_url,
         report_notes=inspection.report_notes,
         recommendation=inspection.recommendation,
+        completed_at=inspection.completed_at,
+        completed_by_id=inspection.completed_by_id,
         created_at=inspection.created_at,
         updated_at=inspection.updated_at
     )

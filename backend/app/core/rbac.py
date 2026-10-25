@@ -187,6 +187,8 @@ def user_has_permission(user: User, permission: str) -> bool:
     effective = get_user_effective_permissions(user)
     return permission in effective
 
+has_permission = user_has_permission
+
 def check_institution_scope(user: User, target_institution_id: int):
     """
     Enforces multi-tenant isolation.

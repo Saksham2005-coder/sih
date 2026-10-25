@@ -92,7 +92,10 @@ export const CompliancePassport: React.FC = () => {
             <option value="OVERDUE">Overdue</option>
             <option value="DUE_SOON">Due Soon</option>
             <option value="PENDING_VERIFICATION">Pending Verification</option>
+            <option value="CORRECTION_REQUIRED">Correction Required</option>
+            <option value="UNDER_VERIFICATION">Under Verification</option>
             <option value="VERIFIED">Verified</option>
+            <option value="DEFICIENT">Deficient</option>
             <option value="NOT_YET_DUE">Not Yet Due</option>
           </select>
         </div>
@@ -115,7 +118,7 @@ export const CompliancePassport: React.FC = () => {
                   <span className="text-[10px] font-bold uppercase tracking-wider text-brand-muted">
                     [{u.category}]
                   </span>
-                  <StatusBadge status={u.status} />
+                  <StatusBadge status={u.effective_status || u.status} />
                 </div>
                 <h3 className="text-sm font-bold text-brand-ink">{u.title}</h3>
                 <p className="text-xs text-brand-muted">{u.description}</p>
@@ -139,10 +142,22 @@ export const CompliancePassport: React.FC = () => {
                     <p className="text-[11px] font-semibold text-brand-ink mb-1">Submitted Evidence History:</p>
                     <div className="space-y-1">
                       {u.evidences.map((ev) => (
-                        <div key={ev.id} className="text-[11px] text-brand-muted flex items-center gap-2">
-                          <span className="font-semibold text-brand-ink">v{ev.version}:</span>
-                          <span>{ev.file_name}</span>
-                          <span className="font-mono text-[9px] text-gray-400">({ev.checksum_sha256.substring(0, 10)}...)</span>
+                        <div key={ev.id} className="text-[11px] text-brand-muted flex flex-col gap-0.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-brand-ink">v{ev.version}:</span>
+                            <span>{ev.file_name}</span>
+                            <span className="font-mono text-[9px] text-gray-400">({ev.checksum_sha256.substring(0, 10)}...)</span>
+                            {ev.verification_status && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-gray-100 text-gray-700">
+                                {ev.verification_status}
+                              </span>
+                            )}
+                          </div>
+                          {ev.verification_notes && (
+                            <p className="text-[10px] text-amber-800 bg-amber-50 rounded px-2 py-0.5 border border-amber-200">
+                              Remarks: {ev.verification_notes}
+                            </p>
+                          )}
                         </div>
                       ))}
                     </div>

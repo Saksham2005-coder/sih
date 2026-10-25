@@ -61,10 +61,12 @@ Built with Python 3.12 and FastAPI for asynchronous high-throughput request hand
 - **`app/schemas/`**:
   - Pydantic v2 schemas validating request payloads and formatting API responses with `model_config = ConfigDict(from_attributes=True)`.
 - **`app/services/`**:
-  - `workflow_engine.py`: Encapsulates valid state transitions, optimistic locking (`expected_version`), mandatory remarks validation, deficiency resolution verification, role guard enforcement, atomic audit logging, and automated notification dispatch.
+  - `workflow_engine.py`: Encapsulates valid state transitions, optimistic locking (`expected_version`), mandatory remarks validation, deficiency resolution verification, EVC prerequisites, role guard enforcement, atomic audit logging, and automated notification dispatch.
+  - `compliance_service.py`: Governs compliance undertaking lifecycle, secure evidence uploads with rollback safety, verifications, and correction-required loops.
+  - `document_service.py`: Computes SHA-256 checksums, validates MIME & magic bytes, stores versioned files in private storage, prevents overwrites.
+  - `evc_service.py`: Governs EVC route eligibility, panel formation (convener & expert), future date validation, inspection report submissions, and workflow coordination.
   - `deadline_service.py`: Computes pending SLA days, checks due dates against UTC/Asia-Kolkata timestamps, triggers tiered escalations.
   - `priority_service.py`: Computes the Explainable Priority Score (0-100) based on dynamic case factors.
-  - `document_service.py`: Computes SHA-256 checksums, validates MIME types, stores document versions, prevents overwrites.
   - `audit_service.py`: Appends non-mutating audit entries for all state mutations.
 - **`app/api/`**:
   - Modular routers for `/auth`, `/institutions`, `/applications`, `/compliance`, `/documents`, `/evc`, `/alerts`, `/rules`, `/audit`, `/reports`, `/health`.

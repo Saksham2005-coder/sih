@@ -177,6 +177,18 @@ def execute_transition(
                 detail="Cannot complete EVC stage: No scheduled inspection found for this application."
             )
 
+    if to_stage in ["AWAITING_SAC_CAC_REVIEW", "AWAITING_COMPETENT_AUTHORITY", "APPROVED"]:
+        if application.workflow_template_code == "NEW_INSTITUTION" or application.evc_required:
+            completed_evc = db.query(EVCInspection).filter(
+                EVCInspection.application_id == application.id,
+                EVCInspection.status.in_(["REPORT_SUBMITTED", "RECOMMENDED_APPROVAL", "RECOMMENDED_REJECTION", "DEFICIENCY_NOTED"])
+            ).first()
+            if not completed_evc and from_stage not in ["EVC_COMPLETED", "AWAITING_SAC_CAC_REVIEW", "AWAITING_COMPETENT_AUTHORITY"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Cannot advance application: Route requires mandatory EVC inspection, but no completed inspection report exists."
+                )
+
     # 6. Apply State Mutation and Increment Version
     application.current_stage = to_stage
     application.version += 1

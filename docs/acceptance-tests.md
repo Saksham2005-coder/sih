@@ -32,11 +32,19 @@
 - [x] Frontend production build and TypeScript check (`tsc && vite build`) passing with 0 errors.
 
 #### Phase 3: Compliance Passport, Document Lifecycle & EVC
-- [ ] Compliance evidence submission generates a version record and computes SHA-256 checksum.
-- [ ] Officer verification updates undertaking status to `VERIFIED` and logs verification notes.
-- [ ] Document renewal upload increments version number without overwriting previous versions.
-- [ ] EVC queue lists applications awaiting inspection; scheduling assigns date and panel members.
-- [ ] EVC report upload records recommendation (`RECOMMENDED_APPROVAL`).
+- [x] Compliance evidence submission validates file size (<= 10MB), MIME type, magic bytes, generates an immutable version record, and computes SHA-256 checksum.
+- [x] Officer verification updates undertaking status to `VERIFIED` or `DEFICIENT` with mandatory official notes, while self-verification by institutions is strictly blocked.
+- [x] Correction-required workflow: officer requests cure with remarks, institution resubmits evidence (generating v2 with SHA-256), and status advances to `PENDING_VERIFICATION`.
+- [x] Document renewal upload increments version number without overwriting previous versions, storing validated file metadata in private directory.
+- [x] Document verification sign-off updates document status to `ACTIVE` on approval, while rejection preserves original validity without extending expiry.
+- [x] Path-traversal attempts and unauthenticated downloads are strictly blocked; resource-scoped downloads verify institution and regional boundaries.
+- [x] EVC queue filters non-EVC applications and only lists applications eligible under configured workflow rules.
+- [x] EVC scheduling enforces future date validation, complete panel formation (convener + expert), and regional jurisdiction.
+- [x] EVC report upload records recommendation (`RECOMMENDED_APPROVAL`, `DEFICIENCY_NOTED`, `RECOMMENDED_REJECTION`) with mandatory notes, advancing application stage to `EVC_COMPLETED` without prematurely approving.
+- [x] Workflow state machine enforces mandatory EVC completion prerequisite before allowing advancement to Committee Review or Competent Authority decision.
+- [x] Alembic migration (`e5a821bf6290`) upgrades and downgrades cleanly.
+- [x] Total automated tests: 78 automated backend tests passing in pytest suite (`78 passed, 0 failed`).
+- [x] Frontend TypeScript type check (`tsc --noEmit`) and production build (`tsc && vite build`) passing with 0 errors.
 
 #### Phase 4: Deterministic Deadline Engine & Escalations
 - [ ] Timestamps evaluated and displayed in `Asia/Kolkata`.
@@ -85,3 +93,44 @@
 4. `tests/test_auth_and_isolation.py` (4 regression tests)
 5. `tests/test_health.py` (2 regression tests)
 6. `tests/test_workflow_and_deadlines.py` (2 regression tests)
+
+---
+
+### 3. Phase 3 Test Coverage Summary (31 New Tests, Total 78 Tests)
+
+1. `tests/test_compliance_passport.py` (11 tests):
+   - `test_institution_views_own_compliance_undertakings`: Tenant-scoped listing.
+   - `test_institution_cannot_access_other_institution_undertaking`: Cross-tenant read returns 403.
+   - `test_institution_user_submits_valid_evidence`: Multipart file upload, SHA-256 calculation, status advance to `PENDING_VERIFICATION`.
+   - `test_compliance_officer_cannot_verify_own_evidence`: Self-verification blocked (403).
+   - `test_regional_officer_verifies_in_scope_obligation`: Verification sign-off with mandatory notes advances status to `VERIFIED`.
+   - `test_regional_officer_cross_region_verification_blocked`: Jurisdiction enforcement across regions returns 403.
+   - `test_officer_requests_correction_on_undertaking`: Transition to `CORRECTION_REQUIRED` with feedback.
+   - `test_institution_cures_correction_required_obligation`: Resubmission generates version 2 with updated SHA-256.
+   - `test_missing_notes_on_verification_rejected`: Empty notes return 400.
+   - `test_invalid_compliance_verification_status_rejected`: Invalid status codes return 400.
+   - `test_unauthorized_roles_cannot_verify_compliance`: Role-based verification denial for unauthorized personas.
+
+2. `tests/test_secure_document_lifecycle.py` (11 tests):
+   - `test_document_renewal_valid_upload_success`: Uploads renewed document version, computes SHA-256 and media metadata, sets status `RENEWAL_SUBMITTED`.
+   - `test_unsupported_file_extension_rejected_with_415`: `.exe` or disallowed extensions rejected with 415.
+   - `test_invalid_magic_bytes_rejected_with_400`: Spoofed MIME types failing magic bytes validation rejected with 400.
+   - `test_path_traversal_filename_sanitized`: Filename directory traversal attempts (`../../`) sanitized safely.
+   - `test_authorized_user_downloads_own_document`: Authenticated document download within tenant scope.
+   - `test_cross_institution_download_blocked_with_403`: Cross-institution document download blocked with 403.
+   - `test_regional_officer_in_scope_can_download_document`: In-jurisdiction officer download permitted.
+   - `test_rejected_renewal_does_not_extend_expiry`: Rejected renewal maintains original expiry date and preserves history.
+   - `test_verified_renewal_marks_document_active`: Verified renewal updates document validity and status to `ACTIVE`.
+   - `test_missing_verification_notes_rejected`: Mandatory verification sign-off notes enforced.
+   - `test_nonexistent_file_download_returns_404`: Missing storage files return 404.
+
+3. `tests/test_evc_management.py` (9 tests):
+   - `test_evc_queue_lists_pending_and_eligible_inspections`: Queue filtering based on workflow route eligibility.
+   - `test_evc_scheduling_valid_panel_and_future_date`: Future date validation and convener + expert assignment.
+   - `test_evc_scheduling_past_date_rejected_with_400`: Historical or past dates rejected with 400.
+   - `test_evc_scheduling_missing_panel_members_rejected`: Incomplete panel rejected with 400.
+   - `test_regional_officer_cross_region_evc_scheduling_blocked`: Cross-region scheduling blocked with 403.
+   - `test_unauthorized_institution_cannot_schedule_evc`: Institution personas blocked from EVC scheduling.
+   - `test_evc_report_submission_success`: Panel report upload advances inspection to `REPORT_SUBMITTED` and application to `EVC_COMPLETED` without prematurely approving.
+   - `test_invalid_evc_recommendation_rejected`: Non-canonical recommendations rejected with 400.
+   - `test_missing_evc_report_notes_rejected`: Missing report notes rejected with 400.

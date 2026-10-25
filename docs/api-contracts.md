@@ -1,7 +1,7 @@
 # API Contracts & OpenAPI Specification — ReguFlow 360
 ## RESTful Endpoints, Schemas, and Response Envelopes
 **SIH 2026 Problem Statement 26262**  
-**Version:** 2.0.0 (Phase 2 Hardened)
+**Version:** 3.0.0 (Phase 3 Completed)
 
 ---
 
@@ -49,6 +49,11 @@ Standard error codes:
 - `OPEN_DEFICIENCIES_EXIST` (HTTP 400)
 - `UNCURED_DEFICIENCIES_REMAIN` (HTTP 400)
 - `REMARKS_REQUIRED` (HTTP 400)
+- `FILE_TOO_LARGE` (HTTP 413)
+- `UNSUPPORTED_MEDIA_TYPE` (HTTP 415)
+- `INVALID_FILE_SIGNATURE` (HTTP 400)
+- `EVC_COMPLETION_REQUIRED` (HTTP 400)
+- `NOTES_REQUIRED` (HTTP 400)
 
 ---
 
@@ -64,28 +69,29 @@ Standard error codes:
 #### 2.2 Applications Lifecycle (`/api/applications`)
 - `GET /api/applications`: List applications with filters (`stage`, `region`, `academic_year`, `search`, `page`, `limit`). Scoped strictly by institution for institution users and regional boundary for ROs.
 - `POST /api/applications`: Create a new regulatory application (`INSTITUTION_ADMIN` only).
-- `GET /api/applications/{id}`: Detailed application dossier, stages timeline, assigned scrutiny officer, priority score, monotonic `version`, and deficiencies.
-- `POST /api/applications/{id}/transition`: Advance or return application stage (`to_stage`, `remarks`, `expected_version`). Validates state preconditions, separation of duties, and optimistic version lock. Returns `409 Conflict` on stale version.
+- `GET /api/applications/{id}`: Detailed application dossier, stages timeline, assigned scrutiny officer, priority score, monotonic `version`, `evc_required` flag, and deficiencies.
+- `POST /api/applications/{id}/transition`: Advance or return application stage (`to_stage`, `remarks`, `expected_version`). Validates state preconditions, mandatory EVC prerequisites, separation of duties, and optimistic version lock. Returns `409 Conflict` on stale version.
 - `POST /api/applications/{id}/deficiencies`: Issue deficiency items (Authorized Regional/Bureau Officer only).
 - `POST /api/applications/{id}/cure-deficiency`: Upload cure document and remarks for a deficiency (`INSTITUTION_ADMIN` or `COMPLIANCE_OFFICER` only).
 
 #### 2.3 Compliance Passport (`/api/compliance`)
-- `GET /api/compliance/undertakings`: List undertakings for an institution with status filters (`OVERDUE`, `DUE_SOON`, `PENDING_VERIFICATION`, `VERIFIED`).
-- `POST /api/compliance/undertakings`: Define a new time-bound undertaking.
-- `POST /api/compliance/undertakings/{id}/submit-evidence`: Submit compliance proof document (creates version, calculates SHA-256).
-- `POST /api/compliance/undertakings/{id}/verify`: Verify or reject submitted evidence with official notes (`REGIONAL_OFFICER` or `BUREAU_OFFICER` within regional scope).
+- `GET /api/compliance/undertakings`: List undertakings for an institution with status filters (`OVERDUE`, `DUE_SOON`, `PENDING_VERIFICATION`, `UNDER_VERIFICATION`, `CORRECTION_REQUIRED`, `VERIFIED`, `DEFICIENT`, `NOT_YET_DUE`).
+- `POST /api/compliance/undertakings`: Define a new time-bound undertaking with structured fields (`rule_code`, `due_date`, `evidence_type`).
+- `POST /api/compliance/undertakings/{id}/submit-evidence`: Submit compliance proof document (multipart form: validates file size <= 10MB, extension, magic bytes, computes SHA-256, cleans up orphans on DB failure). Transitions status to `PENDING_VERIFICATION`.
+- `POST /api/compliance/undertakings/{id}/verify`: Verify, request correction, or mark deficient with mandatory official notes (`REGIONAL_OFFICER` or `BUREAU_OFFICER` within regional scope; self-verification blocked).
 
-#### 2.4 Document Lifecycle & Renewals (`/api/documents`)
-- `GET /api/documents`: List tracked statutory documents (Land Lease, Fire NOC, Building Plan).
+#### 2.4 Document Lifecycle & Secure Storage (`/api/documents`)
+- `GET /api/documents`: List tracked statutory documents (Land Lease, Fire NOC, Building Plan) with validity dates and version histories.
 - `POST /api/documents`: Register a new document record.
-- `POST /api/documents/{id}/renew`: Submit renewal document version with new expiry date.
-- `POST /api/documents/{id}/verify-version/{version_id}`: AICTE Officer verification sign-off within regional scope.
-- `GET /api/documents/download/{filename}`: Safe, authenticated download endpoint with path-traversal prevention.
+- `POST /api/documents/{id}/renew`: Submit renewal document version with new expiry date. Validates file integrity, stores securely, preserves preceding versions.
+- `POST /api/documents/{id}/verify-version/{version_id}`: AICTE Officer verification sign-off within regional scope. Rejection preserves original validity without extending expiry.
+- `GET /api/documents/download/{filename}`: Safe, authenticated download endpoint with path-traversal prevention and resource-level access scope verification.
+- `GET /api/documents/{document_id}/download/{version_id}`: Resource-scoped authenticated document version download.
 
 #### 2.5 EVC Management (`/api/evc`)
-- `GET /api/evc/queue`: List applications pending inspection scheduling or inspection reports.
-- `POST /api/evc/schedule`: Form panel (convener, expert), set inspection date, mode (`PHYSICAL_ONSITE` / `VIRTUAL_REMOTE`). Scoped to authorized region.
-- `POST /api/evc/{id}/submit-report`: Upload signed committee inspection findings and recommendation (`RECOMMENDED_APPROVAL`, etc.).
+- `GET /api/evc/queue`: List applications eligible for inspection scheduling (filtering non-EVC applications and enforcing route eligibility) or awaiting inspection reports.
+- `POST /api/evc/schedule`: Form panel (convener, expert), set inspection date, mode (`PHYSICAL_ONSITE` / `VIRTUAL_REMOTE`). Enforces future date validation, panel completeness, and regional jurisdiction.
+- `POST /api/evc/{id}/submit-report`: Upload signed committee inspection findings and recommendation (`RECOMMENDED_APPROVAL`, `DEFICIENCY_NOTED`, `RECOMMENDED_REJECTION`). Transitions application to `EVC_COMPLETED` without prematurely approving.
 
 #### 2.6 Alerts, Deadlines & Escalations (`/api/alerts`)
 - `GET /api/alerts`: List notifications and active escalations for the current user/tenant.

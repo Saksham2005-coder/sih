@@ -7,6 +7,7 @@
 
 ### 1. Schema Overview & Relational Integrity
 ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchemy 2.0 with strict foreign key constraints, explicit indexing on frequently filtered lookup columns (`institution_id`, `current_stage`, `due_date`, `expiry_date`, `idempotency_key`), monotonic versioning for optimistic locking, and UTC-timestamped audit triggers.
+Phase 3 establishes an immutable, versioned document store, explicit institutional compliance passport undertakings with structured evidence histories, and EVC inspection panel coordination with prerequisite enforcement in the workflow state machine.
 
 ```
                   +-------------------+
@@ -17,7 +18,7 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
            +----------------+----------------+
            | *                               | *
 +----------v----------+            +---------v---------+
-|        users        |            |   applications    |  (version: Integer)
+|        users        |            |   applications    |  (version: Integer, evc_required: Boolean)
 +----------+----------+            +----+----+----+----+
            | 1                          | 1  | 1  | 1
            | *                          | *  | *  | 1
@@ -36,12 +37,12 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
            +----------------+----------------+
            | *                               | *
 +----------v----------+            +---------v---------+
-| compliance_undertake|            | document_records  |
+| compliance_undertake|            | document_records  | (issuing_authority, valid_from, renewal_required)
 +----------+----------+            +---------+---------+
            | 1                               | 1
            | *                               | *
 +----------v----------+            +---------v---------+
-| compliance_evidence |            | document_versions |
+| compliance_evidence |            | document_versions | (storage_key, mime_type, file_size, SHA-256)
 +---------------------+            +-------------------+
 
 +---------------------+     +-----------------------+     +-------------------+     +-------------------+
@@ -98,6 +99,7 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `workflow_template_code` (VARCHAR(64), NOT NULL, DEFAULT `"EOA_ANNUAL"`)
   - `current_stage` (VARCHAR(64), NOT NULL, INDEXED)
   - `version` (INTEGER, NOT NULL, DEFAULT 1) — **Monotonic Optimistic Lock Version**
+  - `evc_required` (BOOLEAN, NOT NULL, DEFAULT FALSE) — Explicit route flag for mandatory physical / virtual EVC inspections
   - `scrutiny_officer_id` (FK -> `users.id`, NULLABLE)
   - `priority_score` (INTEGER, DEFAULT 0) — 0 to 100 Explainable Priority Index
   - `priority_factors` (JSON / TEXT) — Itemized explanation breakdown
@@ -130,35 +132,52 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
 - `compliance_undertakings`:
   - `id` (Primary Key)
   - `institution_id` (FK -> `institutions.id`, NOT NULL)
+  - `application_id` (FK -> `applications.id`, NULLABLE) — Linked approval application
+  - `rule_code` (VARCHAR(64), NULLABLE) — Configurable APH rule reference
   - `title` (VARCHAR(255), NOT NULL)
-  - `category` (VARCHAR(64), NOT NULL)
+  - `category` (VARCHAR(64), NOT NULL) — `"BIOMETRIC_ATTENDANCE"`, `"FIRE_SAFETY"`, `"FACULTY_SALARY"`, etc.
   - `description` (TEXT)
   - `due_date` (TIMESTAMP WITH TIME ZONE, NOT NULL, INDEXED)
-  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"NOT_YET_DUE"`) — `"NOT_YET_DUE"`, `"DUE_SOON"`, `"PENDING_VERIFICATION"`, `"VERIFIED"`, `"DEFICIENT"`, `"OVERDUE"`
+  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"NOT_YET_DUE"`) — `"NOT_YET_DUE"`, `"DUE_SOON"`, `"PENDING_VERIFICATION"`, `"UNDER_VERIFICATION"`, `"CORRECTION_REQUIRED"`, `"VERIFIED"`, `"DEFICIENT"`, `"OVERDUE"`
+  - `responsible_user_id` (FK -> `users.id`, NULLABLE) — Institution officer accountable
+  - `reviewer_id` (FK -> `users.id`, NULLABLE) — AICTE officer assigned for review
+  - `evidence_type` (VARCHAR(64), DEFAULT `"PDF_DOCUMENT"`) — Prescribed evidence format
+  - `fulfilled_at` (TIMESTAMP WITH TIME ZONE, NULLABLE) — Timestamp evidence was accepted
   - `verified_at` (TIMESTAMP WITH TIME ZONE, NULLABLE)
   - `verified_by_id` (FK -> `users.id`, NULLABLE)
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 - `compliance_evidence`:
   - `id` (Primary Key)
   - `undertaking_id` (FK -> `compliance_undertakings.id`, ON DELETE CASCADE)
-  - `version` (INTEGER, NOT NULL, DEFAULT 1)
+  - `version` (INTEGER, NOT NULL, DEFAULT 1) — Sequential immutable version
   - `file_name` (VARCHAR(255), NOT NULL)
   - `file_url` (VARCHAR(512), NOT NULL)
-  - `checksum_sha256` (VARCHAR(64), NOT NULL)
+  - `storage_key` (VARCHAR(255), NULLABLE) — Sanitized private storage identifier
+  - `file_size` (INTEGER, NULLABLE) — Exact byte count
+  - `mime_type` (VARCHAR(64), NULLABLE) — Validated media type
+  - `checksum_sha256` (VARCHAR(64), NOT NULL) — SHA-256 integrity hash
   - `remarks` (TEXT)
   - `submitted_by_id` (FK -> `users.id`)
   - `submitted_at` (TIMESTAMP WITH TIME ZONE)
+  - `verification_status` (VARCHAR(32), DEFAULT `"PENDING"`)
+  - `verified_by_id` (FK -> `users.id`, NULLABLE)
+  - `verified_at` (TIMESTAMP WITH TIME ZONE, NULLABLE)
+  - `verification_notes` (TEXT, NULLABLE)
 
 #### 2.7 Document Lifecycle: `document_records` & `document_versions`
 - `document_records`:
   - `id` (Primary Key)
   - `institution_id` (FK -> `institutions.id`, NOT NULL)
-  - `document_type` (VARCHAR(64), NOT NULL)
+  - `application_id` (FK -> `applications.id`, NULLABLE)
+  - `document_type` (VARCHAR(64), NOT NULL) — `"LAND_DEED_33YR"`, `"FIRE_NOC"`, `"BUILDING_PLAN"`, etc.
   - `title` (VARCHAR(255), NOT NULL)
   - `document_number` (VARCHAR(128))
-  - `issue_date` (DATE)
-  - `expiry_date` (DATE, INDEXED)
-  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"ACTIVE"`)
+  - `issuing_authority` (VARCHAR(255), NULLABLE) — E.g. `"Sub-Registrar Pune"`, `"Fire Safety Bureau"`
+  - `valid_from` (DATE, NULLABLE)
+  - `issue_date` (DATE, NULLABLE)
+  - `expiry_date` (DATE, NULLABLE, INDEXED) — Supports documents with continuous / no expiry
+  - `renewal_required` (BOOLEAN, DEFAULT TRUE)
+  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"ACTIVE"`) — `"ACTIVE"`, `"EXPIRING_SOON"`, `"RENEWAL_SUBMITTED"`, `"VERIFIED"`, `"EXPIRED"`
   - `current_version` (INTEGER, DEFAULT 1)
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 - `document_versions`:
@@ -167,10 +186,14 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `version` (INTEGER, NOT NULL)
   - `file_name` (VARCHAR(255), NOT NULL)
   - `file_url` (VARCHAR(512), NOT NULL)
+  - `storage_key` (VARCHAR(255), NULLABLE)
+  - `file_size` (INTEGER, NULLABLE)
+  - `mime_type` (VARCHAR(64), NULLABLE)
   - `checksum_sha256` (VARCHAR(64), NOT NULL)
+  - `renewal_reason` (TEXT, NULLABLE)
   - `uploaded_by_id` (FK -> `users.id`)
   - `uploaded_at` (TIMESTAMP WITH TIME ZONE)
-  - `verification_status` (VARCHAR(32), DEFAULT `"PENDING"`)
+  - `verification_status` (VARCHAR(32), DEFAULT `"PENDING"`) — `"PENDING"`, `"VERIFIED"`, `"REJECTED"`
   - `verified_by_id` (FK -> `users.id`, NULLABLE)
   - `verified_at` (TIMESTAMP WITH TIME ZONE, NULLABLE)
   - `verification_notes` (TEXT, NULLABLE)
@@ -182,10 +205,15 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
 - `scheduled_date` (TIMESTAMP WITH TIME ZONE, INDEXED)
 - `convener_name` (VARCHAR(128))
 - `expert_member_name` (VARCHAR(128))
-- `status` (VARCHAR(32), NOT NULL, DEFAULT `"PENDING_ASSIGNMENT"`)
+- `coordinator_id` (FK -> `users.id`, NULLABLE) — EVC Coordinator who scheduled
+- `convener_user_id` (FK -> `users.id`, NULLABLE) — Panel Convener user record
+- `expert_user_id` (FK -> `users.id`, NULLABLE) — Panel Expert user record
+- `completed_at` (TIMESTAMP WITH TIME ZONE, NULLABLE) — Exact visit sign-off timestamp
+- `completed_by_id` (FK -> `users.id`, NULLABLE) — Official who certified completion
+- `status` (VARCHAR(32), NOT NULL, DEFAULT `"PENDING_ASSIGNMENT"`) — `"PENDING_ASSIGNMENT"`, `"SCHEDULED"`, `"IN_PROGRESS"`, `"REPORT_SUBMITTED"`, `"DEFICIENCY_NOTED"`, `"RECOMMENDED_APPROVAL"`, `"RECOMMENDED_REJECTION"`
 - `report_url` (VARCHAR(512), NULLABLE)
 - `report_notes` (TEXT, NULLABLE)
-- `recommendation` (VARCHAR(64), NULLABLE)
+- `recommendation` (VARCHAR(64), NULLABLE) — `"RECOMMENDED_APPROVAL"`, `"DEFICIENCY_NOTED"`, `"RECOMMENDED_REJECTION"`
 - `created_at`, `updated_at` (TIMESTAMP WITH TIME ZONE)
 
 #### 2.9 `notifications` & `alert_escalations`

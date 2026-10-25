@@ -108,6 +108,7 @@ def seed_database():
             application_type="NEW_INSTITUTION",
             workflow_template_code="NEW_INSTITUTION",
             current_stage="AWAITING_EVC_SCHEDULE",
+            evc_required=True,
             priority_score=60,
             submitted_at=now - timedelta(days=22),
             updated_at=now - timedelta(days=2)
@@ -195,38 +196,51 @@ def seed_database():
         # 6. Compliance Undertakings
         u1 = ComplianceUndertaking(
             institution_id=inst1.id,
+            application_id=app1.id,
             title="Establishment of Barrier-Free Access Ramps & Dedicated Elevator",
             category="ACCESSIBILITY",
             description="Mandatory accessibility compliance as per Divyangjan norms across academic blocks.",
             due_date=now + timedelta(days=12),
+            rule_code="APH-2026-CH2-RAMP",
+            evidence_type="ARCHITECTURAL_AFFIDAVIT",
             status="DUE_SOON",
             created_at=now - timedelta(days=45)
         )
         u2 = ComplianceUndertaking(
             institution_id=inst1.id,
+            application_id=app1.id,
             title="Installation of Specialized Robotics & Green Tech Laboratory Equipment",
             category="INFRASTRUCTURE",
             description="Commissioning of 15 advanced robotics testing workstations.",
             due_date=now - timedelta(days=5),
+            rule_code="APH-2026-CH4-ROBOTICS",
+            evidence_type="PROCUREMENT_INVOICE",
             status="OVERDUE",
             created_at=now - timedelta(days=60)
         )
         u3 = ComplianceUndertaking(
             institution_id=inst2.id,
+            application_id=app3.id,
             title="Submission of Annual Financial Audit & Fee Regulatory Committee Conformity",
             category="FINANCIAL_AUDIT",
             description="Submission of statutory audited balance sheet for FY 2025-2026.",
             due_date=now + timedelta(days=45),
+            rule_code="APH-2026-CH6-FINANCIAL",
+            evidence_type="AUDITED_BALANCE_SHEET",
             status="NOT_YET_DUE",
             created_at=now - timedelta(days=20)
         )
         u4 = ComplianceUndertaking(
             institution_id=inst2.id,
+            application_id=app4.id,
             title="Faculty Biometric & AI-Assisted Attendance Integration",
             category="FACULTY",
             description="Direct API integration with state regulatory monitoring dashboard.",
             due_date=now - timedelta(days=30),
+            rule_code="APH-2026-CH3-BIOMETRIC",
+            evidence_type="INTEGRATION_CERTIFICATE",
             status="VERIFIED",
+            fulfilled_at=now - timedelta(days=10),
             verified_at=now - timedelta(days=10),
             verified_by_id=created_users["ro.western@aicte.gov.in"].id,
             created_at=now - timedelta(days=90)
@@ -243,40 +257,56 @@ def seed_database():
             checksum_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             remarks="API integration verified and tested with AICTE regional node.",
             submitted_by_id=created_users["admin@nier.edu.in"].id,
-            submitted_at=now - timedelta(days=12)
+            submitted_at=now - timedelta(days=12),
+            verification_status="VERIFIED",
+            verified_by_id=created_users["ro.western@aicte.gov.in"].id,
+            verified_at=now - timedelta(days=10),
+            verification_notes="API handshake verified with regional node."
         )
         db.add(ev4)
 
         # 7. Document Records & Versions
         doc1 = DocumentRecord(
             institution_id=inst1.id,
+            application_id=app1.id,
             document_type="LAND_LEASE_DEED",
             title="33-Year Registered Land Lease Deed (Khasra No. 412/1)",
             document_number="REG-MH-2021-99812",
+            issuing_authority="Sub-Registrar Pune",
             issue_date=today - timedelta(days=365 * 32 + 320),
+            valid_from=today - timedelta(days=365 * 33),
             expiry_date=today + timedelta(days=45), # Expiring in 45 days
+            renewal_required=True,
             status="EXPIRING_SOON",
             current_version=1,
             created_at=now - timedelta(days=120)
         )
         doc2 = DocumentRecord(
             institution_id=inst1.id,
+            application_id=app1.id,
             document_type="FIRE_SAFETY_NOC",
             title="Municipal Fire Brigade Safety NOC (Form B)",
             document_number="FIRE-MUM-2025-0192",
+            issuing_authority="Municipal Fire Brigade",
             issue_date=today - timedelta(days=375),
+            valid_from=today - timedelta(days=375),
             expiry_date=today - timedelta(days=10), # Expired 10 days ago
+            renewal_required=True,
             status="EXPIRED",
             current_version=1,
             created_at=now - timedelta(days=120)
         )
         doc3 = DocumentRecord(
             institution_id=inst2.id,
+            application_id=app3.id,
             document_type="BUILDING_STABILITY",
             title="Structural Stability & Occupancy Certificate",
             document_number="PWD-DL-2023-4419",
+            issuing_authority="Central PWD Delhi",
             issue_date=today - timedelta(days=700),
+            valid_from=today - timedelta(days=700),
             expiry_date=today + timedelta(days=365 * 10),
+            renewal_required=False,
             status="ACTIVE",
             current_version=1,
             created_at=now - timedelta(days=200)
@@ -289,6 +319,9 @@ def seed_database():
             version=1,
             file_name="Apex_Land_Lease_Deed_Registered.pdf",
             file_url="/api/documents/download/sample_land_lease.pdf",
+            storage_key="sample_land_lease.pdf",
+            file_size=1048576,
+            mime_type="application/pdf",
             checksum_sha256="7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069",
             uploaded_by_id=created_users["admin@apex.edu.in"].id,
             uploaded_at=now - timedelta(days=120),
@@ -302,6 +335,9 @@ def seed_database():
             version=1,
             file_name="Apex_Fire_NOC_2025.pdf",
             file_url="/api/documents/download/sample_fire_noc.pdf",
+            storage_key="sample_fire_noc.pdf",
+            file_size=524288,
+            mime_type="application/pdf",
             checksum_sha256="9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
             uploaded_by_id=created_users["admin@apex.edu.in"].id,
             uploaded_at=now - timedelta(days=120),
@@ -319,6 +355,7 @@ def seed_database():
             scheduled_date=None,
             convener_name=None,
             expert_member_name=None,
+            coordinator_id=created_users["evc.coord@aicte.gov.in"].id,
             status="PENDING_ASSIGNMENT",
             created_at=now - timedelta(days=2)
         )

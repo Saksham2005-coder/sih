@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from app.core.database import Base
@@ -17,6 +17,7 @@ class Application(Base):
     priority_score = Column(Integer, default=0, nullable=False) # 0-100
     priority_factors = Column(Text, nullable=True) # JSON string explaining score
     version = Column(Integer, default=1, nullable=False)
+    evc_required = Column(Boolean, default=False, nullable=False)
     
     submitted_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     approved_at = Column(DateTime, nullable=True)
@@ -28,6 +29,8 @@ class Application(Base):
     stages = relationship("ApplicationStage", back_populates="application", cascade="all, delete-orphan", order_by="ApplicationStage.created_at.asc()")
     deficiencies = relationship("Deficiency", back_populates="application", cascade="all, delete-orphan", order_by="Deficiency.created_at.desc()")
     evc_inspections = relationship("EVCInspection", back_populates="application", cascade="all, delete-orphan")
+    undertakings = relationship("ComplianceUndertaking", back_populates="application")
+    documents = relationship("DocumentRecord", back_populates="application")
 
 class ApplicationStage(Base):
     __tablename__ = "application_stages"

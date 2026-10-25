@@ -7,11 +7,13 @@ from app.core.dependencies import get_current_user, require_roles, verify_instit
 from app.models.user import User
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.institution import Institution
+from app.models.application import Application
 from app.schemas.compliance import (
-    ComplianceUndertakingResponse, ComplianceUndertakingCreate, ComplianceVerifyRequest
+    ComplianceUndertakingResponse, ComplianceUndertakingCreate, ComplianceVerifyRequest, ComplianceEvidenceResponse
 )
-from app.services.document_service import save_uploaded_file
+from app.services.compliance_service import ComplianceService
 from app.services.audit_service import log_audit_event
+from app.core.rbac import check_institution_scope, check_regional_scope, has_permission, Permission
 
 router = APIRouter(prefix="/compliance", tags=["Compliance Passport"])
 
@@ -19,6 +21,7 @@ router = APIRouter(prefix="/compliance", tags=["Compliance Passport"])
 def list_undertakings(
     status_filter: Optional[str] = None,
     category: Optional[str] = None,
+    application_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -40,25 +43,74 @@ def list_undertakings(
         query = query.filter(ComplianceUndertaking.status == status_filter)
     if category:
         query = query.filter(ComplianceUndertaking.category == category)
+    if application_id:
+        query = query.filter(ComplianceUndertaking.application_id == application_id)
 
     undertakings = query.order_by(ComplianceUndertaking.due_date.asc()).all()
     results = []
     for u in undertakings:
+        eff_status = ComplianceService.get_effective_status(u)
         results.append(ComplianceUndertakingResponse(
             id=u.id,
             institution_id=u.institution_id,
-            institution_name=u.institution.name,
+            institution_name=u.institution.name if u.institution else None,
+            application_id=u.application_id,
             title=u.title,
             category=u.category,
             description=u.description,
             due_date=u.due_date,
             status=u.status,
+            effective_status=eff_status,
+            rule_code=u.rule_code,
+            responsible_user_id=u.responsible_user_id,
+            reviewer_id=u.reviewer_id,
+            evidence_type=u.evidence_type,
+            fulfilled_at=u.fulfilled_at,
             verified_at=u.verified_at,
             verified_by_id=u.verified_by_id,
             created_at=u.created_at,
-            evidences=u.evidences
+            evidences=[ComplianceEvidenceResponse.model_validate(e) for e in u.evidences]
         ))
     return results
+
+@router.get("/undertakings/{id}", response_model=ComplianceUndertakingResponse)
+def get_undertaking(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    undertaking = db.query(ComplianceUndertaking).filter(ComplianceUndertaking.id == id).first()
+    if not undertaking:
+        raise HTTPException(status_code=404, detail="Compliance undertaking not found")
+
+    check_institution_scope(current_user, undertaking.institution_id)
+    if undertaking.institution:
+        user_roles = [r.role for r in current_user.roles]
+        if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+            check_regional_scope(current_user, undertaking.institution.region)
+
+    eff_status = ComplianceService.get_effective_status(undertaking)
+    return ComplianceUndertakingResponse(
+        id=undertaking.id,
+        institution_id=undertaking.institution_id,
+        institution_name=undertaking.institution.name if undertaking.institution else None,
+        application_id=undertaking.application_id,
+        title=undertaking.title,
+        category=undertaking.category,
+        description=undertaking.description,
+        due_date=undertaking.due_date,
+        status=undertaking.status,
+        effective_status=eff_status,
+        rule_code=undertaking.rule_code,
+        responsible_user_id=undertaking.responsible_user_id,
+        reviewer_id=undertaking.reviewer_id,
+        evidence_type=undertaking.evidence_type,
+        fulfilled_at=undertaking.fulfilled_at,
+        verified_at=undertaking.verified_at,
+        verified_by_id=undertaking.verified_by_id,
+        created_at=undertaking.created_at,
+        evidences=[ComplianceEvidenceResponse.model_validate(e) for e in undertaking.evidences]
+    )
 
 @router.post("/undertakings", response_model=ComplianceUndertakingResponse, status_code=status.HTTP_201_CREATED)
 def create_undertaking(
@@ -75,16 +127,20 @@ def create_undertaking(
 
     undertaking = ComplianceUndertaking(
         institution_id=inst.id,
+        application_id=request.application_id,
         title=request.title,
         category=request.category,
         description=request.description,
         due_date=request.due_date,
+        rule_code=request.rule_code,
+        evidence_type=request.evidence_type or "PDF_DOCUMENT",
         status="NOT_YET_DUE"
     )
     db.add(undertaking)
     db.commit()
     db.refresh(undertaking)
 
+    actor_role = current_user.roles[0].role if current_user.roles else "OFFICER"
     log_audit_event(
         db=db,
         action="UNDERTAKING_CREATED",
@@ -92,7 +148,7 @@ def create_undertaking(
         entity_id=undertaking.id,
         actor_id=current_user.id,
         actor_name=current_user.full_name,
-        actor_role=current_user.roles[0].role if current_user.roles else "OFFICER",
+        actor_role=actor_role,
         details={"title": undertaking.title, "due_date": request.due_date.isoformat()}
     )
 
@@ -100,11 +156,18 @@ def create_undertaking(
         id=undertaking.id,
         institution_id=undertaking.institution_id,
         institution_name=inst.name,
+        application_id=undertaking.application_id,
         title=undertaking.title,
         category=undertaking.category,
         description=undertaking.description,
         due_date=undertaking.due_date,
         status=undertaking.status,
+        effective_status="NOT_YET_DUE",
+        rule_code=undertaking.rule_code,
+        responsible_user_id=undertaking.responsible_user_id,
+        reviewer_id=undertaking.reviewer_id,
+        evidence_type=undertaking.evidence_type,
+        fulfilled_at=undertaking.fulfilled_at,
         verified_at=undertaking.verified_at,
         verified_by_id=undertaking.verified_by_id,
         created_at=undertaking.created_at,
@@ -119,46 +182,19 @@ def submit_compliance_evidence(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(["INSTITUTION_ADMIN", "COMPLIANCE_OFFICER"]))
 ):
-    undertaking = db.query(ComplianceUndertaking).filter(ComplianceUndertaking.id == id).first()
-    if not undertaking:
-        raise HTTPException(status_code=404, detail="Compliance undertaking not found")
-
-    verify_institution_access(undertaking.institution_id, current_user)
-
-    orig_name, file_url, checksum = save_uploaded_file(file)
-
-    current_count = len(undertaking.evidences)
-    new_version = current_count + 1
-
-    evidence = ComplianceEvidence(
-        undertaking_id=undertaking.id,
-        version=new_version,
-        file_name=orig_name,
-        file_url=file_url,
-        checksum_sha256=checksum,
-        remarks=remarks,
-        submitted_by_id=current_user.id,
-        submitted_at=datetime.now(timezone.utc)
-    )
-    db.add(evidence)
-    
-    # Update undertaking status to pending verification
-    undertaking.status = "PENDING_VERIFICATION"
-    db.commit()
-
-    actor_role = current_user.roles[0].role if current_user.roles else "COMPLIANCE_OFFICER"
-    log_audit_event(
+    evidence = ComplianceService.submit_evidence(
         db=db,
-        action="COMPLIANCE_EVIDENCE_SUBMITTED",
-        entity_type="UNDERTAKING",
-        entity_id=undertaking.id,
-        actor_id=current_user.id,
-        actor_name=current_user.full_name,
-        actor_role=actor_role,
-        details={"version": new_version, "file_name": orig_name, "checksum": checksum}
+        undertaking_id=id,
+        file=file,
+        remarks=remarks,
+        actor=current_user
     )
-
-    return {"message": "Compliance evidence submitted successfully", "version": new_version, "checksum": checksum}
+    return {
+        "message": "Compliance evidence submitted successfully",
+        "version": evidence.version,
+        "checksum": evidence.checksum_sha256,
+        "file_name": evidence.file_name
+    }
 
 @router.post("/undertakings/{id}/verify")
 def verify_compliance_evidence(
@@ -167,34 +203,14 @@ def verify_compliance_evidence(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
-    undertaking = db.query(ComplianceUndertaking).filter(ComplianceUndertaking.id == id).first()
-    if not undertaking:
-        raise HTTPException(status_code=404, detail="Compliance undertaking not found")
-
-    if undertaking.institution:
-        verify_regional_access(undertaking.institution.region, current_user)
-
-    if request.status not in ["VERIFIED", "DEFICIENT"]:
-        raise HTTPException(status_code=400, detail="Status must be either 'VERIFIED' or 'DEFICIENT'")
-
-    undertaking.status = request.status
-    now = datetime.now(timezone.utc)
-    if request.status == "VERIFIED":
-        undertaking.verified_at = now
-        undertaking.verified_by_id = current_user.id
-    
-    db.commit()
-
-    actor_role = current_user.roles[0].role if current_user.roles else "REGIONAL_OFFICER"
-    log_audit_event(
+    undertaking = ComplianceService.verify_obligation(
         db=db,
-        action="COMPLIANCE_EVIDENCE_VERIFIED",
-        entity_type="UNDERTAKING",
-        entity_id=undertaking.id,
-        actor_id=current_user.id,
-        actor_name=current_user.full_name,
-        actor_role=actor_role,
-        details={"outcome": request.status, "notes": request.notes}
+        undertaking_id=id,
+        outcome_status=request.status,
+        notes=request.notes or "Compliance verification recorded.",
+        actor=current_user
     )
-
-    return {"message": f"Compliance evidence marked as {request.status}", "status": request.status}
+    return {
+        "message": f"Compliance evidence marked as {request.status}",
+        "status": undertaking.status
+    }

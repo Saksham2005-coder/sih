@@ -54,3 +54,6 @@ All transitions are strictly mediated by `WorkflowEngine.transition()` (`backend
    - An application cannot transition from `DEFICIENCY_COMMUNICATED` to `RESUBMITTED` while deficiencies remain uncured (`UNCURED_DEFICIENCIES_REMAIN`).
 5. **Mandatory Justification for Adverse Decisions**:
    - Transitions to `DEFICIENCY_COMMUNICATED`, `REJECTED`, or `CLOSED` require a non-empty `remarks` payload (`REMARKS_REQUIRED`).
+6. **Mandatory EVC Completion Gate**:
+   - For applications requiring an inspection (`workflow_template_code == 'NEW_INSTITUTION'` or `evc_required=True`), the guarded transition engine blocks progression to review or final decision stages (`AWAITING_SAC_CAC_REVIEW`, `AWAITING_COMPETENT_AUTHORITY`, `APPROVED`) until an official inspection report has been submitted and the application stage has reached `EVC_COMPLETED`.
+

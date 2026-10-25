@@ -130,6 +130,7 @@ export const ComplianceMonitoring: React.FC = () => {
               className="w-full border border-brand-border rounded-lg px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-brand-teal"
             >
               <option value="VERIFIED">VERIFIED — Evidence Conforms to Statutory Norms</option>
+              <option value="CORRECTION_REQUIRED">CORRECTION_REQUIRED — Request Specific Cures / Correction</option>
               <option value="DEFICIENT">DEFICIENT — Evidence Incomplete or Inadequate</option>
             </select>
           </div>

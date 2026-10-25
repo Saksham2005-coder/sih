@@ -206,11 +206,19 @@ def test_evc_coordinator_cannot_verify_compliance(client):
     assert res.status_code == 403
 
 def test_competent_authority_authorized_decision(client):
-    # Set an application to AWAITING_COMPETENT_AUTHORITY directly in DB for testing
+    # Create an isolated test application at AWAITING_COMPETENT_AUTHORITY
     db = SessionLocal()
     try:
-        app = db.query(Application).filter(Application.application_number == "AICTE-2026-NEW-44102").first()
-        app.current_stage = "AWAITING_COMPETENT_AUTHORITY"
+        app = Application(
+            application_number="AICTE-2026-TEST-CA-9999",
+            institution_id=1,
+            academic_year="2026-2027",
+            application_type="EOA_ANNUAL",
+            workflow_template_code="EOA_ANNUAL",
+            current_stage="AWAITING_COMPETENT_AUTHORITY",
+            version=1
+        )
+        db.add(app)
         db.commit()
         app_id = app.id
     finally:

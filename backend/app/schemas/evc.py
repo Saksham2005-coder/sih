@@ -26,9 +26,12 @@ class EVCInspectionResponse(BaseModel):
     scheduled_date: Optional[datetime] = None
     convener_name: Optional[str] = None
     expert_member_name: Optional[str] = None
+    coordinator_id: Optional[int] = None
     status: str
     report_url: Optional[str] = None
     report_notes: Optional[str] = None
     recommendation: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    completed_by_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
