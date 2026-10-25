@@ -1,7 +1,7 @@
 # ReguFlow 360 — Integrated AICTE Approval Workflow, Compliance Monitoring & Alert System
 ## SIH 2026 Problem Statement 26262
 **Platform Repository:** `https://github.com/Saksham2005-coder/sih`  
-**Active Feature Branch:** `sih-26262`  
+**Active Branch:** `main`  
 **Version:** 1.0.0 (Phase 1 Baseline & Production Architecture)
 
 ---
