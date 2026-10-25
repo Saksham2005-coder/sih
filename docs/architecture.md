@@ -135,3 +135,42 @@ Phase 4 implements a deterministic, multi-vector deadline monitoring, automated 
   - Configurable polling interval (`DEADLINE_SCAN_INTERVAL_SECONDS`, default 300s).
   - Telemetry and Audit: Each run generates an immutable record in `deadline_engine_runs` capturing items scanned, alerts generated, duplicates prevented, execution time, and error status.
   - On-Demand Scan Trigger: Authorized officers (`rules.manage` or `application.transition`) can trigger manual scans via `POST /api/alerts/run-scan`, sharing identical service logic and idempotency guarantees.
+
+---
+
+### 5. Operational Command Centre, Explainable Intelligence & Rule Studio
+Phase 5 elevates ReguFlow 360 into an operationally intelligent platform with full explainability, administrative control, and non-repudiation:
+
+- **AICTE Operational Command Centre**:
+  - Unified operational workspace answering priority, bottleneck, and queue ageing questions.
+  - Role-scoped queries guarantee that Regional Officers only view records in their regional jurisdiction, Institution Admins only view their own tenancy, and System Admins access national telemetry.
+  - Reconciled metrics: Every overview metric (stage breakdown, overdue counts, bottleneck averages) maps 1:1 to underlying database records.
+
+- **Explainable Deadline Intelligence (`PriorityService`)**:
+  - Deterministic priority scoring engine (0-100) combining stage ageing, unresolved deficiencies, statutory approval milestones, overdue compliance undertakings, expiring documents, active escalations, and repeated deficiency cycles.
+  - Configurable weighting policy sourced directly from Rule Studio (`RULE_PRIORITY_POLICY`).
+  - Structured factor attribution: Every priority score provides human-readable point breakdowns and recommended next regulatory actions.
+  - Invariant: Operational priority scores strictly prioritize human officer attention and never mutate an application's statutory decision state.
+
+- **Robust Versioned Rule Studio**:
+  - Full rule lifecycle management (`DRAFT`, `VALIDATED`, `PUBLISHED`, `RETIRED`).
+  - Strict validation engine checking required fields, JSON syntax, positive integer SLAs, canonical recipient roles, and threshold ordering.
+  - Dry-run simulation sandbox (`POST /api/rules/{rule_code}/simulate`) evaluates hypothetical scenarios without mutating database state or triggering notifications.
+  - Immutable version history ledger (`rule_version_history`) archives previous configuration snapshots upon publication with change reasons and actor metadata.
+
+- **Unified Audit Explorer**:
+  - Server-side filterable investigation tool with multi-field search (`entity_type`, `action`, `actor_role`, `search`, date ranges) and pagination.
+  - Regional and tenant scoping enforces that ROs only access events in their region, institutions only access their own events, and system admins access the global ledger.
+  - Formula injection defense: CSV export sanitizes cells starting with `=`, `+`, `-`, `@`, `\t`, `\r` by prefixing a single quote (`'`), while generating an export audit event.
+
+- **Distributed Scheduler Coordination (`SchedulerLease`)**:
+  - Dedicated distributed database lease table coordinates multi-worker or multi-process deployments.
+  - Workers acquire a named lease (`deadline_engine_scan`) with a configurable TTL, renew via heartbeat, and skip overlapping scans when a lease is held by another active worker.
+  - Date-only deadlines (e.g. `DocumentRecord.expiry_date`) calculate boundaries against Asia/Kolkata local calendar dates to prevent premature UTC-midnight expiration errors.
+
+- **Evidence-Grounded Case Brief Assistant (`CaseBriefService`)**:
+  - Synthesizes complex application dossiers into executive summaries, deficiency timelines, compliance passport status, and EVC inspection findings.
+  - Grounded with explicit database citations referencing stage transitions, deficiency IDs, and inspection records.
+  - Deterministic fallback operates without requiring third-party LLM API keys.
+  - Statutory boundary: Strictly informative case synthesis; cannot approve, reject, or overrule human regulatory decisions.
+

@@ -2,7 +2,10 @@ import {
   User, TokenResponse, Application, ApplicationDetailResponse,
   ComplianceUndertaking, DocumentRecord, EVCInspection,
   NotificationItem, AlertEscalationItem, AuditEventItem,
-  RuleDefinitionItem, OperationalSummary
+  RuleDefinitionItem, OperationalSummary,
+  CaseBriefData, RuleVersionHistoryItem, RuleValidateResponse,
+  RuleSimulateResponse, AuditExplorerData, CommandCentreData,
+  SlaAdherenceData, EvcAnalyticsData
 } from '../types';
 
 const API_BASE = '/api';
@@ -102,7 +105,7 @@ export const api = {
     request<any>(`/applications/${id}/resolve-deficiency/${deficiencyId}`, {
       method: 'POST',
     }),
-  getCaseBrief: (id: number) => request<any>(`/applications/${id}/case-brief`),
+  getCaseBrief: (id: number) => request<CaseBriefData>(`/applications/${id}/case-brief`),
 
   // Compliance
   getUndertakings: (params?: { status_filter?: string; category?: string }) => {
@@ -182,21 +185,65 @@ export const api = {
   markNotificationRead: (id: number) => request<any>(`/alerts/notifications/${id}/read`, { method: 'POST' }),
   getEngineStatus: () => request<any>('/alerts/engine-status'),
 
-  // Rules & Audit
+  // Rules & Governance
   getRules: () => request<RuleDefinitionItem[]>('/rules'),
-  updateRule: (ruleCode: string, payload: { config_json: string; version?: string; is_active?: boolean }) =>
+  getRuleHistory: (ruleCode: string) => request<RuleVersionHistoryItem[]>(`/rules/${ruleCode}/history`),
+  validateRule: (ruleCode: string, configJson: string) =>
+    request<RuleValidateResponse>(`/rules/${ruleCode}/validate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config_json: configJson }),
+    }),
+  simulateRule: (ruleCode: string, payload: { config_json?: string; application_id?: number }) =>
+    request<RuleSimulateResponse>(`/rules/${ruleCode}/simulate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  publishRule: (ruleCode: string, payload: { config_json: string; version: string; change_reason: string }) =>
+    request<RuleDefinitionItem>(`/rules/${ruleCode}/publish`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  updateRule: (ruleCode: string, payload: { config_json: string; version?: string; is_active?: boolean; status?: string; description?: string; change_reason?: string }) =>
     request<RuleDefinitionItem>(`/rules/${ruleCode}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
+
+  // Audit Explorer
   getAuditTrail: (params?: { entity_type?: string; action?: string }) => {
     const query = new URLSearchParams();
     if (params?.entity_type) query.set('entity_type', params.entity_type);
     if (params?.action) query.set('action', params.action);
-    return request<AuditEventItem[]>(`/audit?${query.toString()}`);
+    return request<AuditExplorerData>(`/audit?${query.toString()}`).then(res => res.items);
+  },
+  getAuditExplorer: (params?: {
+    entity_type?: string;
+    entity_id?: number;
+    action?: string;
+    actor_role?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.entity_type) query.set('entity_type', params.entity_type);
+    if (params?.entity_id) query.set('entity_id', params.entity_id.toString());
+    if (params?.action) query.set('action', params.action);
+    if (params?.actor_role) query.set('actor_role', params.actor_role);
+    if (params?.search) query.set('search', params.search);
+    if (params?.page) query.set('page', params.page.toString());
+    if (params?.limit) query.set('limit', params.limit.toString());
+    return request<AuditExplorerData>(`/audit?${query.toString()}`);
   },
 
-  // Reports
+  // Reports & Command Centre
   getOperationalSummary: () => request<OperationalSummary>('/reports/summary'),
+  getCommandCentre: () => request<CommandCentreData>('/reports/command-centre'),
+  getSlaAdherence: () => request<SlaAdherenceData>('/reports/sla-adherence'),
+  getEvcAnalytics: () => request<EvcAnalyticsData>('/reports/evc-analytics'),
 };
+

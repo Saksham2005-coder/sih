@@ -14,4 +14,6 @@ class AuditEvent(Base):
     entity_id = Column(Integer, nullable=False, index=True)
     details = Column(Text, nullable=True) # JSON or formatted details
     ip_address = Column(String(64), nullable=True)
+    institution_id = Column(Integer, nullable=True, index=True)
+    region = Column(String(64), nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)

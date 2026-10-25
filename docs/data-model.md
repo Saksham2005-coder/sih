@@ -267,7 +267,7 @@ Phase 4 introduces a deterministic, multi-vector deadline and escalation engine 
   - `error_message` (TEXT, NULLABLE)
   - `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT UTC)
 
-#### 2.10 `audit_events` & `rule_definitions`
+#### 2.10 `audit_events`, `rule_definitions`, `rule_version_history` & `scheduler_leases`
 - `audit_events`:
   - `id` (Primary Key)
   - `actor_id` (INTEGER, NULLABLE)
@@ -278,6 +278,8 @@ Phase 4 introduces a deterministic, multi-vector deadline and escalation engine 
   - `entity_id` (INTEGER, NOT NULL)
   - `details` (JSON / TEXT)
   - `ip_address` (VARCHAR(64))
+  - `institution_id` (INTEGER, NULLABLE, INDEXED) — Phase 5: Tenant scoping
+  - `region` (VARCHAR(64), NULLABLE, INDEXED) — Phase 5: Regional jurisdiction scoping
   - `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT UTC)
 - `rule_definitions`:
   - `id` (Primary Key)
@@ -287,4 +289,28 @@ Phase 4 introduces a deterministic, multi-vector deadline and escalation engine 
   - `version` (VARCHAR(16), NOT NULL, DEFAULT `"1.0.0"`)
   - `config_json` (TEXT, NOT NULL)
   - `is_active` (BOOLEAN, DEFAULT TRUE)
+  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"PUBLISHED"`) — Phase 5: `DRAFT`, `VALIDATED`, `PUBLISHED`, `RETIRED`
+  - `description` (TEXT, NULLABLE)
+  - `created_by_id` (INTEGER, FK -> `users.id`, NULLABLE)
+  - `change_reason` (TEXT, NULLABLE)
+  - `effective_from` (TIMESTAMP WITH TIME ZONE, NULLABLE)
   - `updated_at` (TIMESTAMP WITH TIME ZONE)
+- `rule_version_history` (Phase 5 Immutable Policy Ledger):
+  - `id` (Primary Key)
+  - `rule_id` (INTEGER, FK -> `rule_definitions.id`, ON DELETE CASCADE, INDEXED)
+  - `rule_code` (VARCHAR(64), INDEXED, NOT NULL)
+  - `version` (VARCHAR(16), NOT NULL)
+  - `category` (VARCHAR(64), NOT NULL)
+  - `config_json` (TEXT, NOT NULL)
+  - `status` (VARCHAR(32), NOT NULL)
+  - `change_reason` (TEXT, NULLABLE)
+  - `created_by_id` (INTEGER, FK -> `users.id`, NULLABLE)
+  - `created_at` (TIMESTAMP WITH TIME ZONE, DEFAULT UTC)
+- `scheduler_leases` (Phase 5 Distributed Lease Coordination):
+  - `id` (Primary Key)
+  - `lease_name` (VARCHAR(64), UNIQUE, NOT NULL, INDEXED) — E.g. `"deadline_engine_scan"`
+  - `holder_id` (VARCHAR(128), NOT NULL) — Unique worker process UUID
+  - `acquired_at` (TIMESTAMP WITH TIME ZONE, NOT NULL)
+  - `expires_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, INDEXED)
+  - `last_heartbeat` (TIMESTAMP WITH TIME ZONE, NOT NULL)
+

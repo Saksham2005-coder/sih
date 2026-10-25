@@ -352,37 +352,17 @@ def get_case_brief(
     current_user: User = Depends(get_current_user)
 ):
     """Deterministic Case Brief Assistant summarizing recorded application milestones and evidence"""
+    from app.services.case_brief_service import CaseBriefService
     app = db.query(Application).filter(Application.id == id).first()
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
 
     verify_institution_access(app.institution_id, current_user)
     
-    score, priority_data = calculate_priority(app, db)
-    stages = db.query(ApplicationStage).filter(ApplicationStage.application_id == app.id).order_by(ApplicationStage.created_at.asc()).all()
-    deficiencies = db.query(Deficiency).filter(Deficiency.application_id == app.id).all()
-    
-    summary = {
-        "application_number": app.application_number,
-        "institution_name": app.institution.name,
-        "academic_year": app.academic_year,
-        "current_stage": app.current_stage,
-        "priority_index": score,
-        "priority_tier": priority_data["tier"],
-        "key_factors": priority_data["factors"],
-        "milestones_count": len(stages),
-        "total_deficiencies": len(deficiencies),
-        "cured_deficiencies": len([d for d in deficiencies if d.status == "CURED"]),
-        "open_deficiencies": len([d for d in deficiencies if d.status == "OPEN"]),
-        "timeline_summary": [
-            f"{s.created_at.strftime('%d %b %Y')}: {s.from_stage or 'INIT'} -> {s.to_stage} ({s.actor_name})"
-            for s in stages
-        ],
-        "synthesis": (
-            f"Application {app.application_number} from {app.institution.name} ({app.institution.region} Region) is currently in '{app.current_stage}'. "
-            f"It has recorded {len(stages)} workflow transitions and {len(deficiencies)} deficiency item(s). "
-            f"Operational urgency index is evaluated at {score}/100 ({priority_data['tier']} Tier) based on stage ageing and pending dependencies."
-        ),
-        "source": "ReguFlow 360 Deterministic Regulatory Brief Engine"
-    }
-    return summary
+    # Regional Officer access check
+    user_roles = [r.role for r in current_user.roles]
+    if "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if app.institution.region != current_user.region:
+            raise HTTPException(status_code=403, detail="Forbidden: Application outside assigned regional jurisdiction")
+
+    return CaseBriefService.generate_case_brief(app.id, db)

@@ -103,9 +103,24 @@ Standard error codes:
 - `GET /api/alerts/engine-status`: Operational telemetry endpoint returning `is_running`, `scan_interval_seconds`, `last_run` summary (items examined, reminders, escalations, duplicates prevented, execution time), and lifetime aggregate statistics (`total_runs`, `total_reminders_created`, `total_escalations_created`).
 - `POST /api/alerts/run-scan`: Trigger an on-demand, multi-vector deadline and escalation scan pass. Protected by RBAC (`rules.manage` or `application.transition` permission required). Records run metadata in `deadline_engine_runs` table and returns `DeadlineEngineRunResponse`.
 
-#### 2.7 Rule Studio & Audit Trail (`/api/rules`, `/api/audit`, `/api/reports`)
+#### 2.7 Rule Studio (`/api/rules`)
 - `GET /api/rules`: List configurable workflow templates and SLA thresholds.
-- `POST /api/rules`: Create or update a versioned rule set (`SYSTEM_ADMIN` only).
-- `GET /api/audit`: Query append-only audit trail with entity and actor filters (`audit.read` permission required).
-- `GET /api/reports/summary`: Aggregate operational metrics (stage distribution, pendency ageing, compliance rates).
-- `GET /api/health`: Health status endpoint returning database connection status and server timestamp.
+- `POST /api/rules`: Create or update a rule definition (`SYSTEM_ADMIN` only).
+- `GET /api/rules/{rule_code}/history`: List immutable version snapshots for a rule code (`RuleVersionHistoryResponse`).
+- `POST /api/rules/{rule_code}/validate`: Validate candidate configuration syntax and semantic constraints (`RuleValidateResponse`).
+- `POST /api/rules/{rule_code}/simulate`: Dry-run simulation evaluating rule outcomes against test scenarios without mutating state or sending alerts (`RuleSimulateResponse`).
+- `POST /api/rules/{rule_code}/publish`: Publish validated version, archive previous configuration snapshot into `rule_version_history` (`RuleDefinitionResponse`).
+
+#### 2.8 Unified Audit Explorer (`/api/audit`)
+- `GET /api/audit`: Query server-side paginated audit trail (`page`, `limit`, `search`, `entity_type`, `action`, `actor_role`) with strict tenant and regional scoping (`AuditExplorerResponse`).
+- `GET /api/audit/export`: Export sanitized CSV of audit events with formula injection mitigation (prepended `'` for `=`, `+`, `-`, `@`) and automated audit log recording.
+
+#### 2.9 Operational Reports & Command Centre (`/api/reports`)
+- `GET /api/reports/summary`: Aggregate operational metrics.
+- `GET /api/reports/command-centre`: Role- and jurisdiction-scoped operational workspace returning summary counts, queue bottlenecks, priority action items, and live activity feed (`CommandCentreResponse`).
+- `GET /api/reports/sla-adherence`: Stage-wise SLA adherence breakdown with turnaround days and breach percentages (`SlaAdherenceResponse`).
+- `GET /api/reports/evc-analytics`: EVC turnaround, mode breakdown, and committee recommendation distributions (`EvcAnalyticsResponse`).
+
+#### 2.10 Explainable Case Brief Assistant (`/api/applications/{id}/case-brief`)
+- `GET /api/applications/{id}/case-brief`: Deterministic, evidence-grounded case briefing synthesizing milestones, deficiency cycles, compliance status, EVC inspection findings, citations, and draft administrative memoranda with explicit regulatory non-mutation safeguards.
+

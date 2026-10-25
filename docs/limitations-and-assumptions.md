@@ -31,11 +31,23 @@
 - Passwords in development seed data (`Password123!`) are provided strictly for demonstration and testing purposes.
 - In production, authentication should integrate with Government of India Single Sign-On (Parichay / MeriPehchaan) and multi-factor authentication (MFA/TOTP).
 - **Session Revocation**: JWT tokens carry a unique `jti` claim. Calling `POST /api/auth/logout` places the `jti` in the `revoked_tokens` table. In multi-instance production clusters, this table can be mirrored in an in-memory Redis cluster for sub-millisecond lookup latency.
-- **Gated Demo Mode**: Persona switching endpoints are strictly restricted to non-production environments (`DEMO_MODE=True` and `ENVIRONMENT!=production`). Production deployments fail closed.
-
 #### 2.5 Document Integrity vs. Statutory Legal Authenticity
 - A computed SHA-256 checksum provides bit-level tamper-evidence for stored bytes; it does not legally attest that a document is genuine, authentic, or verified by an issuing municipal or state authority. Verification sign-off by an authorized AICTE official remains a mandatory, non-automatable requirement.
 - Multi-year documents (such as 33-year land deeds or building approvals) support continuous or non-expiring validity profiles without artificial expiration enforcement.
 - A rejected document renewal retains historical archived versions and maintains the existing recorded validity date without silently extending expiration.
 - Document and compliance uploads in this prototype enforce maximum file size (10MB), permitted extensions (`.pdf`, `.png`, `.jpg`, `.jpeg`), and magic-byte header validation. In enterprise production, this must be augmented with an automated anti-malware and antivirus sandbox scan (e.g. ClamAV).
+
+#### 2.6 Multi-Worker Background Scheduler Coordination (`SchedulerLease`)
+- In multi-worker or multi-process Uvicorn deployments, multiple application instances could potentially attempt concurrent background deadline scans.
+- In Phase 5, this is coordinated safely via distributed database leases (`scheduler_leases` table). An active worker acquires a lease for a designated duration (e.g. 120s) and maintains it via periodic heartbeats. Other workers skip duplicate execution when an active lease is held.
+- For high-availability multi-region enterprise clusters, this database lease can be augmented with dedicated Kubernetes CronJob workers or a Redis distributed lock (Redlock).
+
+#### 2.7 Deadline Calculation Boundaries & Timezones
+- Deadlines with date-only granularity (e.g. statutory document expiry dates or annual compliance cycles) are evaluated against calendar day transitions in the `Asia/Kolkata` (IST) timezone (`now.astimezone(IST).date()`).
+- Naive conversion of calendar dates to UTC midnight can cause false premature expiration at 00:00 UTC (05:30 IST). ReguFlow 360 explicitly differentiates calendar dates from timestamp datetimes to guarantee accurate day-boundary transitions.
+
+#### 2.8 Explainable Priority Scores vs Statutory Regulatory Decisions
+- The Explainable Priority score (0–100) is an operational triage tool designed to help human officers navigate heavy application queues.
+- **Strict Regulatory Invariant**: Operational scores do NOT constitute legal determinations, statutory non-compliance findings, or automatic approvals/rejections. All statutory decisions require explicit human action by authorized regulatory officials.
+
 

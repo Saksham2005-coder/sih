@@ -162,3 +162,26 @@
 12. `test_engine_status_endpoint_returns_metrics`: Verifies `GET /api/alerts/engine-status` reports scheduler health, interval, and aggregate run counts.
 13. `test_unauthorized_user_cannot_trigger_scan`: Verifies RBAC protection on `POST /api/alerts/run-scan` (denies regular institution users with 403).
 14. `test_rule_studio_updates_affect_deadline_service`: Verifies dynamic integration with Rule Studio; modifying SLA thresholds in `RuleDefinition` config alters scanner calculations.
+
+---
+
+### Phase 5 Test Suite Specification (`tests/test_phase5_command_centre.py`)
+17 comprehensive automated tests:
+1. `test_calendar_date_deadline_boundaries`: Verifies date-only deadlines with Asia/Kolkata date boundaries (`ON_TRACK`, `DUE_SOON`, `DUE_TODAY`, `OVERDUE`).
+2. `test_scheduler_lease_coordination`: Verifies distributed database lease acquisition, mutual exclusion, heartbeat renewal, and release.
+3. `test_command_centre_sysadmin_scope`: Verifies global operational metrics, stage distribution, bottlenecks, and priority queue items for System Administrators.
+4. `test_command_centre_regional_officer_scoping`: Verifies Regional Officer jurisdiction scoping (Western region only).
+5. `test_command_centre_institution_user_scoping`: Verifies multi-tenant isolation for institution users (Apex Institute only).
+6. `test_priority_calculation_deterministic`: Verifies identical inputs produce identical priority scores, tier classifications, and factor breakdowns.
+7. `test_priority_calculation_does_not_mutate_statutory_state`: Invariant check: priority scoring never mutates application stage, ID, or version.
+8. `test_rule_validation_endpoint`: Verifies valid rule schema approval and actionable rejection for negative or out-of-order thresholds.
+9. `test_rule_dry_run_simulation`: Verifies scenario simulation evaluates SLA thresholds without mutating database state or dispatching alerts.
+10. `test_rule_publish_archives_version_history`: Verifies rule publication archives prior snapshot in `rule_version_history` with actor and change reason.
+11. `test_rule_modification_requires_admin`: Verifies non-admin roles (e.g. Regional Officer) cannot publish or modify regulatory policies (`HTTP 403 Forbidden`).
+12. `test_audit_explorer_filtering_and_pagination`: Verifies server-side filtering, pagination envelope (`items`, `total`, `page`, `limit`), and regional scoping.
+13. `test_audit_csv_export_formula_injection_defense`: Verifies formula injection prevention in CSV export (mitigates DDE by prefixing `'` to `=`, `+`, `-`, `@`).
+14. `test_sla_adherence_report`: Verifies stage-wise SLA turnaround and breach analytics derived from real database records.
+15. `test_evc_analytics_report`: Verifies EVC inspection turnaround, mode distribution, and recommendation counts.
+16. `test_case_brief_endpoint_with_citations`: Verifies structured case brief synthesis with database milestone citations and statutory disclaimer.
+17. `test_case_brief_forbidden_for_other_institution`: Verifies tenant isolation prevents cross-institution dossier access (`HTTP 403 Forbidden`).
+

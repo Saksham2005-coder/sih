@@ -257,7 +257,16 @@ export interface AuditEventItem {
   entity_id: number;
   details?: string | null;
   ip_address?: string | null;
+  institution_id?: number | null;
+  region?: string | null;
   created_at: string;
+}
+
+export interface AuditExplorerData {
+  items: AuditEventItem[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface RuleDefinitionItem {
@@ -268,7 +277,36 @@ export interface RuleDefinitionItem {
   version: string;
   config_json: string;
   is_active: boolean;
+  status: 'DRAFT' | 'VALIDATED' | 'PUBLISHED' | 'RETIRED';
+  description?: string | null;
+  change_reason?: string | null;
+  effective_from?: string | null;
   updated_at: string;
+}
+
+export interface RuleVersionHistoryItem {
+  id: number;
+  rule_id: number;
+  rule_code: string;
+  version: string;
+  category: string;
+  config_json: string;
+  status: string;
+  change_reason?: string | null;
+  created_at: string;
+}
+
+export interface RuleValidateResponse {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface RuleSimulateResponse {
+  rule_code: string;
+  version: string;
+  simulation_results: Record<string, any>;
+  dry_run_disclaimer: string;
 }
 
 export interface OperationalSummary {
@@ -285,4 +323,132 @@ export interface OperationalSummary {
   active_escalations: number;
   stage_breakdown: Record<string, number>;
   regional_breakdown: Record<string, number>;
+}
+
+export interface PriorityActionItem {
+  application_id: number;
+  application_number: string;
+  institution_name: string;
+  region: string;
+  current_stage: string;
+  priority_score: number;
+  priority_tier: string;
+  priority_factors: string[];
+  days_in_stage: number;
+  open_deficiencies_count: number;
+  recommended_action: string;
+  action_link: string;
+}
+
+export interface RecentActivityItem {
+  id: number;
+  action: string;
+  entity_type: string;
+  entity_id: number;
+  actor_name?: string | null;
+  actor_role?: string | null;
+  details?: string | null;
+  created_at: string;
+}
+
+export interface CommandCentreData {
+  summary: OperationalSummary;
+  bottlenecks: {
+    repeated_returns_count: number;
+    verification_backlog_undertakings: number;
+    verification_backlog_documents: number;
+    unscheduled_evc_count: number;
+    average_stage_ageing_days: number;
+  };
+  priority_queue: PriorityActionItem[];
+  recent_activity: RecentActivityItem[];
+  role_scope: string;
+  jurisdiction?: string | null;
+}
+
+export interface SlaAdherenceData {
+  total_cases_analyzed: number;
+  within_sla_count: number;
+  within_sla_percentage: number;
+  breached_sla_count: number;
+  breached_sla_percentage: number;
+  stage_sla_breakdown: Array<{
+    stage: string;
+    case_count: number;
+    average_days: number;
+    breached_count: number;
+    within_count: number;
+  }>;
+}
+
+export interface EvcAnalyticsData {
+  total_inspections: number;
+  scheduled_count: number;
+  completed_count: number;
+  recommendations: Record<string, number>;
+  inspection_types: Record<string, number>;
+}
+
+export interface CaseBriefData {
+  application_id: number;
+  application_number: string;
+  institution_name: string;
+  region: string;
+  current_stage: string;
+  priority_score: number;
+  provenance: string;
+  generated_at: string;
+  summary_paragraphs: string[];
+  suggested_administrative_draft: string;
+  evidence_milestones: Array<{
+    stage_id: number;
+    from_stage?: string | null;
+    to_stage: string;
+    actor_name: string;
+    actor_role: string;
+    remarks: string;
+    timestamp?: string | null;
+  }>;
+  evidence_deficiencies: Array<{
+    deficiency_id: number;
+    category: string;
+    description: string;
+    status: string;
+    required_document?: string | null;
+    cure_document_url?: string | null;
+    cure_remarks?: string | null;
+    cured_at?: string | null;
+    issued_at?: string | null;
+  }>;
+  evidence_undertakings: Array<{
+    undertaking_id: number;
+    title: string;
+    category: string;
+    status: string;
+    due_date?: string | null;
+    evidence_submitted: boolean;
+    evidence_version?: number | null;
+    evidence_checksum_sha256?: string | null;
+    verified_at?: string | null;
+  }>;
+  evidence_evc?: {
+    evc_id: number;
+    inspection_type: string;
+    status: string;
+    scheduled_date: string;
+    convener_name: string;
+    expert_member_name: string;
+    recommendation: string;
+    report_notes: string;
+    completed_at?: string | null;
+  } | null;
+  evidence_escalations: Array<{
+    escalation_id: number;
+    level: string;
+    status: string;
+    recipient_role: string;
+    created_at?: string | null;
+    resolved_at?: string | null;
+  }>;
+  regulatory_disclaimer: string;
 }

@@ -62,3 +62,13 @@ class DeadlineEngineRun(Base):
     error_message = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
+class SchedulerLease(Base):
+    __tablename__ = "scheduler_leases"
+
+    id = Column(Integer, primary_key=True, index=True)
+    lease_name = Column(String(64), unique=True, index=True, nullable=False) # e.g. "deadline_engine_scan"
+    holder_id = Column(String(128), nullable=False) # worker instance identifier
+    acquired_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    last_heartbeat = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+

@@ -92,15 +92,31 @@ ReguFlow 360 is an integrated, role-based regulatory operations platform featuri
   - Tier 2: Escalation to Bureau Officer when SLA breached by > 3 days.
   - Tier 3: Critical alert to Member Secretary / Competent Authority when SLA breached by > 7 days.
 
-#### 3.6 Explainable Priority Intelligence
-- Computes an operational urgency index (0–100) based on:
-  - Days to deadline / Days overdue.
-  - Unresolved deficiency count.
-  - Criticality tier of missing compliance documentation.
-  - Blocking dependencies (e.g., EVC pending prevents CAC review).
-- Displays exact plain-language contributing factors to officers for complete transparency.
+#### 3.6 AICTE Operational Command Centre & Role Dashboards
+- Unified, role-scoped command center answering operational urgency, bottleneck, and queue ageing questions.
+- Role-specific filtering: Regional Officers are scoped to their assigned regional jurisdiction; Institution users are scoped to their institution; Bureau Officers and System Admins access national aggregates.
+- Live bottleneck analytics: Average stage ageing, unscheduled EVC inspections, unverified document backlogs, and repeated return cycles.
+- Real-time operational activity stream capturing recent workflow transitions, deficiency cures, compliance verifications, and alert acknowledgments.
 
-#### 3.7 Rule Studio & Auditability
-- Version-controlled workflow routes, SLA thresholds, and deficiency categories.
-- Illustrative demo rules clearly indicated.
-- Append-only immutable audit trail capturing actor, role, IP/session, timestamp, action type, entity ID, and state delta.
+#### 3.7 Explainable Priority Intelligence
+- Computes a deterministic operational urgency score (0–100) combining:
+  - Stage pendency and configured SLA ageing.
+  - Open, uncured deficiencies awaiting institutional action.
+  - Criticality tier of the current workflow stage (e.g. Competent Authority milestone).
+  - Institutional compliance breaches (overdue undertakings and expiring statutory documents).
+  - Active Level 2 / Level 3 alert escalations and repeated deficiency return cycles.
+- Displays full plain-language factor breakdown modal with points contribution and next recommended regulatory action.
+- Invariant: Operational priority index prioritizes officer review queues and never mutates statutory application decisions.
+
+#### 3.8 Robust Rule Studio & Policy Simulation
+- Versioned rule lifecycle: `DRAFT`, `VALIDATED`, `PUBLISHED`, `RETIRED`.
+- Multi-field validator checking schema syntax, positive integer SLAs, canonical roles, and threshold ordering.
+- Dry-run simulation sandbox evaluating hypothetical scenarios or case IDs without database mutation or alert dispatch.
+- Immutable publication ledger (`rule_version_history`) archiving previous configuration snapshots with change reasons.
+
+#### 3.9 Unified Audit Explorer & Operational Analytics
+- Server-side filterable audit trail supporting entity, action, actor role, and free-text search across paginated datasets.
+- Formula-injection safe CSV export mitigating DDE risks by prepending `'` to sensitive operator characters.
+- Comprehensive operational reports: Stage SLA adherence turnaround percentages and EVC inspection mode/recommendation analytics.
+- Evidence-grounded Case Brief Assistant: Deterministic synthesis of case dossiers with source citations and strict regulatory non-mutation disclaimers.
+

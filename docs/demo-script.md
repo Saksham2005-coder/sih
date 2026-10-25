@@ -70,6 +70,27 @@
    - Demonstrate clicking deep action links (e.g., "View Application" or "View Passport") taking the user directly to the affected record.
 4. Demonstrate clicking "Run Deadline Scan" which idempotently executes a multi-vector pass with persistent telemetry logging.
 
-#### Step 7: Rule Studio & Audit Trail (0:45)
-1. Visit **Rule Studio**: Show configurable SLA thresholds, stage progression rules, and version control.
-2. Visit **Audit Trail**: Show immutable, filterable audit log capturing every single action from Steps 1–6 with actor names, roles, timestamps, and state changes.
+#### Step 7: AICTE Operational Command Centre & Explainable Priority (1:00)
+1. Navigate to **Officer Command Centre** (`/officer/dashboard`):
+   - Review live operational overview: Applications in flight, overdue cases, unscheduled EVC inspections, and unverified document backlogs.
+   - Inspect **Queue Bottlenecks**: Stage pendency ageing, EVC turnaround, and compliance verification backlogs.
+   - Explore **Priority Action Queue**:
+     - Note explainable priority scores (e.g. `85/100 • Critical`).
+     - Click **View factors**: Open the Explainable Priority Factor Modal displaying exact point contributions (e.g. stage ageing +20 pts, uncured deficiencies +20 pts, active escalation +20 pts) and the next recommended regulatory action.
+     - Demonstrate that clicking any queue row or action button navigates directly to the case dossier.
+2. Open Application Detail (`/officer/applications/1`):
+   - View the **Explainable Case Brief Assistant** card.
+   - Review structured chronological briefing: Executive summary, deficiency resolution history, compliance passport status, and EVC inspection findings.
+   - Highlight the **Suggested Administrative Draft** and explicit factual citations grounded in stored database events.
+   - Point out the mandatory statutory disclaimer: Informational synthesis only; does not replace human scrutiny or statutory authority.
+
+#### Step 8: Versioned Rule Studio & Unified Audit Explorer (0:45)
+1. Navigate to **Rule Studio** (`/officer/rules`):
+   - Highlight version lifecycle badges (`PUBLISHED`, `VALIDATED`, `DRAFT`) and clear illustrative demonstration labels.
+   - Open **Dry-Run Simulation Sandbox**: Select a rule (e.g. `RULE_SCRUTINY_SLA`), adjust SLA thresholds, and execute simulation. Show that the simulated outcome displays SLA adherence without mutating database records or dispatching notifications.
+   - Click **Publish New Version**: Enter a change reason and publish, demonstrating that the version increments and the prior configuration is archived in the immutable **Version History Ledger**.
+2. Navigate to **Audit Explorer** (`/officer/audit`):
+   - Search and filter by entity type, action, actor role, and free text across server-side paginated audit logs.
+   - Click **Inspect**: View formatted JSON state deltas and regional/institution tenancy tags.
+   - Click **Export CSV**: Download sanitized audit logs, showing that cells with formula operators (`=`, `+`, `-`, `@`) are safely escaped with single quotes to prevent CSV formula injection (DDE) attacks.
+

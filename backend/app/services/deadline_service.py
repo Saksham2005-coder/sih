@@ -44,28 +44,66 @@ def get_rule_config(db: Session, rule_code: str, default_config: Dict[str, Any])
 
 class DeadlineService:
     @staticmethod
-    def calculate_deadline_condition(due_date_or_dt: datetime, reference_time: Optional[datetime] = None) -> Dict[str, Any]:
-        """Calculates derived status without destructive modification of original record."""
+    def calculate_deadline_condition(due_date_or_dt: Any, reference_time: Optional[datetime] = None) -> Dict[str, Any]:
+        """Calculates derived status without destructive modification of original record.
+        Preserves calendar date semantics (Asia/Kolkata) and exact timestamp boundaries.
+        """
+        from datetime import date
+        IST = timezone(timedelta(hours=5, minutes=30))
         now = reference_time or datetime.now(timezone.utc)
-        if due_date_or_dt.tzinfo is None:
-            due_date_or_dt = due_date_or_dt.replace(tzinfo=timezone.utc)
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
 
-        diff = due_date_or_dt - now
-        days_remaining = diff.days
+        # Handle pure calendar date object
+        if isinstance(due_date_or_dt, date) and not isinstance(due_date_or_dt, datetime):
+            now_ist_date = now.astimezone(IST).date()
+            if now_ist_date > due_date_or_dt:
+                days_overdue = (now_ist_date - due_date_or_dt).days
+                return {
+                    "condition": "OVERDUE",
+                    "days_remaining": -days_overdue,
+                    "days_overdue": days_overdue
+                }
+            elif now_ist_date == due_date_or_dt:
+                return {
+                    "condition": "DUE_TODAY",
+                    "days_remaining": 0,
+                    "days_overdue": 0
+                }
+            else:
+                days_remaining = (due_date_or_dt - now_ist_date).days
+                condition = "DUE_SOON" if days_remaining <= 7 else "ON_TRACK"
+                return {
+                    "condition": condition,
+                    "days_remaining": days_remaining,
+                    "days_overdue": 0
+                }
 
-        if days_remaining < 0:
+        # Handle timestamp datetime
+        target_dt = due_date_or_dt
+        if target_dt.tzinfo is None:
+            target_dt = target_dt.replace(tzinfo=timezone.utc)
+
+        diff = target_dt - now
+        total_seconds = diff.total_seconds()
+
+        if total_seconds < 0:
+            days_overdue = max(1, abs(diff.days))
             condition = "OVERDUE"
-        elif days_remaining == 0:
+            days_remaining = -days_overdue
+        elif total_seconds == 0 or diff.days == 0 or (total_seconds <= 86400 and now.astimezone(IST).date() == target_dt.astimezone(IST).date()):
             condition = "DUE_TODAY"
-        elif days_remaining <= 7:
-            condition = "DUE_SOON"
+            days_remaining = 0
+            days_overdue = 0
         else:
-            condition = "ON_TRACK"
+            days_remaining = diff.days if diff.days > 0 else 1
+            condition = "DUE_SOON" if days_remaining <= 7 else "ON_TRACK"
+            days_overdue = 0
 
         return {
             "condition": condition,
             "days_remaining": days_remaining,
-            "days_overdue": abs(days_remaining) if days_remaining < 0 else 0
+            "days_overdue": days_overdue
         }
 
     @staticmethod

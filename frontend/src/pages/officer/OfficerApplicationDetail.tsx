@@ -174,18 +174,54 @@ export const OfficerApplicationDetail: React.FC = () => {
         </div>
       </div>
 
-      {/* Case Brief Assistant Box */}
+      {/* Evidence-Grounded Case Brief Assistant Box */}
       {caseBrief && (
-        <div className="bg-gradient-to-r from-teal-900 to-brand-ink text-white rounded-xl p-5 shadow-sm border border-teal-800">
-          <div className="flex items-center justify-between mb-2">
+        <div className="bg-gradient-to-r from-teal-950 to-brand-ink text-white rounded-xl p-5 shadow-sm border border-teal-800 space-y-3">
+          <div className="flex items-center justify-between">
             <span className="flex items-center gap-2 text-xs font-bold text-teal-300 uppercase tracking-wider">
-              <Bot className="w-4 h-4" /> Explainable Regulatory Synthesis
+              <Bot className="w-4 h-4 text-brand-teal" /> Evidence-Grounded Regulatory Case Brief
             </span>
-            <span className="text-[10px] text-gray-300 bg-teal-800/60 px-2 py-0.5 rounded border border-teal-600/40">
-              Deterministic Case Brief
+            <span className="text-[10px] text-teal-200 bg-teal-900/80 px-2 py-0.5 rounded border border-teal-700/60 font-mono">
+              {caseBrief.provenance || 'Deterministic Case Brief'}
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-gray-100">{caseBrief.synthesis}</p>
+
+          <div className="space-y-2 text-xs text-gray-200">
+            {caseBrief.summary_paragraphs ? (
+              caseBrief.summary_paragraphs.map((p: string, idx: number) => (
+                <p key={idx} className="leading-relaxed">{p}</p>
+              ))
+            ) : (
+              <p className="leading-relaxed">{caseBrief.synthesis}</p>
+            )}
+          </div>
+
+          {caseBrief.suggested_administrative_draft && (
+            <div className="mt-3 p-3 bg-teal-900/40 rounded-lg border border-teal-700/50">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold text-teal-300 uppercase tracking-wider">
+                  Suggested Administrative Follow-Up Draft
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(caseBrief.suggested_administrative_draft);
+                    alert('Draft copied to clipboard.');
+                  }}
+                  className="text-[10px] text-teal-200 hover:text-white underline font-semibold"
+                >
+                  Copy to Clipboard
+                </button>
+              </div>
+              <p className="font-mono text-[11px] text-gray-200 whitespace-pre-wrap">
+                {caseBrief.suggested_administrative_draft}
+              </p>
+            </div>
+          )}
+
+          <div className="text-[10px] text-gray-400 border-t border-teal-900 pt-2 italic">
+            {caseBrief.regulatory_disclaimer || "STATUTORY NOTICE: Informational synthesis from recorded facts. Zero decision-making authority."}
+          </div>
         </div>
       )}
 

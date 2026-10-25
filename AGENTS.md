@@ -115,3 +115,14 @@ This platform bridges two synchronized experiences over a single unified backend
 9. **Functionality Preservation**: Preserve the existing commit history and all current application functionality across all phases.
 10. **Phase Gate Adherence**: Do not start subsequent phases until the preceding phase is fully consolidated, tested, and verified.
 
+---
+
+### 6. Phase 5 Operational & Intelligence Directives
+1. **Command Centre Role Scoping**: Every operational metric, priority action item, and activity log must be strictly scoped to the authenticated caller's jurisdiction (Regional Officers to their region, Institution users to their tenancy, System Admins to platform telemetry).
+2. **Deterministic Priority Invariant**: Operational priority scores (0-100) are triage aids for officer queues. They must never mutate application statutory status or infer statutory non-compliance.
+3. **Versioned Policy Lifecycle**: Rule Studio policies follow an explicit lifecycle (`DRAFT`, `VALIDATED`, `PUBLISHED`, `RETIRED`). Publishing must archive prior configurations into `rule_version_history`.
+4. **Formula Injection Sanitization**: All audit CSV exports must prepend single quotes (`'`) to cells starting with `=`, `+`, `-`, `@`, `\t`, `\r`.
+5. **Distributed Scheduler Coordination**: Multi-worker background deadline scans coordinate through database leases (`scheduler_leases`), ensuring mutual exclusion and preventing overlapping execution.
+6. **Statutory AI Boundary**: Case brief summaries are strictly informational syntheses grounded in database facts and citations. AI must never approve, reject, verify compliance, or overrule human officers.
+
+

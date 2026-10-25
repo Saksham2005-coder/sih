@@ -99,3 +99,18 @@ Domain permissions are declared explicitly as constants (`Permission.*` in `back
    - Regional Officers cannot issue final statutory approvals (`APPROVED` / `REJECTED`).
    - System Administrators cannot perform statutory scrutiny sign-offs or approvals.
    - Final approval/rejection is exclusively reserved for `COMPETENT_AUTHORITY`.
+
+---
+
+### 5. Phase 5 Command Centre Role Capabilities
+
+| Role | Permitted Operational Scope | Command Centre Views & Actions |
+|---|---|---|
+| `INSTITUTION_ADMIN` / `COMPLIANCE_OFFICER` | Institution Tenancy (`institution_id`) | Own filings, required cure actions, upcoming undertaking deadlines, document validity countdowns, action center alerts. |
+| `REGIONAL_OFFICER` | Regional Jurisdiction (`user.region == institution.region`) | Regional application queues, pending scrutiny dossiers, deficiency cures, EVC scheduling, regional bottlenecks and L1 escalations. |
+| `BUREAU_OFFICER` | National / Inter-Regional Scope | Cross-region pendency comparisons, accumulating backlogs, regional workload imbalances, L2 escalations. |
+| `COMMITTEE_MEMBER` | Assigned Hearing Panels | Cases awaiting SAC/CAC hearings, expert observation recording, formal panel recommendations. |
+| `EVC_COORDINATOR` | Regional / National EVC Scope | Eligible EVC inspection queues, roster panel assignments (convener + expert), overdue visit reports. |
+| `COMPETENT_AUTHORITY` | National Statutory Scope | Cases awaiting final statutory decision (`AWAITING_COMPETENT_AUTHORITY`), verified case brief evidence, Approval Order sign-off. |
+| `SYSTEM_ADMIN` | Platform Infrastructure | Telemetry, distributed scheduler lease health (`SchedulerLease`), Rule Studio version publishing, formula-safe audit CSV exports. **Strictly barred from statutory approvals or compliance sign-offs.** |
+

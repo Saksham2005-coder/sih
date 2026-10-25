@@ -396,6 +396,8 @@ def seed_database():
                 name="Time-Bound Undertakings SLA & Escalation Tiers",
                 category="COMPLIANCE",
                 version="1.0.0",
+                status="PUBLISHED",
+                description="Statutory warning notifications and multi-tier escalation chain for compliance undertakings",
                 config_json=json.dumps({
                     "warning_threshold_days": [15, 7, 0],
                     "escalation_chain": [
@@ -403,6 +405,34 @@ def seed_database():
                         {"min_overdue_days": 7, "tier": "ESCALATION_L2_BO", "target_role": "BUREAU_OFFICER"},
                         {"min_overdue_days": 14, "tier": "ESCALATION_L3_MEMBER_SEC", "target_role": "COMPETENT_AUTHORITY"}
                     ],
+                    "is_illustrative_demo": True
+                })
+            ),
+            RuleDefinition(
+                rule_code="RULE_PRIORITY_POLICY",
+                name="Explainable Priority Scoring Policy",
+                category="PRIORITY",
+                version="1.0.0",
+                status="PUBLISHED",
+                description="Deterministic urgency scoring model weighting stage pendency, deficiency counts, and dependency blocks",
+                config_json=json.dumps({
+                    "weights": {
+                        "stage_ageing_severe": 35,
+                        "stage_ageing_high": 20,
+                        "stage_ageing_moderate": 10,
+                        "deficiency_item_weight": 10,
+                        "max_deficiency_points": 25,
+                        "stage_competent_authority": 25,
+                        "stage_evc_schedule": 20,
+                        "stage_deficiency_cure": 15,
+                        "stage_scrutiny": 10,
+                        "overdue_undertakings_weight": 15,
+                        "expiring_documents_weight": 10,
+                        "escalation_l2_weight": 20,
+                        "escalation_l3_weight": 30,
+                        "repeated_returns_weight": 15
+                    },
+                    "policy_version": "1.0.0",
                     "is_illustrative_demo": True
                 })
             ),
