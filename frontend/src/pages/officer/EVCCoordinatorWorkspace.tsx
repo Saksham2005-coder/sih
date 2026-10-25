@@ -85,7 +85,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Workspace Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-teal text-white">
@@ -142,20 +142,20 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
       </div>
 
       {/* Primary Section: Eligible Applications Awaiting EVC Schedule */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Applications Awaiting EVC Panel Assignment</h3>
             <p className="text-xs text-brand-muted">Cases that have successfully satisfied initial scrutiny and require physical or virtual on-site verification</p>
           </div>
-          <span className="text-xs font-bold text-brand-teal bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+          <span className="text-xs font-bold text-brand-teal bg-teal-50 dark:bg-teal-950/80 px-2.5 py-1 rounded-full border border-teal-200 dark:border-teal-700/80">
             {awaitingScheduleApps.length} Ready to Schedule
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
                 <th className="px-6 py-3.5">Institution & Region</th>
@@ -164,7 +164,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Coordination Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {awaitingScheduleApps.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-brand-muted">
@@ -173,9 +173,9 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 </tr>
               ) : (
                 awaitingScheduleApps.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50/80">
+                  <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-mono font-bold text-brand-ink">
-                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal">
+                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal transition-colors">
                         {app.application_number}
                       </Link>
                     </td>
@@ -201,7 +201,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                           setConvenerName('Prof. Rajesh Sharma (IIT Bombay)');
                           setExpertName('Dr. Ananya Sen (VJTI)');
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
                       >
                         <Calendar className="w-3.5 h-3.5" /> Schedule Panel Visit
                       </button>
@@ -215,7 +215,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
       </div>
 
       {/* Secondary Section: Active EVC Inspection Roster */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Active Scheduled Visits & Inspection Reports</h3>
@@ -231,7 +231,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application</th>
                 <th className="px-6 py-3.5">Institution</th>
@@ -242,9 +242,9 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Recommendation</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {inspections.map((insp) => (
-                <tr key={insp.id} className="hover:bg-gray-50/80">
+                <tr key={insp.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                   <td className="px-6 py-4 font-mono font-bold text-brand-ink">
                     {insp.application_number}
                   </td>
@@ -253,11 +253,11 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                     <span className="text-[10px] text-brand-muted">{insp.region}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-brand-ink border border-gray-200">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-brand-surface-secondary text-brand-ink border border-gray-200 dark:border-brand-border">
                       {insp.inspection_type.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-mono font-medium">
+                  <td className="px-6 py-4 font-mono font-medium text-brand-ink">
                     {insp.scheduled_date ? new Date(insp.scheduled_date).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Unscheduled'}
                   </td>
                   <td className="px-6 py-4">
@@ -291,7 +291,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
           title={`Schedule EVC Inspection: ${schedulingApp.application_number}`}
         >
           <form onSubmit={handleScheduleInspection} className="space-y-4 text-xs">
-            <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border space-y-1">
+            <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border space-y-1">
               <p className="font-semibold text-brand-ink">Institution: {schedulingApp.institution_name}</p>
               <p className="text-brand-muted">Type: {schedulingApp.application_type.replace(/_/g, ' ')}</p>
               <p className="text-brand-teal font-medium">Region: {schedulingApp.region} Regional Jurisdiction</p>
@@ -302,7 +302,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
               <select
                 value={inspectionType}
                 onChange={(e) => setInspectionType(e.target.value)}
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               >
                 <option value="PHYSICAL_ONSITE">Physical On-Site Inspection (Field Panel)</option>
                 <option value="VIRTUAL_REMOTE">Virtual Remote Inspection (Live Geotagged Audio/Video)</option>
@@ -316,7 +316,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 required
                 value={scheduledDate}
                 onChange={(e) => setScheduledDate(e.target.value)}
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               />
             </div>
 
@@ -328,7 +328,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 value={convenerName}
                 onChange={(e) => setConvenerName(e.target.value)}
                 placeholder="e.g. Prof. Rajesh Sharma (IIT Bombay)"
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               />
             </div>
 
@@ -340,7 +340,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                 value={expertName}
                 onChange={(e) => setExpertName(e.target.value)}
                 placeholder="e.g. Dr. Ananya Sen (VJTI Mumbai)"
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               />
             </div>
 
@@ -348,14 +348,14 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSchedulingApp(null)}
-                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 font-semibold"
+                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 dark:hover:bg-brand-surface-elevated font-semibold transition-colors duration-150"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={scheduling}
-                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors"
+                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors duration-150"
               >
                 {scheduling ? 'Scheduling...' : 'Confirm & Dispatch Panel Roster'}
               </button>

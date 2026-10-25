@@ -8,19 +8,38 @@
     --brand-ink: #152536;
     --brand-porcelain: #F4F6F8;
     --brand-surface: #FFFFFF;
-    --brand-surface-secondary: #EDF1F4;
+    --brand-surface-secondary: #F7F9FB;
     --brand-surface-elevated: #FFFFFF;
     --brand-teal: #0E746B;
-    --brand-teal-light: #E6F5F3;
+    --brand-teal-light: #E7F5F3;
     --brand-teal-dark: #0B5B54;
     --brand-amber: #C5892B;
     --brand-amber-light: #FEF7ED;
     --brand-red: #B9474F;
     --brand-red-light: #FDF2F2;
     --brand-border: #DFE5E9;
-    --brand-muted: #526473;
-    --brand-text-primary: #233443;
-    --brand-text-secondary: #526473;
+    --brand-muted: #596B7A;
+    --brand-divider: #E9EEF2;
+    --brand-text-primary: #152536;
+    --brand-text-secondary: #596B7A;
+
+    /* Semantic Theme Tokens */
+    --app-bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --surface-secondary: #F7F9FB;
+    --surface-elevated: #FFFFFF;
+    --text-primary: #152536;
+    --text-secondary: #596B7A;
+    --text-tertiary: #8395A7;
+    --border-main: #DFE5E9;
+    --border-subtle: #E9EEF2;
+    --primary: #0E746B;
+    --primary-hover: #0B5B54;
+    --primary-soft: #E7F5F3;
+    --warning: #99630D;
+    --danger: #B42332;
+    --success: #18794E;
+    --info: #0284C7;
   }
 
   .dark {
@@ -39,8 +58,27 @@
     --brand-red-light: rgba(224, 86, 97, 0.15);
     --brand-border: #354653;
     --brand-muted: #B3C0CA;
+    --brand-divider: #293A47;
     --brand-text-primary: #F1F5F8;
     --brand-text-secondary: #B3C0CA;
+
+    /* Semantic Theme Tokens */
+    --app-bg: #101820;
+    --surface: #172430;
+    --surface-secondary: #1D2B38;
+    --surface-elevated: #243543;
+    --text-primary: #F1F5F8;
+    --text-secondary: #B0BEC9;
+    --text-tertiary: #718290;
+    --border-main: #344654;
+    --border-subtle: #293A47;
+    --primary: #39C6B4;
+    --primary-hover: #5BD7C6;
+    --primary-soft: rgba(57, 198, 180, 0.15);
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --success: #34D399;
+    --info: #38BDF8;
   }
 
   body {
@@ -58,42 +96,76 @@
 }
 
 .dark .bg-white {
-  background-color: var(--brand-surface) !important;
+  background-color: var(--brand-surface);
 }
 
 .dark .bg-gray-50,
 .dark .bg-gray-100 {
-  background-color: var(--brand-surface-secondary) !important;
+  background-color: var(--brand-surface-secondary);
 }
 
 .dark .hover\:bg-gray-50:hover,
 .dark .hover\:bg-gray-50\/80:hover,
 .dark .hover\:bg-gray-100:hover,
 .dark .hover\:bg-white\/80:hover {
-  background-color: var(--brand-surface-elevated) !important;
+  background-color: var(--brand-surface-elevated);
 }
 
 .dark .border-gray-100,
 .dark .border-gray-200,
 .dark .border-gray-300 {
-  border-color: var(--brand-border) !important;
+  border-color: var(--brand-border);
 }
 
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--brand-border) !important;
+  border-color: var(--brand-border);
 }
 
+/* Text color adaptations */
 .dark .text-gray-900,
-.dark .text-gray-800,
-.dark .text-gray-700 {
-  color: var(--brand-ink) !important;
+.dark .text-gray-800 {
+  color: var(--brand-ink);
 }
 
 .dark .text-gray-600,
 .dark .text-gray-500,
 .dark .text-gray-400 {
-  color: var(--brand-muted) !important;
+  color: var(--brand-muted);
+}
+
+/* Dark mode normalizations for alert banners */
+.dark .bg-amber-50 {
+  background-color: rgba(229, 168, 59, 0.12);
+  border-color: rgba(229, 168, 59, 0.35);
+}
+
+.dark .bg-amber-100 {
+  background-color: rgba(229, 168, 59, 0.22);
+}
+
+.dark .bg-teal-50 {
+  background-color: rgba(20, 184, 166, 0.12);
+  border-color: rgba(20, 184, 166, 0.35);
+}
+
+.dark .bg-teal-100 {
+  background-color: rgba(20, 184, 166, 0.22);
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(224, 86, 97, 0.12);
+  border-color: rgba(224, 86, 97, 0.35);
+}
+
+.dark .bg-red-100 {
+  background-color: rgba(224, 86, 97, 0.22);
+}
+
+.dark .bg-blue-50,
+.dark .bg-sky-50 {
+  background-color: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.35);
 }
 
 /* Form Controls in Dark Mode */

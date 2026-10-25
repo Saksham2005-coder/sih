@@ -23,7 +23,28 @@ export default {
           surface: "var(--brand-surface)",
           "surface-secondary": "var(--brand-surface-secondary)",
           "surface-elevated": "var(--brand-surface-elevated)",
-        }
+        },
+        // Semantic Theme Role Tokens
+        "app-bg": "var(--app-bg)",
+        surface: {
+          DEFAULT: "var(--surface)",
+          secondary: "var(--surface-secondary)",
+          elevated: "var(--surface-elevated)",
+        },
+        "text-primary": "var(--text-primary)",
+        "text-secondary": "var(--text-secondary)",
+        "text-tertiary": "var(--text-tertiary)",
+        "border-main": "var(--border-main)",
+        "border-subtle": "var(--border-subtle)",
+        primary: {
+          DEFAULT: "var(--primary)",
+          hover: "var(--primary-hover)",
+          soft: "var(--primary-soft)",
+        },
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
+        info: "var(--info)",
       },
       fontFamily: {
         sans: [

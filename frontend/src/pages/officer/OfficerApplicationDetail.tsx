@@ -128,16 +128,16 @@ export const OfficerApplicationDetail: React.FC = () => {
         <div className="flex items-center gap-3">
           <Link
             to="/officer/applications"
-            className="p-1.5 rounded-lg border border-brand-border bg-white hover:bg-gray-50 text-brand-muted"
+            className="p-1.5 rounded-lg border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-brand-ink">{app.application_number}</h1>
+              <h1 className="text-xl font-bold text-brand-ink dark:text-brand-ink">{app.application_number}</h1>
               <StatusBadge status={app.current_stage} />
             </div>
-            <p className="text-xs text-brand-muted">
+            <p className="text-xs text-brand-muted dark:text-brand-muted">
               {app.institution_name} • {app.region} Region • {app.application_type.replace(/_/g, ' ')}
             </p>
           </div>
@@ -229,27 +229,27 @@ export const OfficerApplicationDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Deficiencies & Cure Review */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-xl border border-brand-border shadow-sm p-6">
-            <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-4">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+            <div className="flex items-center justify-between pb-3 border-b border-brand-border dark:border-brand-border mb-4">
               <div>
-                <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-[#C5892B]" />
+                <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   Deficiencies & Compliance Observations
                 </h3>
-                <p className="text-xs text-brand-muted">
+                <p className="text-xs text-brand-muted dark:text-brand-muted">
                   Official statutory audit findings communicated to institution
                 </p>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-gray-100 text-brand-ink">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-brand-porcelain dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink border border-brand-border/60 dark:border-brand-border">
                 {openDeficiencies.length} Pending
               </span>
             </div>
 
             {(!app.deficiencies || app.deficiencies.length === 0) ? (
-              <div className="p-8 text-center bg-brand-porcelain/40 rounded-lg border border-dashed border-brand-border">
+              <div className="p-8 text-center bg-brand-porcelain/40 dark:bg-brand-surface-elevated/40 rounded-lg border border-dashed border-brand-border dark:border-brand-border">
                 <CheckCircle className="w-8 h-8 text-brand-teal mx-auto mb-2" />
-                <p className="text-xs font-semibold text-brand-ink">No deficiencies logged</p>
-                <p className="text-[11px] text-brand-muted mt-0.5">
+                <p className="text-xs font-semibold text-brand-ink dark:text-brand-ink">No deficiencies logged</p>
+                <p className="text-[11px] text-brand-muted dark:text-brand-muted mt-0.5">
                   Application adheres to prescribed APH norms.
                 </p>
               </div>
@@ -260,22 +260,22 @@ export const OfficerApplicationDetail: React.FC = () => {
                     key={def.id}
                     className={`p-4 rounded-xl border transition-all ${
                       def.status === 'OPEN'
-                        ? 'border-amber-200 bg-amber-50/20'
-                        : 'border-teal-200 bg-teal-50/20'
+                        ? 'border-amber-300 dark:border-amber-800/50 bg-amber-50/60 dark:bg-amber-950/20'
+                        : 'border-emerald-300 dark:border-emerald-800/50 bg-emerald-50/60 dark:bg-emerald-950/20'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-brand-ink uppercase tracking-wider">
+                          <span className="text-xs font-bold text-brand-ink dark:text-brand-ink uppercase tracking-wider">
                             [{def.category}]
                           </span>
                           <StatusBadge status={def.status} />
                         </div>
-                        <p className="text-xs text-brand-ink mt-2 font-medium">{def.description}</p>
+                        <p className="text-xs text-brand-ink dark:text-brand-ink mt-2 font-medium">{def.description}</p>
                         {def.required_document && (
-                          <p className="text-[11px] text-brand-muted mt-1">
-                            Required Document: <span className="font-semibold text-brand-ink">{def.required_document}</span>
+                          <p className="text-[11px] text-brand-muted dark:text-brand-muted mt-1">
+                            Required Document: <span className="font-semibold text-brand-ink dark:text-brand-ink">{def.required_document}</span>
                           </p>
                         )}
                       </div>
@@ -283,7 +283,7 @@ export const OfficerApplicationDetail: React.FC = () => {
                       {def.status === 'OPEN' && (
                         <button
                           onClick={() => handleResolveDeficiency(def.id)}
-                          className="px-3 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold shadow-sm shrink-0 flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm shrink-0 flex items-center gap-1 transition-colors"
                         >
                           <Check className="w-3.5 h-3.5" /> Sign-off as Resolved
                         </button>
@@ -292,11 +292,11 @@ export const OfficerApplicationDetail: React.FC = () => {
 
                     {/* Cure Submission */}
                     {def.cure_remarks && (
-                      <div className="mt-3 pt-3 border-t border-gray-200 bg-white/70 p-3 rounded-lg text-xs">
-                        <p className="font-semibold text-teal-800 flex items-center gap-1.5">
-                          <CheckCircle className="w-4 h-4 text-brand-teal" /> Institution Rectification Response:
+                      <div className="mt-3 pt-3 border-t border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated p-3 rounded-lg text-xs border">
+                        <p className="font-semibold text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                          <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Institution Rectification Response:
                         </p>
-                        <p className="text-brand-muted mt-1">{def.cure_remarks}</p>
+                        <p className="text-brand-muted dark:text-brand-muted mt-1">{def.cure_remarks}</p>
                         {def.cure_document_url && (
                           <div className="mt-2">
                             <a
@@ -321,42 +321,42 @@ export const OfficerApplicationDetail: React.FC = () => {
         {/* Right Col: Timeline & Metadata */}
         <div className="space-y-6">
           {/* Urgency & Parameters */}
-          <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink pb-2 border-b border-brand-border">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm space-y-3 transition-colors">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink dark:text-brand-ink pb-2 border-b border-brand-border dark:border-brand-border">
               Scrutiny Governance Parameters
             </h4>
             <div className="text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-brand-muted">Institution:</span>
-                <span className="font-semibold text-brand-ink">{app.institution_name}</span>
+                <span className="text-brand-muted dark:text-brand-muted">Institution:</span>
+                <span className="font-semibold text-brand-ink dark:text-brand-ink">{app.institution_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-muted">Region:</span>
-                <span className="font-semibold text-brand-ink">{app.region}</span>
+                <span className="text-brand-muted dark:text-brand-muted">Region:</span>
+                <span className="font-semibold text-brand-ink dark:text-brand-ink">{app.region}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-brand-border">
-                <span className="text-brand-muted">Priority Score:</span>
+              <div className="flex justify-between items-center pt-2 border-t border-brand-border dark:border-brand-border">
+                <span className="text-brand-muted dark:text-brand-muted">Priority Score:</span>
                 <PriorityGauge score={app.priority_score} factors={app.priority_factors} />
               </div>
             </div>
           </div>
 
           {/* Workflow Stage Progression */}
-          <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink pb-3 border-b border-brand-border mb-4">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm transition-colors">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink dark:text-brand-ink pb-3 border-b border-brand-border dark:border-brand-border mb-4">
               Stage Audit Progression
             </h4>
             <div className="space-y-4">
               {app.stages?.map((stage, idx) => (
                 <div key={stage.id} className="relative pl-6 pb-2 text-xs">
                   {idx !== (app.stages?.length || 1) - 1 && (
-                    <span className="absolute left-2.5 top-3 w-0.5 h-full bg-brand-border" />
+                    <span className="absolute left-2.5 top-3 w-0.5 h-full bg-brand-border dark:bg-brand-border" />
                   )}
-                  <span className="absolute left-1 top-1 w-3.5 h-3.5 rounded-full bg-brand-teal ring-4 ring-teal-50" />
+                  <span className="absolute left-1 top-1 w-3.5 h-3.5 rounded-full bg-brand-teal ring-4 ring-teal-50 dark:ring-brand-teal/20" />
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-brand-ink">{stage.to_stage.replace(/_/g, ' ')}</span>
-                      <span className="text-[10px] text-brand-muted">
+                      <span className="font-semibold text-brand-ink dark:text-brand-ink">{stage.to_stage.replace(/_/g, ' ')}</span>
+                      <span className="text-[10px] text-brand-muted dark:text-brand-muted">
                         {new Date(stage.created_at).toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',

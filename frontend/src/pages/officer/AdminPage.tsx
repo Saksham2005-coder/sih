@@ -28,51 +28,51 @@ export const AdminPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-brand-ink">System Administration & RBAC Management</h1>
-        <p className="text-xs text-brand-muted mt-0.5">
+        <h1 className="text-xl font-bold text-brand-ink dark:text-brand-ink">System Administration & RBAC Management</h1>
+        <p className="text-xs text-brand-muted dark:text-brand-muted mt-0.5">
           Platform health diagnostics, tenant boundaries, and authorized role assignments
         </p>
       </div>
 
       {/* System Health */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm">
-        <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2 pb-3 border-b border-brand-border mb-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm transition-colors">
+        <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 pb-3 border-b border-brand-border dark:border-brand-border mb-4">
           <Server className="w-4 h-4 text-brand-teal" /> Platform Diagnostics & Health
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
-            <span className="text-brand-muted text-[10px] uppercase font-semibold">API Core:</span>
-            <p className="font-bold text-teal-800 flex items-center gap-1 mt-0.5">
+          <div className="p-3 bg-brand-porcelain/60 dark:bg-brand-surface-elevated rounded-lg border border-brand-border dark:border-brand-border">
+            <span className="text-brand-muted dark:text-brand-muted text-[10px] uppercase font-semibold">API Core:</span>
+            <p className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-brand-teal" /> {health?.status || 'Online'}
             </p>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
-            <span className="text-brand-muted text-[10px] uppercase font-semibold">Database Engine:</span>
-            <p className="font-bold text-teal-800 flex items-center gap-1 mt-0.5">
+          <div className="p-3 bg-brand-porcelain/60 dark:bg-brand-surface-elevated rounded-lg border border-brand-border dark:border-brand-border">
+            <span className="text-brand-muted dark:text-brand-muted text-[10px] uppercase font-semibold">Database Engine:</span>
+            <p className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
               <Database className="w-3.5 h-3.5 text-brand-teal" /> {health?.database || 'Healthy'}
             </p>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
-            <span className="text-brand-muted text-[10px] uppercase font-semibold">Academic Cycle:</span>
-            <p className="font-bold text-brand-ink mt-0.5">{health?.academic_cycle || '2026-2027'}</p>
+          <div className="p-3 bg-brand-porcelain/60 dark:bg-brand-surface-elevated rounded-lg border border-brand-border dark:border-brand-border">
+            <span className="text-brand-muted dark:text-brand-muted text-[10px] uppercase font-semibold">Academic Cycle:</span>
+            <p className="font-bold text-brand-ink dark:text-brand-ink mt-0.5">{health?.academic_cycle || '2026-2027'}</p>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
-            <span className="text-brand-muted text-[10px] uppercase font-semibold">Version:</span>
-            <p className="font-bold text-brand-ink mt-0.5">v{health?.version || '1.0.0'}</p>
+          <div className="p-3 bg-brand-porcelain/60 dark:bg-brand-surface-elevated rounded-lg border border-brand-border dark:border-brand-border">
+            <span className="text-brand-muted dark:text-brand-muted text-[10px] uppercase font-semibold">Version:</span>
+            <p className="font-bold text-brand-ink dark:text-brand-ink mt-0.5">v{health?.version || '1.0.0'}</p>
           </div>
         </div>
       </div>
 
       {/* Users & Personas */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-border">
-          <h3 className="text-sm font-bold text-brand-ink">Configured User Accounts & Workspaces</h3>
-          <p className="text-xs text-brand-muted">Demonstration accounts with scoped tenant and role permissions</p>
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm overflow-hidden transition-colors">
+        <div className="px-6 py-4 border-b border-brand-border dark:border-brand-border">
+          <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink">Configured User Accounts & Workspaces</h3>
+          <p className="text-xs text-brand-muted dark:text-brand-muted">Demonstration accounts with scoped tenant and role permissions</p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted dark:text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border dark:border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Full Name</th>
                 <th className="px-6 py-3.5">Email</th>
@@ -81,24 +81,24 @@ export const AdminPage: React.FC = () => {
                 <th className="px-6 py-3.5">Region</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-brand-border/60 dark:divide-brand-border">
               {demoUsers.map((u) => (
-                <tr key={u.email} className="hover:bg-gray-50/80">
-                  <td className="px-6 py-4 font-bold text-brand-ink">{u.full_name}</td>
-                  <td className="px-6 py-4 text-brand-muted">{u.email}</td>
+                <tr key={u.email} className="hover:bg-brand-porcelain/50 dark:hover:bg-brand-surface-elevated/50 transition-colors">
+                  <td className="px-6 py-4 font-bold text-brand-ink dark:text-brand-ink">{u.full_name}</td>
+                  <td className="px-6 py-4 text-brand-muted dark:text-brand-muted font-mono">{u.email}</td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
                       {u.roles.map((r: string) => (
-                        <span key={r} className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-brand-ink border border-gray-200">
+                        <span key={r} className="px-2 py-0.5 rounded text-[10px] font-semibold bg-brand-porcelain dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink border border-brand-border/60 dark:border-brand-border">
                           {r.replace(/_/g, ' ')}
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-brand-ink">
+                  <td className="px-6 py-4 font-semibold text-brand-ink dark:text-brand-ink">
                     {u.institution_name || 'Apex Regulatory Bureau'}
                   </td>
-                  <td className="px-6 py-4 text-brand-muted">{u.region}</td>
+                  <td className="px-6 py-4 text-brand-muted dark:text-brand-muted">{u.region}</td>
                 </tr>
               ))}
             </tbody>

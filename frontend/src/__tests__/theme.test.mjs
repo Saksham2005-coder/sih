@@ -58,12 +58,12 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
     assert.match(themeContext, /prefers-color-scheme:\s*dark/, 'ThemeContext must observe system media query');
   });
 
-  it('5. ThemeToggle provides accessible controls and multiple variants', () => {
+  it('5. ThemeToggle provides accessible, genuine one-click theme switching without dropdowns', () => {
     const themeToggle = fs.readFileSync(path.join(srcDir, 'components', 'common', 'ThemeToggle.tsx'), 'utf-8');
     assert.match(themeToggle, /aria-label=/, 'ThemeToggle must include accessible aria-label');
-    assert.match(themeToggle, /aria-haspopup=/, 'ThemeToggle dropdown must include aria-haspopup');
-    assert.match(themeToggle, /role=["']menu["']/, 'ThemeToggle must include role="menu"');
-    assert.match(themeToggle, /Sun.*Moon.*Monitor/, 'ThemeToggle must support Sun, Moon, and Monitor icons');
+    assert.match(themeToggle, /toggleTheme/, 'ThemeToggle must directly invoke toggleTheme on click');
+    assert.match(themeToggle, /Sun.*Moon/, 'ThemeToggle must display Sun and Moon icons');
+    assert.ok(!themeToggle.includes('role="menu"'), 'ThemeToggle must not use dropdown menu role');
   });
 
   it('6. All canonical regulatory statuses in StatusBadge have dark-mode contrast tokens', () => {

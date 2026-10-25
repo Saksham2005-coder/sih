@@ -75,7 +75,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Bureau Oversight Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-ink text-white">
@@ -97,14 +97,14 @@ export const BureauOfficerWorkspace: React.FC = () => {
           <button
             onClick={loadData}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors duration-150"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
           <button
             onClick={handleRunDeadlineScan}
             disabled={scanning}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
           >
             <Play className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
             {scanning ? 'Running National Scan...' : 'Trigger National SLA Scan'}
@@ -114,9 +114,9 @@ export const BureauOfficerWorkspace: React.FC = () => {
 
       {/* Scan Result Notice */}
       {scanResult && (
-        <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl text-xs text-teal-800 font-medium flex items-center justify-between">
+        <div className="p-4 bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-700/80 rounded-xl text-xs text-teal-800 dark:text-teal-200 font-medium flex items-center justify-between">
           <span>{scanResult}</span>
-          <button onClick={() => setScanResult(null)} className="text-teal-900 font-bold hover:underline">Dismiss</button>
+          <button onClick={() => setScanResult(null)} className="text-teal-900 dark:text-teal-100 font-bold hover:underline">Dismiss</button>
         </div>
       )}
 
@@ -151,7 +151,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
       </div>
 
       {/* Cross-Regional Workload & Comparison Table */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Cross-Regional Workload & Pendency Breakdown</h3>
@@ -167,7 +167,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           {Object.entries(regionalBreakdown).map(([region, count]) => (
-            <div key={region} className="p-4 rounded-xl border border-brand-border bg-brand-porcelain/40 flex items-center justify-between">
+            <div key={region} className="p-4 rounded-xl border border-brand-border bg-brand-porcelain/40 dark:bg-brand-surface-secondary/60 flex items-center justify-between">
               <div>
                 <p className="text-xs font-bold text-brand-ink">{region} Region</p>
                 <p className="text-[11px] text-brand-muted mt-0.5">Active Jurisdiction</p>
@@ -182,7 +182,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
       </div>
 
       {/* Active Bureau-Level Escalations Queue */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Active Bureau & Multi-Tier Escalations</h3>
@@ -198,7 +198,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Escalation Tier</th>
                 <th className="px-6 py-3.5">Entity & Trigger</th>
@@ -207,7 +207,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Bureau Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {escalations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-brand-muted">
@@ -216,9 +216,9 @@ export const BureauOfficerWorkspace: React.FC = () => {
                 </tr>
               ) : (
                 escalations.map((esc) => (
-                  <tr key={esc.id} className="hover:bg-gray-50/80">
+                  <tr key={esc.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-[#B9474F] border border-rose-300">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 dark:bg-red-950/80 text-[#B42332] dark:text-red-200 border border-rose-300 dark:border-red-700/80">
                         {esc.escalation_level.replace(/_/g, ' ')}
                       </span>
                     </td>
@@ -230,13 +230,13 @@ export const BureauOfficerWorkspace: React.FC = () => {
                       <p className="font-semibold text-brand-ink">{esc.region || `Institution #${esc.institution_id}` || 'Regional Institutional Unit'}</p>
                       <span className="text-[10px] text-brand-muted">Entity #{esc.entity_id}</span>
                     </td>
-                    <td className="px-6 py-4 font-mono font-bold text-[#B9474F]">
+                    <td className="px-6 py-4 font-mono font-bold text-[#B42332] dark:text-red-400">
                       +{esc.threshold_days} days
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleAcknowledgeEscalation(esc.id)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-ink text-white hover:bg-gray-800 shadow-sm transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
                       >
                         Acknowledge & Intervene
                       </button>

@@ -38,31 +38,31 @@ export const ApplicationRegistry: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-brand-ink">National Application Registry</h1>
-        <p className="text-xs text-brand-muted mt-0.5">
+        <h1 className="text-xl font-bold text-brand-ink dark:text-brand-ink">National Application Registry</h1>
+        <p className="text-xs text-brand-muted dark:text-brand-muted mt-0.5">
           Central regulatory docket across regional offices, scrutiny queues, and statutory committees
         </p>
       </div>
 
       {/* Filter and Search */}
-      <div className="bg-white p-4 rounded-xl border border-brand-border shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center">
+      <div className="bg-white dark:bg-brand-surface p-4 rounded-xl border border-brand-border dark:border-brand-border shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center transition-colors">
         <form onSubmit={handleSearch} className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-2.5 text-brand-muted" />
+          <Search className="w-4 h-4 absolute left-3 top-2.5 text-brand-muted dark:text-brand-muted" />
           <input
             type="text"
             placeholder="Search by app # or institution..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 border border-brand-border rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-teal"
+            className="w-full pl-9 pr-3 py-1.5 border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand-teal"
           />
         </form>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-brand-muted shrink-0" />
+          <Filter className="w-4 h-4 text-brand-muted dark:text-brand-muted shrink-0" />
           <select
             value={stageFilter}
             onChange={(e) => setStageFilter(e.target.value)}
-            className="border border-brand-border rounded-lg px-2.5 py-1.5 text-xs text-brand-ink focus:outline-none focus:ring-1 focus:ring-brand-teal w-full sm:w-auto"
+            className="border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated rounded-lg px-2.5 py-1.5 text-xs text-brand-ink dark:text-brand-ink focus:outline-none focus:ring-1 focus:ring-brand-teal w-full sm:w-auto"
           >
             <option value="">All Stages</option>
             <option value="SUBMITTED">Submitted</option>
@@ -82,10 +82,10 @@ export const ApplicationRegistry: React.FC = () => {
       </div>
 
       {/* Applications Table */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted dark:text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border dark:border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
                 <th className="px-6 py-3.5">Institution & Region</th>
@@ -96,24 +96,24 @@ export const ApplicationRegistry: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-brand-border/60 dark:divide-brand-border">
               {applications.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-brand-muted">
+                  <td colSpan={7} className="px-6 py-8 text-center text-brand-muted dark:text-brand-muted">
                     No matching applications found in registry.
                   </td>
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-6 py-4 font-bold text-brand-ink">
+                  <tr key={app.id} className="hover:bg-brand-porcelain/50 dark:hover:bg-brand-surface-elevated/50 transition-colors">
+                    <td className="px-6 py-4 font-bold text-brand-ink dark:text-brand-ink">
                       {app.application_number}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-brand-ink">{app.institution_name}</p>
-                      <p className="text-[11px] text-brand-muted">{app.region} Region</p>
+                      <p className="font-semibold text-brand-ink dark:text-brand-ink">{app.institution_name}</p>
+                      <p className="text-[11px] text-brand-muted dark:text-brand-muted">{app.region} Region</p>
                     </td>
-                    <td className="px-6 py-4 text-brand-muted">
+                    <td className="px-6 py-4 text-brand-muted dark:text-brand-muted">
                       {app.application_type.replace(/_/g, ' ')}
                     </td>
                     <td className="px-6 py-4">
@@ -124,17 +124,17 @@ export const ApplicationRegistry: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {app.open_deficiencies_count > 0 ? (
-                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-[#C5892B] border border-amber-300">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/40">
                           {app.open_deficiencies_count} Open
                         </span>
                       ) : (
-                        <span className="text-teal-700 text-xs font-medium">None</span>
+                        <span className="text-emerald-700 dark:text-emerald-400 text-xs font-medium">None</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         to={`/officer/applications/${app.id}`}
-                        className="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shadow-sm inline-flex items-center gap-1"
+                        className="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-hover shadow-sm inline-flex items-center gap-1 transition-colors"
                       >
                         Scrutiny Console <ArrowRight className="w-3 h-3" />
                       </Link>

@@ -102,8 +102,8 @@ export const Header: React.FC = () => {
             </div>
           )}
 
-          {/* Theme Switcher Toggle */}
-          <ThemeToggle variant="dropdown" />
+          {/* One-Click Theme Switcher Toggle */}
+          <ThemeToggle showLabel className="border-gray-700 bg-gray-800/80 text-gray-200 hover:bg-gray-700 hover:text-white shadow-sm" />
 
           {/* Notifications Drawer Toggle */}
           <div className="relative">

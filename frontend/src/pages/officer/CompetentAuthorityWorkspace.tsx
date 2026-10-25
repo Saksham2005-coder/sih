@@ -69,7 +69,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Competent Authority Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white">
@@ -127,20 +127,20 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
       </div>
 
       {/* Primary Section: Cases Awaiting Competent Authority Decision */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Statutory Decision Queue (Cases Awaiting Final Order)</h3>
             <p className="text-xs text-brand-muted">Applications with verified scrutiny, EVC panel clearance, and Standing Committee recommendations</p>
           </div>
-          <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-300">
+          <span className="text-xs font-bold text-[#99630D] dark:text-amber-200 bg-amber-50 dark:bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-300 dark:border-amber-700/80">
             {decisionQueue.length} Pending Statutory Order
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
                 <th className="px-6 py-3.5">Institution & Region</th>
@@ -149,7 +149,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Statutory Order Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {decisionQueue.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-brand-muted">
@@ -158,9 +158,9 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                 </tr>
               ) : (
                 decisionQueue.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50/80">
+                  <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-mono font-bold text-brand-ink">
-                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal">
+                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal transition-colors">
                         {app.application_number}
                       </Link>
                     </td>
@@ -173,11 +173,11 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          <CheckCircle2 className="w-3 h-3" /> Scrutiny Verified
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700/80">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Scrutiny Verified
                         </span>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 ml-1">
-                          <CheckCircle2 className="w-3 h-3" /> Committee Recommended
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-800 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-700/80 ml-1">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> Committee Recommended
                         </span>
                       </div>
                     </td>
@@ -188,7 +188,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                           setOrderType('APPROVED');
                           setOrderRemarks(`Statutory approval order granted for Academic Year 2026-2027 by Member Secretary / Competent Authority. All APH norms verified.`);
                         }}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
                       >
                         <Gavel className="w-3.5 h-3.5" /> Adjudicate & Issue Order
                       </button>
@@ -202,7 +202,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
       </div>
 
       {/* Secondary Section: Historical Decisions in Current Cycle */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Statutory Orders Issued in Academic Cycle 2026-2027</h3>
@@ -218,7 +218,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application</th>
                 <th className="px-6 py-3.5">Institution & Region</th>
@@ -227,9 +227,9 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">View Dossier</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {[...approvedApps, ...rejectedApps].slice(0, 5).map((app) => (
-                <tr key={app.id} className="hover:bg-gray-50/80">
+                <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                   <td className="px-6 py-4 font-mono font-bold text-brand-ink">
                     {app.application_number}
                   </td>
@@ -246,7 +246,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                   <td className="px-6 py-4 text-right">
                     <Link
                       to={`/officer/applications/${app.id}`}
-                      className="text-xs font-semibold text-brand-teal hover:underline"
+                      className="text-xs font-semibold text-brand-teal hover:underline transition-colors"
                     >
                       Inspect Order Dossier
                     </Link>
@@ -266,10 +266,10 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
           title={`Execute Statutory Order: ${decisionApp.application_number}`}
         >
           <form onSubmit={handleExecuteDecision} className="space-y-4 text-xs">
-            <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border space-y-1">
+            <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border space-y-1">
               <p className="font-semibold text-brand-ink">Institution: {decisionApp.institution_name}</p>
               <p className="text-brand-muted">Type: {decisionApp.application_type.replace(/_/g, ' ')} • {decisionApp.academic_year}</p>
-              <p className="font-mono text-amber-700">Authority Mandate: Final Council Order (Irrevocable)</p>
+              <p className="font-mono text-[#99630D] dark:text-amber-400 font-semibold">Authority Mandate: Final Council Order (Irrevocable)</p>
             </div>
 
             <div>
@@ -283,12 +283,12 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                   }}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     orderType === 'APPROVED'
-                      ? 'border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-600'
-                      : 'border-brand-border hover:border-gray-300'
+                      ? 'border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/40 ring-2 ring-emerald-600'
+                      : 'border-brand-border hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
-                  <p className="font-bold text-emerald-800 flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Grant Approval
+                  <p className="font-bold text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Grant Approval
                   </p>
                   <p className="text-[10px] text-brand-muted mt-1">Issue official Extension of Approval / New Institute Order.</p>
                 </button>
@@ -301,12 +301,12 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                   }}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     orderType === 'REJECTED'
-                      ? 'border-rose-600 bg-rose-50/50 ring-2 ring-rose-600'
-                      : 'border-brand-border hover:border-gray-300'
+                      ? 'border-rose-600 bg-rose-50/50 dark:bg-red-950/40 ring-2 ring-rose-600'
+                      : 'border-brand-border hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
-                  <p className="font-bold text-rose-800 flex items-center gap-1">
-                    <XCircle className="w-4 h-4 text-rose-600" /> Formal Rejection
+                  <p className="font-bold text-rose-800 dark:text-red-300 flex items-center gap-1">
+                    <XCircle className="w-4 h-4 text-rose-600 dark:text-red-400" /> Formal Rejection
                   </p>
                   <p className="text-[10px] text-brand-muted mt-1">Refuse approval under statutory powers with documented reasons.</p>
                 </button>
@@ -319,12 +319,12 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                   }}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     orderType === 'DEFICIENCY_COMMUNICATED'
-                      ? 'border-amber-600 bg-amber-50/50 ring-2 ring-amber-600'
-                      : 'border-brand-border hover:border-gray-300'
+                      ? 'border-amber-600 bg-amber-50/50 dark:bg-amber-950/40 ring-2 ring-amber-600'
+                      : 'border-brand-border hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
-                  <p className="font-bold text-amber-800 flex items-center gap-1">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" /> Return for Cure
+                  <p className="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" /> Return for Cure
                   </p>
                   <p className="text-[10px] text-brand-muted mt-1">Return to institution for mandatory deficiency rectification.</p>
                 </button>
@@ -339,7 +339,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                 value={orderRemarks}
                 onChange={(e) => setOrderRemarks(e.target.value)}
                 placeholder="Enter official statutory order text, gazette notification remarks, and approved intake capacity..."
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               />
             </div>
 
@@ -347,14 +347,14 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setDecisionApp(null)}
-                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 font-semibold"
+                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 dark:hover:bg-brand-surface-elevated font-semibold transition-colors duration-150"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={executingOrder}
-                className="px-4 py-2 rounded-lg bg-brand-ink text-white hover:bg-gray-800 font-semibold shadow-sm transition-colors"
+                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors duration-150"
               >
                 {executingOrder ? 'Executing Statutory Order...' : 'Sign & Issue Statutory Order'}
               </button>

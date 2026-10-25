@@ -50,12 +50,12 @@ export const ActionCentre: React.FC = () => {
       </div>
 
       {totalActions === 0 ? (
-        <div className="bg-white rounded-xl border border-brand-border p-12 text-center shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-teal-50 text-brand-teal flex items-center justify-center mx-auto mb-3">
+        <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-12 text-center shadow-sm transition-colors">
+          <div className="w-12 h-12 rounded-full bg-teal-50 dark:bg-brand-teal/20 text-brand-teal flex items-center justify-center mx-auto mb-3">
             <CheckSquare className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-bold text-brand-ink">All Actions Clear</h3>
-          <p className="text-xs text-brand-muted mt-1">
+          <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink">All Actions Clear</h3>
+          <p className="text-xs text-brand-muted dark:text-brand-muted mt-1">
             There are no pending deficiency cures, overdue undertakings, or expiring statutory documents.
           </p>
         </div>
@@ -63,23 +63,23 @@ export const ActionCentre: React.FC = () => {
         <div className="space-y-6">
           {/* Applications Requiring Deficiency Cure */}
           {applications.length > 0 && (
-            <div className="bg-white rounded-xl border border-brand-border shadow-sm p-6">
-              <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2 mb-3">
-                <AlertTriangle className="w-4 h-4 text-[#C5892B]" />
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+              <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 mb-3">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 Application Deficiency Cures ({applications.length})
               </h3>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {applications.map(app => (
                   <div key={app.id} className="py-3 flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs font-bold text-brand-ink">{app.application_number}</p>
-                      <p className="text-[11px] text-brand-muted">
+                      <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{app.application_number}</p>
+                      <p className="text-[11px] text-brand-muted dark:text-brand-muted">
                         {app.open_deficiencies_count} itemized deficiencies communicated. Cure and resubmission required.
                       </p>
                     </div>
                     <Link
                       to={`/institution/applications/${app.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-[#C5892B] text-white text-xs font-semibold hover:bg-amber-700 inline-flex items-center gap-1 shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm"
                     >
                       Cure & Resubmit <ArrowRight className="w-3 h-3" />
                     </Link>
@@ -91,26 +91,26 @@ export const ActionCentre: React.FC = () => {
 
           {/* Time-Bound Undertakings Requiring Evidence */}
           {undertakings.length > 0 && (
-            <div className="bg-white rounded-xl border border-brand-border shadow-sm p-6">
-              <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2 mb-3">
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+              <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 mb-3">
                 <Clock className="w-4 h-4 text-brand-teal" />
                 Time-Bound Undertakings ({undertakings.length})
               </h3>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {undertakings.map(u => (
                   <div key={u.id} className="py-3 flex items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-xs font-bold text-brand-ink">{u.title}</p>
+                        <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{u.title}</p>
                         <StatusBadge status={u.status} />
                       </div>
-                      <p className="text-[11px] text-brand-muted mt-0.5">
+                      <p className="text-[11px] text-brand-muted dark:text-brand-muted mt-0.5">
                         Due: {new Date(u.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
                     <Link
                       to="/institution/compliance"
-                      className="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark inline-flex items-center gap-1 shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm"
                     >
                       Upload Evidence <ArrowRight className="w-3 h-3" />
                     </Link>
@@ -122,26 +122,26 @@ export const ActionCentre: React.FC = () => {
 
           {/* Expiring Documents Requiring Renewal */}
           {documents.length > 0 && (
-            <div className="bg-white rounded-xl border border-brand-border shadow-sm p-6">
-              <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2 mb-3">
-                <ShieldAlert className="w-4 h-4 text-[#B9474F]" />
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+              <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 mb-3">
+                <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400" />
                 Prescribed Document Renewals ({documents.length})
               </h3>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {documents.map(d => (
                   <div key={d.id} className="py-3 flex items-center justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-xs font-bold text-brand-ink">{d.title}</p>
+                        <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{d.title}</p>
                         <StatusBadge status={d.status} />
                       </div>
-                      <p className="text-[11px] text-brand-muted mt-0.5">
+                      <p className="text-[11px] text-brand-muted dark:text-brand-muted mt-0.5">
                         Expiry Date: {d.expiry_date ? new Date(d.expiry_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Expired'}
                       </p>
                     </div>
                     <Link
                       to="/institution/documents"
-                      className="px-3 py-1.5 rounded-lg border border-brand-teal text-brand-teal text-xs font-semibold hover:bg-teal-50 inline-flex items-center gap-1 shrink-0"
+                      className="px-3 py-1.5 rounded-lg border border-brand-teal text-brand-teal hover:bg-brand-teal/10 dark:hover:bg-brand-teal/20 text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors"
                     >
                       Submit Renewal <ArrowRight className="w-3 h-3" />
                     </Link>

@@ -134,9 +134,9 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="relative min-h-screen bg-brand-porcelain flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 transition-colors">
-      {/* Top Right Accessible Theme Switcher */}
+      {/* Top Right Accessible One-Click Theme Switcher */}
       <div className="absolute top-4 right-4 z-50">
-        <ThemeToggle variant="segmented" />
+        <ThemeToggle showLabel className="shadow-sm" />
       </div>
 
       {/* Top Header Branding */}

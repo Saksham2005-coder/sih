@@ -132,7 +132,7 @@ export const Sidebar: React.FC = () => {
   }
 
   return (
-    <aside className="w-64 bg-white dark:bg-brand-surface border-r border-brand-border flex flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)] transition-colors">
+    <aside className="w-64 bg-white dark:bg-brand-surface border-r border-brand-border dark:border-brand-border flex flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)] transition-colors">
       <div className="p-4">
         {/* Scoped Workspace Identifier */}
         <div className="mb-4 px-3 py-2.5 bg-brand-porcelain dark:bg-brand-surface-secondary rounded-lg border border-brand-border">
@@ -143,9 +143,9 @@ export const Sidebar: React.FC = () => {
           <p className="text-[11px] text-brand-teal font-medium mt-0.5 truncate">
             {workspaceSubtitle}
           </p>
-          <div className="mt-1.5 pt-1.5 border-t border-gray-200 dark:border-brand-border flex items-center justify-between text-[10px]">
+          <div className="mt-1.5 pt-1.5 border-t border-brand-border flex items-center justify-between text-[10px]">
             <span className="font-semibold text-brand-muted">Role:</span>
-            <span className="font-mono font-bold text-brand-ink bg-white dark:bg-brand-surface px-1.5 py-0.5 rounded border border-gray-200 dark:border-brand-border">
+            <span className="font-mono font-bold text-brand-ink bg-brand-surface px-1.5 py-0.5 rounded border border-brand-border">
               {activeRole}
             </span>
           </div>
@@ -160,7 +160,7 @@ export const Sidebar: React.FC = () => {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-150 ${
                     isActive
                       ? 'bg-brand-teal text-white shadow-sm font-semibold'
                       : 'text-brand-muted hover:bg-gray-100 dark:hover:bg-brand-surface-elevated hover:text-brand-ink'
@@ -172,7 +172,7 @@ export const Sidebar: React.FC = () => {
                   <span className="truncate">{link.label}</span>
                 </div>
                 {link.badge && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/40 text-[#C5892B] dark:text-amber-300 border border-amber-300 dark:border-amber-800/60">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-950/80 text-[#99630D] dark:text-amber-200 border border-amber-300 dark:border-amber-700/80">
                     {link.badge}
                   </span>
                 )}

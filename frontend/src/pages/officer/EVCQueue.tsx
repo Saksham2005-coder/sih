@@ -103,28 +103,28 @@ export const EVCQueue: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-4">
         {inspections.length === 0 ? (
-          <div className="bg-white rounded-xl border border-brand-border p-12 text-center text-xs text-brand-muted">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-12 text-center text-xs text-brand-muted dark:text-brand-muted transition-colors">
             No applications pending EVC inspection in the queue.
           </div>
         ) : (
           inspections.map((insp) => (
             <div
               key={insp.id}
-              className="bg-white rounded-xl border border-brand-border p-6 shadow-sm hover:border-brand-teal/50 transition-all flex flex-col md:flex-row justify-between gap-6"
+              className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm hover:border-brand-teal/50 hover:shadow-md transition-all flex flex-col md:flex-row justify-between gap-6"
             >
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-brand-ink">{insp.application_number}</span>
+                  <span className="text-xs font-bold text-brand-ink dark:text-brand-ink">{insp.application_number}</span>
                   <StatusBadge status={insp.status} />
                 </div>
-                <h3 className="text-sm font-bold text-brand-ink">{insp.institution_name}</h3>
-                <p className="text-xs text-brand-muted">
-                  {insp.region} Region • Mode: <span className="font-semibold text-brand-ink">{insp.inspection_type.replace(/_/g, ' ')}</span>
+                <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink">{insp.institution_name}</h3>
+                <p className="text-xs text-brand-muted dark:text-brand-muted">
+                  {insp.region} Region • Mode: <span className="font-semibold text-brand-ink dark:text-brand-ink">{insp.inspection_type.replace(/_/g, ' ')}</span>
                 </p>
 
                 {insp.scheduled_date && (
-                  <div className="p-3 bg-brand-porcelain/60 rounded-lg border border-brand-border text-xs space-y-1">
-                    <p className="font-semibold text-brand-ink flex items-center gap-1.5">
+                  <div className="p-3 bg-brand-porcelain/60 dark:bg-brand-surface-elevated rounded-lg border border-brand-border dark:border-brand-border text-xs space-y-1">
+                    <p className="font-semibold text-brand-ink dark:text-brand-ink flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-brand-teal" />
                       Scheduled Visit Date: {new Date(insp.scheduled_date).toLocaleDateString('en-IN', {
                         day: 'numeric',
@@ -132,21 +132,21 @@ export const EVCQueue: React.FC = () => {
                         year: 'numeric',
                       })}
                     </p>
-                    <p className="text-brand-muted">
-                      Convener: <span className="text-brand-ink font-medium">{insp.convener_name || 'TBD'}</span>
+                    <p className="text-brand-muted dark:text-brand-muted">
+                      Convener: <span className="text-brand-ink dark:text-brand-ink font-medium">{insp.convener_name || 'TBD'}</span>
                     </p>
-                    <p className="text-brand-muted">
-                      Expert Member: <span className="text-brand-ink font-medium">{insp.expert_member_name || 'TBD'}</span>
+                    <p className="text-brand-muted dark:text-brand-muted">
+                      Expert Member: <span className="text-brand-ink dark:text-brand-ink font-medium">{insp.expert_member_name || 'TBD'}</span>
                     </p>
                   </div>
                 )}
 
                 {insp.recommendation && (
-                  <div className="p-3 bg-teal-50 border border-teal-200 rounded-lg text-xs">
-                    <p className="font-bold text-teal-900">
+                  <div className="p-3 bg-teal-50 dark:bg-brand-teal/15 border border-teal-200 dark:border-brand-teal/30 rounded-lg text-xs">
+                    <p className="font-bold text-teal-900 dark:text-teal-200">
                       Committee Recommendation: {insp.recommendation.replace(/_/g, ' ')}
                     </p>
-                    {insp.report_notes && <p className="text-teal-800 mt-1">{insp.report_notes}</p>}
+                    {insp.report_notes && <p className="text-teal-800 dark:text-teal-300 mt-1">{insp.report_notes}</p>}
                   </div>
                 )}
               </div>
@@ -156,7 +156,7 @@ export const EVCQueue: React.FC = () => {
                 {insp.status === 'PENDING_ASSIGNMENT' && (
                   <button
                     onClick={() => handleOpenSchedule(insp)}
-                    className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-hover text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
                   >
                     <Calendar className="w-3.5 h-3.5" /> Schedule Inspection
                   </button>
@@ -185,13 +185,13 @@ export const EVCQueue: React.FC = () => {
       >
         <form onSubmit={handleScheduleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Inspection Mode
             </label>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value)}
-              className="w-full border border-brand-border rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-brand-teal"
             >
               <option value="PHYSICAL_ONSITE">Physical On-Site Verification</option>
               <option value="VIRTUAL_REMOTE">Virtual Remote Inspection</option>
@@ -199,7 +199,7 @@ export const EVCQueue: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Inspection Date & Time
             </label>
             <input
@@ -207,12 +207,12 @@ export const EVCQueue: React.FC = () => {
               required
               value={schedDate}
               onChange={(e) => setSchedDate(e.target.value)}
-              className="w-full border border-brand-border rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Committee Convener (Senior Academician)
             </label>
             <input
@@ -220,12 +220,12 @@ export const EVCQueue: React.FC = () => {
               required
               value={convener}
               onChange={(e) => setConvener(e.target.value)}
-              className="w-full border border-brand-border rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Subject / Technical Expert Member
             </label>
             <input
@@ -233,7 +233,7 @@ export const EVCQueue: React.FC = () => {
               required
               value={expert}
               onChange={(e) => setExpert(e.target.value)}
-              className="w-full border border-brand-border rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2 text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
 
@@ -241,14 +241,14 @@ export const EVCQueue: React.FC = () => {
             <button
               type="button"
               onClick={() => setScheduleModalOpen(false)}
-              className="px-4 py-2 border border-brand-border rounded-lg font-semibold hover:bg-gray-100"
+              className="px-4 py-2 border border-brand-border dark:border-brand-border rounded-lg text-brand-ink dark:text-brand-ink font-semibold hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submittingSched}
-              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-dark shadow-sm"
+              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-hover shadow-sm transition-colors"
             >
               {submittingSched ? 'Confirming...' : 'Confirm Schedule'}
             </button>
@@ -265,13 +265,13 @@ export const EVCQueue: React.FC = () => {
       >
         <form onSubmit={handleReportSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Statutory Recommendation Outcome
             </label>
             <select
               value={recommendation}
               onChange={(e) => setRecommendation(e.target.value)}
-              className="w-full border border-brand-border rounded-lg px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg px-3 py-2 text-xs font-semibold focus:ring-1 focus:ring-brand-teal"
             >
               <option value="RECOMMENDED_APPROVAL">RECOMMENDED_APPROVAL — Infrastructure & Norms Satisfied</option>
               <option value="DEFICIENCY_NOTED">DEFICIENCY_NOTED — Deficiencies Identified on Visit</option>
@@ -280,7 +280,7 @@ export const EVCQueue: React.FC = () => {
           </div>
 
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Inspection Report Notes & Committee Summary
             </label>
             <textarea
@@ -288,7 +288,7 @@ export const EVCQueue: React.FC = () => {
               required
               value={reportNotes}
               onChange={(e) => setReportNotes(e.target.value)}
-              className="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
 
@@ -296,14 +296,14 @@ export const EVCQueue: React.FC = () => {
             <button
               type="button"
               onClick={() => setReportModalOpen(false)}
-              className="px-4 py-2 border border-brand-border rounded-lg font-semibold hover:bg-gray-100"
+              className="px-4 py-2 border border-brand-border dark:border-brand-border rounded-lg text-brand-ink dark:text-brand-ink font-semibold hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submittingReport}
-              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-dark shadow-sm"
+              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-hover shadow-sm transition-colors"
             >
               {submittingReport ? 'Submitting...' : 'Submit Official Report'}
             </button>

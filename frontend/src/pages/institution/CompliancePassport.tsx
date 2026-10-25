@@ -82,11 +82,11 @@ export const CompliancePassport: React.FC = () => {
 
         {/* Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-brand-muted" />
+          <Filter className="w-4 h-4 text-brand-muted dark:text-brand-muted" />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-brand-border rounded-lg px-2.5 py-1.5 text-xs text-brand-ink focus:outline-none focus:ring-1 focus:ring-brand-teal"
+            className="border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated rounded-lg px-2.5 py-1.5 text-xs text-brand-ink dark:text-brand-ink focus:outline-none focus:ring-1 focus:ring-brand-teal"
           >
             <option value="">All Undertaking States</option>
             <option value="OVERDUE">Overdue</option>
@@ -104,32 +104,32 @@ export const CompliancePassport: React.FC = () => {
       {/* Undertakings Grid */}
       <div className="grid grid-cols-1 gap-4">
         {undertakings.length === 0 ? (
-          <div className="bg-white rounded-xl border border-brand-border p-12 text-center text-xs text-brand-muted">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-12 text-center text-xs text-brand-muted dark:text-brand-muted transition-colors">
             No compliance undertakings found for selected filter.
           </div>
         ) : (
           undertakings.map((u) => (
             <div
               key={u.id}
-              className="bg-white rounded-xl border border-brand-border p-5 shadow-sm hover:border-brand-teal/50 transition-all flex flex-col md:flex-row justify-between gap-4"
+              className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm hover:border-brand-teal/50 hover:shadow-md transition-all flex flex-col md:flex-row justify-between gap-4"
             >
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-muted">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-brand-muted dark:text-brand-muted">
                     [{u.category}]
                   </span>
                   <StatusBadge status={u.effective_status || u.status} />
                 </div>
-                <h3 className="text-sm font-bold text-brand-ink">{u.title}</h3>
-                <p className="text-xs text-brand-muted">{u.description}</p>
+                <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink">{u.title}</h3>
+                <p className="text-xs text-brand-muted dark:text-brand-muted">{u.description}</p>
                 
-                <div className="flex flex-wrap items-center gap-4 text-xs pt-1 text-brand-muted">
+                <div className="flex flex-wrap items-center gap-4 text-xs pt-1 text-brand-muted dark:text-brand-muted">
                   <span className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-brand-teal" />
                     Due Date: {new Date(u.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </span>
                   {u.verified_at && (
-                    <span className="flex items-center gap-1 text-teal-800">
+                    <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
                       <CheckCircle2 className="w-3.5 h-3.5 text-brand-teal" />
                       Verified on {new Date(u.verified_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
@@ -138,23 +138,23 @@ export const CompliancePassport: React.FC = () => {
 
                 {/* Evidence history if present */}
                 {u.evidences && u.evidences.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-100">
-                    <p className="text-[11px] font-semibold text-brand-ink mb-1">Submitted Evidence History:</p>
+                  <div className="mt-2 pt-2 border-t border-brand-border/60 dark:border-brand-border">
+                    <p className="text-[11px] font-semibold text-brand-ink dark:text-brand-ink mb-1">Submitted Evidence History:</p>
                     <div className="space-y-1">
                       {u.evidences.map((ev) => (
-                        <div key={ev.id} className="text-[11px] text-brand-muted flex flex-col gap-0.5">
+                        <div key={ev.id} className="text-[11px] text-brand-muted dark:text-brand-muted flex flex-col gap-0.5">
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-brand-ink">v{ev.version}:</span>
+                            <span className="font-semibold text-brand-ink dark:text-brand-ink">v{ev.version}:</span>
                             <span>{ev.file_name}</span>
-                            <span className="font-mono text-[9px] text-gray-400">({ev.checksum_sha256.substring(0, 10)}...)</span>
+                            <span className="font-mono text-[9px] text-brand-muted">({ev.checksum_sha256.substring(0, 10)}...)</span>
                             {ev.verification_status && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-gray-100 text-gray-700">
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-brand-porcelain dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink border border-brand-border/60 dark:border-brand-border">
                                 {ev.verification_status}
                               </span>
                             )}
                           </div>
                           {ev.verification_notes && (
-                            <p className="text-[10px] text-amber-800 bg-amber-50 rounded px-2 py-0.5 border border-amber-200">
+                            <p className="text-[10px] text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/30 rounded px-2 py-0.5 border border-amber-200 dark:border-amber-800/40">
                               Remarks: {ev.verification_notes}
                             </p>
                           )}
@@ -168,7 +168,7 @@ export const CompliancePassport: React.FC = () => {
               <div className="flex md:flex-col justify-end items-end gap-2 shrink-0">
                 <button
                   onClick={() => handleOpenUpload(u)}
-                  className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                  className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   {u.evidences?.length > 0 ? 'Submit Revision Evidence' : 'Submit Evidence'}
@@ -188,22 +188,22 @@ export const CompliancePassport: React.FC = () => {
       >
         <form onSubmit={handleUploadSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Select Proof Document (PDF, max 15MB)
             </label>
             <input
               type="file"
               accept=".pdf,.png,.jpg"
               onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-              className="w-full border border-brand-border rounded-lg p-2 text-xs"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2 text-xs"
             />
-            <p className="text-[10px] text-brand-muted mt-1">
+            <p className="text-[10px] text-brand-muted dark:text-brand-muted mt-1">
               File integrity will be sealed via SHA-256 checksum upon submission.
             </p>
           </div>
 
           <div>
-            <label className="block font-semibold text-brand-ink uppercase text-[10px] tracking-wider mb-1">
+            <label className="block font-semibold text-brand-ink dark:text-brand-ink uppercase text-[10px] tracking-wider mb-1">
               Compliance Notes & Description
             </label>
             <textarea
@@ -211,7 +211,7 @@ export const CompliancePassport: React.FC = () => {
               value={remarks}
               onChange={(e) => setRemarks(e.target.value)}
               placeholder="Detail installation specs, completion dates, or compliance particulars..."
-              className="w-full border border-brand-border rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg p-2.5 text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
 
@@ -219,14 +219,14 @@ export const CompliancePassport: React.FC = () => {
             <button
               type="button"
               onClick={() => setUploadModalOpen(false)}
-              className="px-4 py-2 border border-brand-border rounded-lg font-semibold hover:bg-gray-100"
+              className="px-4 py-2 border border-brand-border dark:border-brand-border rounded-lg text-brand-ink dark:text-brand-ink font-semibold hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-dark shadow-sm"
+              className="px-4 py-2 bg-brand-teal text-white rounded-lg font-semibold hover:bg-brand-teal-hover shadow-sm transition-colors"
             >
               {submitting ? 'Uploading...' : 'Confirm & Submit'}
             </button>

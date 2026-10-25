@@ -113,16 +113,16 @@ export const ApplicationDetail: React.FC = () => {
         <div className="flex items-center gap-3">
           <Link
             to="/institution/applications"
-            className="p-1.5 rounded-lg border border-brand-border bg-white hover:bg-gray-50 text-brand-muted"
+            className="p-1.5 rounded-lg border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-brand-ink">{app.application_number}</h1>
+              <h1 className="text-xl font-bold text-brand-ink dark:text-brand-ink">{app.application_number}</h1>
               <StatusBadge status={app.current_stage} />
             </div>
-            <p className="text-xs text-brand-muted">
+            <p className="text-xs text-brand-muted dark:text-brand-muted">
               {app.institution_name} • {app.application_type.replace(/_/g, ' ')} ({app.academic_year})
             </p>
           </div>
@@ -172,18 +172,18 @@ export const ApplicationDetail: React.FC = () => {
         {/* Left 2 Cols: Deficiencies & Scrutiny Observations */}
         <div className="lg:col-span-2 space-y-6">
           {/* Deficiency Memo Card */}
-          <div className="bg-white rounded-xl border border-brand-border shadow-sm p-6">
-            <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-4">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+            <div className="flex items-center justify-between pb-3 border-b border-brand-border dark:border-brand-border mb-4">
               <div>
-                <h3 className="text-sm font-bold text-brand-ink flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-[#C5892B]" />
+                <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   Itemized Scrutiny Deficiencies
                 </h3>
-                <p className="text-xs text-brand-muted">
+                <p className="text-xs text-brand-muted dark:text-brand-muted">
                   Official observations recorded by AICTE Scrutiny Committee
                 </p>
               </div>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-gray-100 text-brand-ink">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded bg-brand-porcelain dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink border border-brand-border/60 dark:border-brand-border">
                 {app.deficiencies?.length || 0} Total Items
               </span>
             </div>
@@ -264,33 +264,33 @@ export const ApplicationDetail: React.FC = () => {
         {/* Right Col: Timeline & Metadata */}
         <div className="space-y-6">
           {/* Metadata Card */}
-          <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink pb-2 border-b border-brand-border">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm space-y-3 transition-colors">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink dark:text-brand-ink pb-2 border-b border-brand-border dark:border-brand-border">
               Regulatory Dossier Metadata
             </h4>
             <div className="text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-brand-muted">Academic Year:</span>
-                <span className="font-semibold text-brand-ink">{app.academic_year}</span>
+                <span className="text-brand-muted dark:text-brand-muted">Academic Year:</span>
+                <span className="font-semibold text-brand-ink dark:text-brand-ink">{app.academic_year}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-muted">Application Type:</span>
-                <span className="font-semibold text-brand-ink">{app.application_type}</span>
+                <span className="text-brand-muted dark:text-brand-muted">Application Type:</span>
+                <span className="font-semibold text-brand-ink dark:text-brand-ink">{app.application_type}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-muted">Regional Office:</span>
-                <span className="font-semibold text-brand-ink">{app.region || 'Western'}</span>
+                <span className="text-brand-muted dark:text-brand-muted">Regional Office:</span>
+                <span className="font-semibold text-brand-ink dark:text-brand-ink">{app.region || 'Western'}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-brand-border">
-                <span className="text-brand-muted">Priority Urgency:</span>
+              <div className="flex justify-between items-center pt-2 border-t border-brand-border dark:border-brand-border">
+                <span className="text-brand-muted dark:text-brand-muted">Priority Urgency:</span>
                 <PriorityGauge score={app.priority_score} factors={app.priority_factors} />
               </div>
             </div>
           </div>
 
           {/* Workflow Stage Timeline */}
-          <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink pb-3 border-b border-brand-border mb-4">
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm transition-colors">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink dark:text-brand-ink pb-3 border-b border-brand-border dark:border-brand-border mb-4">
               Stage Progression Timeline
             </h4>
             <div className="space-y-4">
@@ -298,10 +298,10 @@ export const ApplicationDetail: React.FC = () => {
                 <div key={stage.id} className="relative pl-6 pb-2 text-xs">
                   {/* Vertical line connecting nodes */}
                   {idx !== (app.stages?.length || 1) - 1 && (
-                    <span className="absolute left-2.5 top-3 w-0.5 h-full bg-brand-border" />
+                    <span className="absolute left-2.5 top-3 w-0.5 h-full bg-brand-border dark:bg-brand-border" />
                   )}
                   {/* Node icon */}
-                  <span className="absolute left-1 top-1 w-3.5 h-3.5 rounded-full bg-brand-teal ring-4 ring-teal-50" />
+                  <span className="absolute left-1 top-1 w-3.5 h-3.5 rounded-full bg-brand-teal ring-4 ring-teal-50 dark:ring-brand-teal/20" />
                   <div>
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-brand-ink">{stage.to_stage.replace(/_/g, ' ')}</span>

@@ -87,21 +87,21 @@ export const AuditTrailPage: React.FC = () => {
       </div>
 
       {/* Filter Toolbar */}
-      <div className="bg-white rounded-xl border border-brand-border p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 text-xs transition-colors">
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 w-full md:w-auto flex-1 max-w-md">
           <div className="relative w-full">
-            <Search className="w-4 h-4 text-brand-muted absolute left-3 top-2.5" />
+            <Search className="w-4 h-4 text-brand-muted dark:text-brand-muted absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by actor name, action, or payload..."
-              className="w-full pl-9 pr-3 py-2 border border-brand-border rounded-lg text-xs focus:ring-1 focus:ring-brand-teal"
+              className="w-full pl-9 pr-3 py-2 border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink rounded-lg text-xs focus:ring-1 focus:ring-brand-teal"
             />
           </div>
           <button
             type="submit"
-            className="px-3.5 py-2 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shrink-0"
+            className="px-3.5 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shrink-0 transition-colors shadow-sm"
           >
             Search
           </button>
@@ -109,11 +109,11 @@ export const AuditTrailPage: React.FC = () => {
 
         <div className="flex items-center gap-3 w-full md:w-auto justify-end">
           <div className="flex items-center gap-1.5">
-            <Filter className="w-3.5 h-3.5 text-brand-muted" />
+            <Filter className="w-3.5 h-3.5 text-brand-muted dark:text-brand-muted" />
             <select
               value={entityFilter}
               onChange={(e) => setEntityFilter(e.target.value)}
-              className="border border-brand-border rounded-lg px-2.5 py-1.5 text-xs text-brand-ink focus:ring-1 focus:ring-brand-teal"
+              className="border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated rounded-lg px-2.5 py-1.5 text-xs text-brand-ink dark:text-brand-ink focus:ring-1 focus:ring-brand-teal"
             >
               <option value="">All Entity Types</option>
               <option value="APPLICATION">Application</option>
@@ -129,7 +129,7 @@ export const AuditTrailPage: React.FC = () => {
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="border border-brand-border rounded-lg px-2.5 py-1.5 text-xs text-brand-ink focus:ring-1 focus:ring-brand-teal"
+            className="border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface-elevated rounded-lg px-2.5 py-1.5 text-xs text-brand-ink dark:text-brand-ink focus:ring-1 focus:ring-brand-teal"
           >
             <option value="">All Actions</option>
             <option value="STAGE_TRANSITION">STAGE_TRANSITION</option>
@@ -146,10 +146,10 @@ export const AuditTrailPage: React.FC = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm overflow-hidden transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted dark:text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border dark:border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Timestamp (IST)</th>
                 <th className="px-6 py-3.5">Actor & Scope</th>
@@ -177,28 +177,28 @@ export const AuditTrailPage: React.FC = () => {
                       })}
                     </td>
                     <td className="px-6 py-4">
-                      <p className="font-semibold text-brand-ink">{ev.actor_name || 'System Auto'}</p>
+                      <p className="font-semibold text-brand-ink dark:text-brand-ink">{ev.actor_name || 'System Auto'}</p>
                       <p className="text-[10px] text-brand-teal font-medium">
                         {ev.actor_role?.replace(/_/g, ' ') || 'SYSTEM'}
                       </p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-xs px-2 py-0.5 rounded bg-gray-100 text-brand-ink border border-gray-200">
+                      <span className="font-semibold text-xs px-2 py-0.5 rounded bg-brand-porcelain dark:bg-brand-surface-elevated text-brand-ink dark:text-brand-ink border border-brand-border/60 dark:border-brand-border">
                         {ev.action}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-semibold text-brand-ink">
+                    <td className="px-6 py-4 font-semibold text-brand-ink dark:text-brand-ink">
                       {ev.entity_type} #{ev.entity_id}
                     </td>
                     <td className="px-6 py-4 max-w-xs">
-                      <span className="font-mono text-[10px] text-brand-muted line-clamp-2">
+                      <span className="font-mono text-[10px] text-brand-muted dark:text-brand-muted line-clamp-2">
                         {ev.details || '—'}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setSelectedEvent(ev)}
-                        className="px-2.5 py-1 rounded border border-brand-border hover:bg-gray-50 text-[11px] font-semibold text-brand-ink inline-flex items-center gap-1"
+                        className="px-2.5 py-1 rounded border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated text-[11px] font-semibold text-brand-ink dark:text-brand-ink inline-flex items-center gap-1 transition-colors"
                       >
                         <Eye className="w-3 h-3 text-brand-teal" /> Inspect
                       </button>
@@ -211,23 +211,23 @@ export const AuditTrailPage: React.FC = () => {
         </div>
 
         {/* Pagination Bar */}
-        <div className="px-6 py-3 border-t border-brand-border bg-brand-porcelain/30 flex items-center justify-between text-xs text-brand-muted">
+        <div className="px-6 py-3 border-t border-brand-border dark:border-brand-border bg-brand-porcelain/30 dark:bg-brand-surface-elevated/30 flex items-center justify-between text-xs text-brand-muted dark:text-brand-muted">
           <span>
-            Showing page <strong className="text-brand-ink">{data.page}</strong> of <strong className="text-brand-ink">{totalPages}</strong> ({data.total} total events)
+            Showing page <strong className="text-brand-ink dark:text-brand-ink">{data.page}</strong> of <strong className="text-brand-ink dark:text-brand-ink">{totalPages}</strong> ({data.total} total events)
           </span>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => loadAudit(data.page - 1)}
               disabled={data.page <= 1 || loading}
-              className="px-2.5 py-1 rounded border border-brand-border bg-white text-brand-ink hover:bg-gray-50 disabled:opacity-50 inline-flex items-center gap-1 font-medium"
+              className="px-2.5 py-1 rounded border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface text-brand-ink dark:text-brand-ink hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated disabled:opacity-50 inline-flex items-center gap-1 font-medium transition-colors"
             >
               <ChevronLeft className="w-3.5 h-3.5" /> Prev
             </button>
             <button
               onClick={() => loadAudit(data.page + 1)}
               disabled={data.page >= totalPages || loading}
-              className="px-2.5 py-1 rounded border border-brand-border bg-white text-brand-ink hover:bg-gray-50 disabled:opacity-50 inline-flex items-center gap-1 font-medium"
+              className="px-2.5 py-1 rounded border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface text-brand-ink dark:text-brand-ink hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated disabled:opacity-50 inline-flex items-center gap-1 font-medium transition-colors"
             >
               Next <ChevronRight className="w-3.5 h-3.5" />
             </button>

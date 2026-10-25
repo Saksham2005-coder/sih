@@ -72,7 +72,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Workspace Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-teal text-white">
@@ -129,20 +129,20 @@ export const CommitteeMemberWorkspace: React.FC = () => {
       </div>
 
       {/* Primary Hearing Queue */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Standing Hearing Committee (SAC/CAC) Review Queue</h3>
             <p className="text-xs text-brand-muted">Applications with completed regional scrutiny and EVC inspections awaiting formal committee recommendation</p>
           </div>
-          <span className="text-xs font-semibold text-brand-teal bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200">
+          <span className="text-xs font-semibold text-brand-teal bg-teal-50 dark:bg-teal-950/80 px-2.5 py-1 rounded-full border border-teal-200 dark:border-teal-700/80">
             {hearingQueue.length} Pending Hearing
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
                 <th className="px-6 py-3.5">Institution & Region</th>
@@ -151,7 +151,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Committee Review Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {hearingQueue.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-8 text-center text-brand-muted">
@@ -160,9 +160,9 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                 </tr>
               ) : (
                 hearingQueue.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50/80">
+                  <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-mono font-bold text-brand-ink">
-                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal">
+                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal transition-colors">
                         {app.application_number}
                       </Link>
                     </td>
@@ -179,7 +179,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => setSelectedApp(app)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
                       >
                         <Send className="w-3.5 h-3.5" /> Submit Hearing Findings
                       </button>
@@ -193,7 +193,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
       </div>
 
       {/* Assigned EVC Inspections */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Assigned EVC Inspection Visits</h3>
@@ -209,7 +209,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application</th>
                 <th className="px-6 py-3.5">Institution</th>
@@ -218,9 +218,9 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Recommendation</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {assignedInspections.map((insp) => (
-                <tr key={insp.id} className="hover:bg-gray-50/80">
+                <tr key={insp.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                   <td className="px-6 py-4 font-mono font-bold text-brand-ink">
                     {insp.application_number}
                   </td>
@@ -264,7 +264,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
           title={`Standing Committee Hearing Review: ${selectedApp.application_number}`}
         >
           <form onSubmit={handleExecuteReview} className="space-y-4 text-xs">
-            <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border space-y-1">
+            <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border space-y-1">
               <p className="font-semibold text-brand-ink">Institution: {selectedApp.institution_name}</p>
               <p className="text-brand-muted">Application Type: {selectedApp.application_type.replace(/_/g, ' ')}</p>
               <p className="font-mono text-brand-teal">Current Stage: {selectedApp.current_stage}</p>
@@ -278,8 +278,8 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                   onClick={() => setRecommendationDecision('AWAITING_COMPETENT_AUTHORITY')}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     recommendationDecision === 'AWAITING_COMPETENT_AUTHORITY'
-                      ? 'border-brand-teal bg-teal-50/50 ring-2 ring-brand-teal'
-                      : 'border-brand-border hover:border-gray-300'
+                      ? 'border-brand-teal bg-teal-50/50 dark:bg-teal-950/40 ring-2 ring-brand-teal'
+                      : 'border-brand-border hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
                   <p className="font-bold text-brand-ink flex items-center gap-1.5">
@@ -295,12 +295,12 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                   onClick={() => setRecommendationDecision('DEFICIENCY_COMMUNICATED')}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     recommendationDecision === 'DEFICIENCY_COMMUNICATED'
-                      ? 'border-[#C5892B] bg-amber-50/50 ring-2 ring-[#C5892B]'
-                      : 'border-brand-border hover:border-gray-300'
+                      ? 'border-[#99630D] bg-amber-50/50 dark:bg-amber-950/40 ring-2 ring-[#99630D]'
+                      : 'border-brand-border hover:border-gray-300 dark:hover:border-gray-600'
                   }`}
                 >
                   <p className="font-bold text-brand-ink flex items-center gap-1.5">
-                    <AlertTriangle className="w-4 h-4 text-[#C5892B]" /> Return for Rectification
+                    <AlertTriangle className="w-4 h-4 text-[#99630D] dark:text-amber-400" /> Return for Rectification
                   </p>
                   <p className="text-[10px] text-brand-muted mt-1">
                     Communicate deficiencies observed during committee hearing.
@@ -317,7 +317,7 @@ export const CommitteeMemberWorkspace: React.FC = () => {
                 value={hearingRemarks}
                 onChange={(e) => setHearingRemarks(e.target.value)}
                 placeholder="Enter itemized committee observations, hearing minutes, and unanimous recommendations..."
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
               />
             </div>
 
@@ -325,14 +325,14 @@ export const CommitteeMemberWorkspace: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedApp(null)}
-                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 font-semibold"
+                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 dark:hover:bg-brand-surface-elevated font-semibold transition-colors duration-150"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submittingReview}
-                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors"
+                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors duration-150"
               >
                 {submittingReview ? 'Recording...' : 'Submit Committee Finding'}
               </button>

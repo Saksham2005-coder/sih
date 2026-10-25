@@ -93,7 +93,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Regional Command Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-teal text-white">
@@ -114,7 +114,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
         <button
           onClick={loadData}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors duration-150"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Scope
         </button>
@@ -151,34 +151,34 @@ export const RegionalOfficerWorkspace: React.FC = () => {
       </div>
 
       {/* Workload & Bottleneck Metrics */}
-      <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm space-y-3">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-5 shadow-sm space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-brand-border">
           <span className="text-xs font-bold text-brand-ink uppercase tracking-wider flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-brand-teal" />
             Regional Operational Bottleneck Indicators
           </span>
-          <span className="text-[10px] text-brand-muted font-medium bg-gray-100 px-2 py-0.5 rounded">
+          <span className="text-[10px] text-brand-muted font-medium bg-gray-100 dark:bg-brand-surface-secondary px-2 py-0.5 rounded border border-brand-border">
             Live Database Derived
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
+          <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border">
             <span className="text-brand-muted text-[10px] uppercase font-semibold">Repeated Deficiencies:</span>
             <p className="text-base font-bold text-brand-ink mt-0.5">{bottlenecks?.repeated_returns_count ?? 0}</p>
             <span className="text-[10px] text-brand-muted">Cases returned &gt; 1 time</span>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
+          <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border">
             <span className="text-brand-muted text-[10px] uppercase font-semibold">Undertaking Backlog:</span>
             <p className="text-base font-bold text-brand-ink mt-0.5">{bottlenecks?.verification_backlog_undertakings ?? 0}</p>
             <span className="text-[10px] text-brand-muted">Awaiting official RO verification</span>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
+          <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border">
             <span className="text-brand-muted text-[10px] uppercase font-semibold">Document Renewal Queue:</span>
             <p className="text-base font-bold text-brand-ink mt-0.5">{bottlenecks?.verification_backlog_documents ?? 0}</p>
             <span className="text-[10px] text-brand-muted">Renewed deeds pending sign-off</span>
           </div>
-          <div className="p-3 bg-brand-porcelain/50 rounded-lg border border-brand-border">
+          <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border">
             <span className="text-brand-muted text-[10px] uppercase font-semibold">Average Stage Ageing:</span>
             <p className="text-base font-bold text-brand-ink mt-0.5">{bottlenecks?.average_stage_ageing_days ?? 0} Days</p>
             <span className="text-[10px] text-brand-muted">Mean pendency in stage</span>
@@ -187,7 +187,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
       </div>
 
       {/* Priority Scrutiny Queue Table */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Regional Priority Scrutiny & Action Queue</h3>
@@ -203,7 +203,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
                 <th className="px-6 py-3.5">Institution</th>
@@ -213,7 +213,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Scrutiny Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {priorityItems.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-brand-muted">
@@ -222,9 +222,9 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                 </tr>
               ) : (
                 priorityItems.map((item) => (
-                  <tr key={item.application_id} className="hover:bg-gray-50/80">
+                  <tr key={item.application_id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-mono font-bold text-brand-ink">
-                      <Link to={`/officer/applications/${item.application_id}`} className="hover:text-brand-teal">
+                      <Link to={`/officer/applications/${item.application_id}`} className="hover:text-brand-teal transition-colors">
                         {item.application_number}
                       </Link>
                     </td>
@@ -238,13 +238,13 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                     <td className="px-6 py-4">
                       <PriorityGauge score={item.priority_score} factors={{ tier: item.priority_tier, factors: item.priority_factors }} />
                     </td>
-                    <td className="px-6 py-4 font-mono font-medium">
+                    <td className="px-6 py-4 font-mono font-medium text-brand-ink">
                       {item.days_in_stage} days
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Link
                         to={`/officer/applications/${item.application_id}`}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
                       >
                         <Eye className="w-3.5 h-3.5" /> Scrutinize Case
                       </Link>
@@ -258,7 +258,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
       </div>
 
       {/* Regional Compliance Evidence Verification Desk */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Compliance Undertaking Verification Desk</h3>
@@ -274,7 +274,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Obligation & Rule</th>
                 <th className="px-6 py-3.5">Institution</th>
@@ -283,9 +283,9 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                 <th className="px-6 py-3.5 text-right">Regional Sign-Off</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {undertakings.slice(0, 5).map((u) => (
-                <tr key={u.id} className="hover:bg-gray-50/80">
+                <tr key={u.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                   <td className="px-6 py-4">
                     <p className="font-bold text-brand-ink">{u.title}</p>
                     <span className="text-[10px] text-brand-teal font-mono">{u.rule_code}</span>
@@ -293,7 +293,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                   <td className="px-6 py-4 font-semibold text-brand-ink">
                     {u.institution_name || 'Apex Institute'}
                   </td>
-                  <td className="px-6 py-4 font-mono font-medium">
+                  <td className="px-6 py-4 font-mono font-medium text-brand-ink">
                     {new Date(u.due_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="px-6 py-4">
@@ -304,19 +304,19 @@ export const RegionalOfficerWorkspace: React.FC = () => {
                       <div className="inline-flex gap-1.5 justify-end">
                         <button
                           onClick={() => handleVerifyUndertaking(u.id, 'VERIFIED')}
-                          className="px-2.5 py-1 rounded text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                          className="px-2.5 py-1 rounded text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors duration-150"
                         >
                           Verify Proof
                         </button>
                         <button
                           onClick={() => handleVerifyUndertaking(u.id, 'CORRECTION_REQUIRED')}
-                          className="px-2.5 py-1 rounded text-xs font-semibold bg-[#C5892B] text-white hover:bg-amber-700 shadow-sm"
+                          className="px-2.5 py-1 rounded text-xs font-semibold bg-[#99630D] text-white hover:bg-amber-800 shadow-sm transition-colors duration-150"
                         >
                           Require Cure
                         </button>
                       </div>
                     ) : (
-                      <span className="text-emerald-700 font-semibold text-xs flex items-center justify-end gap-1">
+                      <span className="text-emerald-700 dark:text-emerald-400 font-semibold text-xs flex items-center justify-end gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5" /> Verified
                       </span>
                     )}

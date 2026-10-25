@@ -7,12 +7,16 @@ export const AppLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-brand-porcelain text-brand-ink flex flex-col transition-colors duration-150">
       <Header />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 p-8 overflow-y-auto max-w-7xl text-brand-ink">
-          <Outlet />
+        <main className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto text-brand-ink w-full">
+          <div className="max-w-7xl mx-auto w-full space-y-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
   );
 };
+
+export default AppLayout;

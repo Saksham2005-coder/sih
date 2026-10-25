@@ -50,10 +50,10 @@ export const InstitutionDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Institution Banner */}
-      <div className="bg-white rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-brand-teal border border-teal-300">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/80 text-brand-teal dark:text-teal-300 border border-teal-300 dark:border-teal-700/80">
               AICTE APPROVED
             </span>
             <span className="text-xs text-brand-muted">PID: {user?.institution_id === 2 ? '1-7782104' : '1-3324901'}</span>
@@ -68,7 +68,7 @@ export const InstitutionDashboard: React.FC = () => {
 
         <Link
           to="/institution/applications"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold shadow-sm transition-colors duration-150"
         >
           <FileText className="w-4 h-4" /> View My Applications
         </Link>
@@ -76,10 +76,10 @@ export const InstitutionDashboard: React.FC = () => {
 
       {/* Critical Action Banner if Deficiency Communicated */}
       {deficientApp && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl p-5 shadow-sm">
+        <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700/80 rounded-xl p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg text-[#C5892B] shrink-0">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900/60 rounded-lg text-[#99630D] dark:text-amber-300 shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
@@ -94,7 +94,7 @@ export const InstitutionDashboard: React.FC = () => {
 
             <Link
               to={`/institution/applications/${deficientApp.id}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#C5892B] hover:bg-amber-700 text-white text-xs font-semibold shadow-sm shrink-0 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#99630D] hover:bg-amber-800 text-white text-xs font-semibold shadow-sm shrink-0 transition-colors duration-150"
             >
               Cure & Resubmit <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -134,7 +134,7 @@ export const InstitutionDashboard: React.FC = () => {
       </div>
 
       {/* Applications Table */}
-      <div className="bg-white rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Regulatory Filings & Progress</h3>
@@ -150,7 +150,7 @@ export const InstitutionDashboard: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3">Application Number</th>
                 <th className="px-6 py-3">Type</th>
@@ -161,7 +161,7 @@ export const InstitutionDashboard: React.FC = () => {
                 <th className="px-6 py-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
               {applications.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-brand-muted">
@@ -170,7 +170,7 @@ export const InstitutionDashboard: React.FC = () => {
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
+                  <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-semibold text-brand-ink">
                       {app.application_number}
                     </td>
@@ -185,11 +185,11 @@ export const InstitutionDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {app.open_deficiencies_count > 0 ? (
-                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-[#C5892B] border border-amber-300">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-[#99630D] dark:text-amber-200 border border-amber-300 dark:border-amber-700/80">
                           {app.open_deficiencies_count} Open
                         </span>
                       ) : (
-                        <span className="text-teal-700 text-xs font-medium">Clear</span>
+                        <span className="text-teal-700 dark:text-teal-400 text-xs font-semibold">Clear</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-brand-muted">
@@ -218,7 +218,7 @@ export const InstitutionDashboard: React.FC = () => {
       {/* Compliance Passport Preview Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Urgent Undertakings */}
-        <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm">
+        <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-5 shadow-sm">
           <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink flex items-center gap-1.5">
               <CheckSquare className="w-4 h-4 text-brand-teal" />
@@ -230,7 +230,7 @@ export const InstitutionDashboard: React.FC = () => {
           </div>
           <div className="space-y-3">
             {undertakings.slice(0, 3).map((u) => (
-              <div key={u.id} className="p-3 rounded-lg border border-brand-border bg-brand-porcelain/30 flex items-center justify-between">
+              <div key={u.id} className="p-3 rounded-lg border border-brand-border bg-brand-porcelain/30 dark:bg-brand-surface-secondary/50 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-brand-ink line-clamp-1">{u.title}</p>
                   <p className="text-[11px] text-brand-muted mt-0.5">
@@ -244,10 +244,10 @@ export const InstitutionDashboard: React.FC = () => {
         </div>
 
         {/* Document Validity Expiry */}
-        <div className="bg-white rounded-xl border border-brand-border p-5 shadow-sm">
+        <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-5 shadow-sm">
           <div className="flex items-center justify-between pb-3 border-b border-brand-border mb-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-[#C5892B]" />
+              <Clock className="w-4 h-4 text-[#C5892B] dark:text-amber-400" />
               Prescribed Document Validity & Renewals
             </h4>
             <Link to="/institution/documents" className="text-xs font-semibold text-brand-teal hover:underline">
@@ -256,7 +256,7 @@ export const InstitutionDashboard: React.FC = () => {
           </div>
           <div className="space-y-3">
             {documents.slice(0, 3).map((d) => (
-              <div key={d.id} className="p-3 rounded-lg border border-brand-border bg-brand-porcelain/30 flex items-center justify-between">
+              <div key={d.id} className="p-3 rounded-lg border border-brand-border bg-brand-porcelain/30 dark:bg-brand-surface-secondary/50 flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-brand-ink line-clamp-1">{d.title}</p>
                   <p className="text-[11px] text-brand-muted mt-0.5">
