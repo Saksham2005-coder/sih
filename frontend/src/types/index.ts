@@ -8,6 +8,7 @@ export interface User {
   roles: string[];
   active_role?: string | null;
   institution_name?: string | null;
+  permissions?: string[];
 }
 
 export interface TokenResponse {
@@ -60,6 +61,7 @@ export interface Application {
     factors: string[];
     calculated_at: string;
   } | null;
+  version: number;
   submitted_at: string;
   approved_at?: string | null;
   rejected_at?: string | null;

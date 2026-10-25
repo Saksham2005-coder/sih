@@ -1,7 +1,7 @@
 # Limitations, Assumptions & Prototype Boundaries — ReguFlow 360
 ## Regulatory Integrity & Engineering Disclaimers
 **SIH 2026 Problem Statement 26262**  
-**Version:** 1.0.0
+**Version:** 2.0.0 (Phase 2 Hardened)
 
 ---
 
@@ -14,7 +14,7 @@
 ### 2. Technical Scope & Architecture Assumptions
 
 #### 2.1 Storage & File Management
-- In this prototype, submitted documents (PDFs, NOCs, Land Deeds) are saved securely in local persistent storage (`backend/uploads/`) with strict path sanitation, randomized file identifiers, and SHA-256 integrity checksums.
+- In this prototype, submitted documents (PDFs, NOCs, Land Deeds) are saved securely in local persistent storage (`backend/uploads/`) with strict path sanitation, randomized file identifiers, authenticated stream endpoints (`GET /api/documents/download/{filename}`), and SHA-256 integrity checksums.
 - In enterprise production, this storage module should interface directly with encrypted Cloud Object Storage (e.g. AWS S3 with Object Lock or Azure Blob Storage) with ClamAV/anti-malware scanning pipeline before acceptance.
 
 #### 2.2 Notification Delivery Channels
@@ -26,6 +26,8 @@
 - When an optional LLM API key (e.g. Google Gemini / OpenAI) is configured, the assistant provides natural language case syntheses with explicit citations to source records. If unconfigured, the deterministic case summary operates seamlessly.
 - **Strict Guardrail**: The AI assistant has zero decision-making authority. It cannot alter stage transitions, approve applications, or bypass compliance requirements.
 
-#### 2.4 Authentication & Secrets
+#### 2.4 Authentication, Session Management & Secrets
 - Passwords in development seed data (`Password123!`) are provided strictly for demonstration and testing purposes.
 - In production, authentication should integrate with Government of India Single Sign-On (Parichay / MeriPehchaan) and multi-factor authentication (MFA/TOTP).
+- **Session Revocation**: JWT tokens carry a unique `jti` claim. Calling `POST /api/auth/logout` places the `jti` in the `revoked_tokens` table. In multi-instance production clusters, this table can be mirrored in an in-memory Redis cluster for sub-millisecond lookup latency.
+- **Gated Demo Mode**: Persona switching endpoints are strictly restricted to non-production environments (`DEMO_MODE=True` and `ENVIRONMENT!=production`). Production deployments fail closed.

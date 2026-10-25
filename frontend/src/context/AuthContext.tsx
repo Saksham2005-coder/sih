@@ -56,18 +56,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('reguflow_token');
-    localStorage.removeItem('reguflow_active_role');
-    setToken(null);
-    setUser(null);
-    setActiveRole(null);
+  const logout = async () => {
+    try {
+      await api.logout();
+    } catch {
+      // ignore network errors on logout
+    } finally {
+      localStorage.removeItem('reguflow_token');
+      localStorage.removeItem('reguflow_active_role');
+      setToken(null);
+      setUser(null);
+      setActiveRole(null);
+    }
   };
 
-  const switchActiveRole = (role: string) => {
+  const switchActiveRole = async (role: string) => {
     if (user?.roles.includes(role)) {
-      setActiveRole(role);
-      localStorage.setItem('reguflow_active_role', role);
+      try {
+        const updated = await api.switchActiveRole(role);
+        setUser(updated);
+        setActiveRole(role);
+        localStorage.setItem('reguflow_active_role', role);
+      } catch (err) {
+        console.error('Failed to switch active role:', err);
+      }
     }
   };
 

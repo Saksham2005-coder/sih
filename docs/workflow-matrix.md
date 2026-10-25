@@ -1,7 +1,7 @@
 # Workflow Transition Matrix — ReguFlow 360
 ## Guarded Regulatory State Machine Specification
 **SIH 2026 Problem Statement 26262**  
-**Version:** 1.0.0
+**Version:** 2.0.0 (Phase 2 Hardened)
 
 ---
 
@@ -14,29 +14,43 @@ Regulatory processing in AICTE varies depending on application type. ReguFlow 36
 
 ---
 
-### 2. Guarded State Machine Transitions
+### 2. Guarded State Machine Transitions & Concurrency Guards
+
+All transitions are strictly mediated by `WorkflowEngine.transition()` (`backend/app/services/workflow_engine.py`) within an atomic database transaction.
 
 | From Stage | Allowed To Stage | Permitted Roles | Preconditions & Validation Rules | Side Effects |
 |---|---|---|---|---|
-| `DRAFT` | `SUBMITTED` | `INSTITUTION_ADMIN` | All mandatory application sections complete; processing fee paid or fee exemption code entered. | Records `SUBMITTED` timeline event; sets scrutiny deadline SLA clock (e.g. 7 days); creates Tier-1 notification for Regional Office. |
-| `SUBMITTED` | `UNDER_SCRUTINY` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | Case assigned to designated Scrutiny Officer within the matching region. | Updates stage; assigns `scrutiny_officer_id`; records audit event. |
-| `UNDER_SCRUTINY` | `DEFICIENCY_COMMUNICATED` | `REGIONAL_OFFICER` | At least one itemized deficiency must be logged with category, description, and required cure document. | Application status becomes `DEFICIENCY_COMMUNICATED`; sets cure SLA deadline (e.g. 15 days); generates urgent alert to Institution Admin & Compliance Officer. |
-| `DEFICIENCY_COMMUNICATED` | `RESUBMITTED` | `INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER` | Every pending deficiency item must have an uploaded cure document or written clarification response attached. | Cancels deficiency overdue alert; resets scrutiny SLA clock; notifies assigned Regional Officer. |
-| `RESUBMITTED` | `UNDER_SCRUTINY` | `REGIONAL_OFFICER` | Regional officer acknowledges receipt of resubmitted evidence. | Timeline updated to scrutiny in progress. |
-| `UNDER_SCRUTINY` | `SCRUTINY_COMPLETED` | `REGIONAL_OFFICER` | All logged deficiencies marked as "Satisfactorily Resolved" or zero deficiencies initially logged. | Scrutiny sign-off recorded; if route specifies mandatory EVC, transition to `AWAITING_EVC_SCHEDULE` is unlocked. |
-| `SCRUTINY_COMPLETED` | `AWAITING_EVC_SCHEDULE` | Workflow Engine / `REGIONAL_OFFICER` | Triggered automatically if application route requires physical/virtual inspection (e.g. `NEW_INSTITUTION`). | Application pushed to EVC Queue; generates scheduling SLA alert for EVC Coordinator. |
-| `AWAITING_EVC_SCHEDULE` | `EVC_SCHEDULED` | `EVC_COORDINATOR`, `REGIONAL_OFFICER` | Inspection date in future; at least 2 committee members assigned (1 Convener + 1 Subject Expert). | Generates formal inspection notice to Institution; schedules EVC deadline monitor. |
-| `EVC_SCHEDULED` | `EVC_COMPLETED` | `EVC_COORDINATOR`, `COMMITTEE_MEMBER` | Inspection report uploaded, signed, and recommendation recorded (`RECOMMENDED_APPROVAL`, `RECOMMENDED_REJECTION`, `DEFICIENCY_NOTED`). | Inspection report linked to case; timeline updated; unlocks committee review stage. |
+| `DRAFT` | `SUBMITTED` | `INSTITUTION_ADMIN` | All mandatory application sections complete; fee verified. | Records `SUBMITTED` timeline event; sets scrutiny SLA clock (7 days); triggers Tier-1 notification for Regional Office. |
+| `SUBMITTED` | `UNDER_SCRUTINY` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | Case assigned to designated Scrutiny Officer within matching region (`verify_regional_access`). | Updates stage; assigns `scrutiny_officer_id`; records audit event. |
+| `UNDER_SCRUTINY` | `DEFICIENCY_COMMUNICATED` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | **Mandatory Remarks**: Non-empty return reason required. Itemized deficiency must be logged. | Sets cure SLA deadline (15 days); generates urgent alert to Institution Admin & Compliance Officer. |
+| `DEFICIENCY_COMMUNICATED` | `RESUBMITTED` | `INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER` | **Deficiency Guard**: All open deficiencies must have uploaded cure documents and remarks. | Resets scrutiny SLA clock; notifies assigned Regional Officer; records timeline event. |
+| `RESUBMITTED` | `UNDER_SCRUTINY` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | Regional officer acknowledges receipt of resubmitted evidence in authorized region. | Timeline updated to scrutiny in progress. |
+| `UNDER_SCRUTINY` | `SCRUTINY_COMPLETED` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | **Zero Open Deficiencies**: All logged deficiencies must be marked `"CURED"` or `"WAIVED"`. | Scrutiny sign-off recorded; if route specifies mandatory EVC, unlocks `AWAITING_EVC_SCHEDULE`. |
+| `SCRUTINY_COMPLETED` | `AWAITING_EVC_SCHEDULE` | `REGIONAL_OFFICER`, `BUREAU_OFFICER` | Triggered when route requires physical/virtual inspection (e.g. `NEW_INSTITUTION`). | Application pushed to EVC Queue; generates scheduling SLA alert for EVC Coordinator. |
+| `AWAITING_EVC_SCHEDULE` | `EVC_SCHEDULED` | `EVC_COORDINATOR`, `REGIONAL_OFFICER` | Inspection date set in future; panel convener and expert assigned. | Generates formal inspection notice to Institution; schedules EVC deadline monitor. |
+| `EVC_SCHEDULED` | `EVC_COMPLETED` | `EVC_COORDINATOR`, `COMMITTEE_MEMBER` | Inspection report uploaded, signed, and formal recommendation recorded. | Inspection report linked to case; unlocks committee review stage. |
 | `EVC_COMPLETED` | `AWAITING_SAC_CAC_REVIEW` | `BUREAU_OFFICER`, `REGIONAL_OFFICER` | Scrutiny & EVC reports verified complete. | Enters Standing Scrutiny / Appellate Committee queue. |
-| `AWAITING_SAC_CAC_REVIEW` | `AWAITING_COMPETENT_AUTHORITY` | `COMMITTEE_MEMBER`, `BUREAU_OFFICER` | Committee minutes recorded with resolution summary. | Routes to Member Secretary / Chairman for final decision. |
-| `AWAITING_COMPETENT_AUTHORITY` | `APPROVED` | `COMPETENT_AUTHORITY` | Final statutory concurrence signed. | Issues digital Approval Order (EoA); triggers congratulations alert to Institution; updates Compliance Passport baseline. |
-| `AWAITING_COMPETENT_AUTHORITY` | `REJECTED` | `COMPETENT_AUTHORITY` | Clear statutory justification / non-compliance grounds recorded. | Issues formal Rejection Order with appeal instructions; notifies all stakeholders. |
-| Any active stage | `CLOSED` | `SYSTEM_ADMIN`, `COMPETENT_AUTHORITY` | Institution withdraws application or regulatory closure order passed. | All pending reminders closed; immutable case freeze. |
+| `AWAITING_SAC_CAC_REVIEW` | `AWAITING_COMPETENT_AUTHORITY` | `COMMITTEE_MEMBER`, `BUREAU_OFFICER` | Committee minutes recorded with resolution summary. | Routes to Member Secretary / Chairman for final statutory decision. |
+| `AWAITING_COMPETENT_AUTHORITY` | `APPROVED` | `COMPETENT_AUTHORITY` | Final statutory concurrence signed. Preceding scrutiny and review verified. | Issues digital Approval Order (EoA); triggers congratulations alert; updates Compliance Passport baseline. |
+| `AWAITING_COMPETENT_AUTHORITY` | `REJECTED` | `COMPETENT_AUTHORITY` | **Mandatory Remarks**: Clear statutory justification and non-compliance grounds recorded. | Issues formal Rejection Order with appeal instructions; notifies all stakeholders. |
+| Any active stage | `CLOSED` | `COMPETENT_AUTHORITY`, `SYSTEM_ADMIN` | **Mandatory Remarks**: Formal closure grounds recorded (e.g., institutional withdrawal). | All pending reminders closed; immutable case freeze. |
 
 ---
 
-### 3. Transition Guard Rules & Prohibitions
-1. **No Self-Approval**: An institution user cannot trigger any status beyond `SUBMITTED` or `RESUBMITTED`.
-2. **No Deficiency Bypass**: An application cannot transition from `UNDER_SCRUTINY` to `SCRUTINY_COMPLETED` while any deficiency remains in `OPEN` or `DEFICIENT` status.
-3. **No Unscheduled EVC Completion**: An application cannot jump to `EVC_COMPLETED` without an existing scheduled visit and verified panel assignment.
-4. **No Premature Final Decision**: Competent Authority cannot approve a case unless all required preceding milestones for that specific workflow template are verified.
+### 3. State Machine Invariants & Hardened Guards
+
+1. **Optimistic Concurrency Control**:
+   - `applications.version` integer column is incremented monotonically with each transition.
+   - Callers submit `expected_version`. If a concurrent modification occurred, `HTTP 409 Conflict` is returned with code `STALE_STATE_CONFLICT`, preventing race conditions and silent state overrides.
+2. **Atomic Audit Trail & Notification Dispatch**:
+   - The workflow transition, application version increment, timeline stage record, audit event, and notification are committed within the same database transaction.
+   - If audit creation fails, the entire transition rolls back safely.
+3. **Strict Separation of Duties**:
+   - Institution users are strictly barred from advancing applications beyond `SUBMITTED` or `RESUBMITTED`.
+   - `SYSTEM_ADMIN` is barred from statutory scrutiny sign-offs, deficiency issuance, and approval decisions.
+   - `COMPETENT_AUTHORITY` alone holds approval authority.
+4. **Mandatory Deficiency Gate**:
+   - An application cannot transition from `UNDER_SCRUTINY` to `SCRUTINY_COMPLETED` while any deficiency remains in `"OPEN"` status (`OPEN_DEFICIENCIES_EXIST`).
+   - An application cannot transition from `DEFICIENCY_COMMUNICATED` to `RESUBMITTED` while deficiencies remain uncured (`UNCURED_DEFICIENCIES_REMAIN`).
+5. **Mandatory Justification for Adverse Decisions**:
+   - Transitions to `DEFICIENCY_COMMUNICATED`, `REJECTED`, or `CLOSED` require a non-empty `remarks` payload (`REMARKS_REQUIRED`).

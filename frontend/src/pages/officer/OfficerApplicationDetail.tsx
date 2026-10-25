@@ -87,12 +87,18 @@ export const OfficerApplicationDetail: React.FC = () => {
       await api.transitionApplication(app.id, {
         to_stage: targetStage,
         remarks: transitionRemarks || undefined,
+        expected_version: app.version,
       });
       setTransitionModalOpen(false);
       setTransitionRemarks('');
       loadData();
     } catch (err: any) {
-      alert(err.message || 'Stage transition failed');
+      if (err.message?.includes('Conflict')) {
+        alert('Conflict: Application was updated by another user or background task. Refreshing latest state.');
+        loadData();
+      } else {
+        alert(err.message || 'Stage transition failed');
+      }
     } finally {
       setSubmittingTransition(false);
     }

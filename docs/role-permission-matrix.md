@@ -1,69 +1,101 @@
 # Role & Permission Matrix — ReguFlow 360
 ## Fine-Grained Role-Based Access Control (RBAC) Specification
 **SIH 2026 Problem Statement 26262**  
-**Version:** 1.0.0
+**Version:** 2.0.0 (Phase 2 Hardened)
 
 ---
 
-### 1. Role Definitions & Scopes
+### 1. Canonical Role Definitions & Resource Scope Boundaries
 
-| Role Identifier | Role Display Name | Scope Boundary | Description |
+ReguFlow 360 enforces an authoritative 8-role model governed centrally by `backend/app/core/rbac.py` and guarded by FastAPI dependency injection (`backend/app/core/dependencies.py`). No client-asserted role or browser payload is trusted.
+
+| Role Identifier | Role Display Name | Scope Boundary | Canonical Responsibilities & Boundaries |
 |---|---|---|---|
-| `INSTITUTION_ADMIN` | Institution Administrator | Single `institution_id` | Manages regulatory filings, primary contacts, and institutional profile. |
-| `COMPLIANCE_OFFICER` | Institution Compliance Officer | Single `institution_id` | Manages operational compliance, upload of undertakings and document renewals. |
-| `REGIONAL_OFFICER` | AICTE Regional Officer (RO) | Assigned `region` (e.g. Northern, Western) | Conducts first-line scrutiny, deficiency issuance, regional inspection coordination. |
-| `BUREAU_OFFICER` | AICTE Bureau Officer (BO) | National / Bureau-wide | Evaluates regulatory policy, reviews completed scrutinies, handles L2 escalations. |
-| `COMMITTEE_MEMBER` | Committee Member (SAC/CAC) | Assigned Hearing Panels | Reviews complex applications, hears institutional appeals, assesses EVC reports. |
-| `EVC_COORDINATOR` | EVC Roster Coordinator | Assigned Region / National | Forms expert inspection panels, schedules dates, monitors visit completion. |
-| `COMPETENT_AUTHORITY` | Competent Authority (Council/Advisor)| National AICTE Scope | Issues final statutory approval or rejection orders, signs Approval Letters (EoA). |
-| `SYSTEM_ADMIN` | System Administrator | Platform-wide | Manages system accounts, Rule Studio templates, system audits, and engine configurations. |
+| `INSTITUTION_ADMIN` | Institution Administrator | Single `institution_id` | Manages regulatory filings, application creation, resubmission cures, primary institutional contacts. Restricted strictly to records where `user.institution_id == resource.institution_id`. |
+| `COMPLIANCE_OFFICER` | Institution Compliance Officer | Single `institution_id` | Manages operational compliance, upload of undertakings, document renewals, and deficiency response uploads. Cannot create new applications or approve any case. |
+| `REGIONAL_OFFICER` | AICTE Regional Officer (RO) | Assigned `region` | Conducts first-line scrutiny, deficiency issuance/resolution, regional inspection coordination, and compliance/document verification for institutions within authorized regional boundaries (`user.region == institution.region`). |
+| `BUREAU_OFFICER` | AICTE Bureau Officer (BO) | National / Bureau-wide | Evaluates national regulatory policy, reviews completed scrutinies, handles L2 escalations, and oversees operational flows. |
+| `COMMITTEE_MEMBER` | Committee Member (SAC/CAC) | Assigned Hearing Panels | Reviews complex applications, conducts hearings, uploads inspection reports and recommendations (`RECOMMENDED_APPROVAL`, etc.). Holds advisory/recommending power without executive decision-making. |
+| `EVC_COORDINATOR` | EVC Roster Coordinator | Assigned Region / National | Forms expert inspection panels, schedules dates, monitors visit completion. Holds EVC operational capabilities without inheriting application approval powers. |
+| `COMPETENT_AUTHORITY` | Competent Authority (Council/Advisor) | National AICTE Scope | Exercises exclusive statutory decision-making authority (`APPROVED` / `REJECTED`) and signs formal Approval Orders (EoA). |
+| `SYSTEM_ADMIN` | System Administrator | Platform-wide Infrastructure | Manages platform configuration, rule definitions, user role assignments, and audit exports. **Strict Separation of Duties**: Barred from statutory approvals, scrutinies, and compliance verifications. |
 
 ---
 
-### 2. Comprehensive Permissions Grid
+### 2. Explicit Domain Permissions
 
-| Resource Action | Inst Admin | Compliance Off. | Regional Off. | Bureau Off. | Committee Mem. | EVC Coord. | Competent Auth. | System Admin |
+Domain permissions are declared explicitly as constants (`Permission.*` in `backend/app/core/rbac.py`) rather than scattered string checks:
+
+- `application.read`: View application dossiers and timelines.
+- `application.create`: Create new regulatory applications.
+- `application.submit`: Initial submission of completed application.
+- `application.resubmit`: Resubmission after curing communicated deficiencies.
+- `application.return`: Return application with itemized deficiency notice (requires mandatory remarks).
+- `application.assign`: Assign scrutiny officer to an in-scope application.
+- `application.scrutiny_signoff`: Sign off scrutiny as completed (blocked if open deficiencies exist).
+- `application.transition`: Advance workflow stages according to authorized matrix.
+- `application.record_decision`: Statutory final decision (`APPROVED` / `REJECTED`, Competent Authority only).
+- `compliance.read`: View compliance undertakings and evidence.
+- `compliance.submit`: Submit compliance evidence and undertaking documentation.
+- `compliance.verify`: Officer verification or rejection of compliance evidence.
+- `document.read`: View tracked statutory documents and version history.
+- `document.upload`: Upload new document records or renewal versions.
+- `document.verify`: Officer verification of renewal documents.
+- `evc.view`: View EVC queues and inspection rosters.
+- `evc.schedule`: Form panels and schedule inspection dates.
+- `evc.report`: Upload inspection reports and recommendations.
+- `rules.view`: View workflow templates and SLA rule configurations.
+- `rules.manage`: Create or update versioned rules (System Admin only).
+- `audit.read`: View immutable audit event logs.
+- `reports.read`: View and export aggregate operational reports.
+- `users.manage`: Manage accounts and role assignments.
+
+---
+
+### 3. Comprehensive Permissions Grid
+
+| Permission Identifier | Inst Admin | Compliance Off. | Regional Off. | Bureau Off. | Committee Mem. | EVC Coord. | Competent Auth. | System Admin |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Applications** | | | | | | | | |
-| Create New Application | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY | DENY |
-| View Own Institution Apps | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
-| View Applications in Region | DENY | DENY | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
-| Assign Scrutiny Officer | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | **ALLOW** |
-| Issue Deficiency Notice | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY |
-| Submit Deficiency Cure | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
-| Sign-off Scrutiny Complete | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY |
-| Final Statutory Approval | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** | DENY |
-| Final Statutory Rejection | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** | DENY |
-| **Compliance Passport** | | | | | | | | |
-| View Institution Undertakings | **ALLOW** | **ALLOW** | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
-| Submit Undertaking Evidence | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
-| Verify Compliance Evidence | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY |
-| Reject Compliance Evidence | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY |
-| **Documents & Expiries** | | | | | | | | |
-| View Document History | **ALLOW** | **ALLOW** | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
-| Upload Renewal Document | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
-| Verify Document Renewal | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY |
-| **EVC Management** | | | | | | | | |
-| View EVC Schedule | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** (Assigned)| **ALLOW** | **ALLOW** | **ALLOW** |
-| Assign Inspection Panel | DENY | DENY | **ALLOW** | **ALLOW** | DENY | **ALLOW** | DENY | **ALLOW** |
-| Set Inspection Date | DENY | DENY | **ALLOW** | **ALLOW** | DENY | **ALLOW** | DENY | **ALLOW** |
-| Upload Visit Report & Rec. | DENY | DENY | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY |
-| **Alerts & Deadlines** | | | | | | | | |
-| View Scoped Alerts | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
-| Trigger Manual Deadline Scan| DENY | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** |
-| Acknowledge Escalation | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY | **ALLOW** | **ALLOW** |
-| **Rule Studio & System** | | | | | | | | |
-| View Active Rules | DENY | DENY | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
-| Create/Edit Rule Version | DENY | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** |
-| View Full Audit Trail | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** | **ALLOW** |
-| Export Authorized Reports | **ALLOW** (Own) | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | **ALLOW** | **ALLOW** |
+| `application.read` | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
+| `application.create` | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY | DENY |
+| `application.submit` | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY | DENY |
+| `application.resubmit` | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
+| `application.return` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `application.assign` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `application.scrutiny_signoff`| DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `application.transition` | **ALLOW** (Sub) | **ALLOW** (Resub)| **ALLOW** (Reg) | **ALLOW** | **ALLOW** (Recom)| **ALLOW** (EVC)| **ALLOW** (Dec) | DENY* |
+| `application.record_decision`| DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** | DENY |
+| `compliance.read` | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
+| `compliance.submit` | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
+| `compliance.verify` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `document.read` | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
+| `document.upload` | **ALLOW** | **ALLOW** | DENY | DENY | DENY | DENY | DENY | DENY |
+| `document.verify` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | DENY | DENY |
+| `evc.view` | **ALLOW** (Own) | **ALLOW** (Own) | **ALLOW** (Reg) | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
+| `evc.schedule` | DENY | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | **ALLOW** | DENY | DENY |
+| `evc.report` | DENY | DENY | DENY | DENY | **ALLOW** | **ALLOW** | DENY | DENY |
+| `rules.view` | DENY | DENY | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** | **ALLOW** |
+| `rules.manage` | DENY | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** |
+| `audit.read` | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** | **ALLOW** |
+| `reports.read` | **ALLOW** (Own) | DENY | **ALLOW** (Reg) | **ALLOW** | DENY | DENY | **ALLOW** | **ALLOW** |
+| `users.manage` | DENY | DENY | DENY | DENY | DENY | DENY | DENY | **ALLOW** |
+
+*\*Note: `SYSTEM_ADMIN` is barred from regulatory state mutations (`SCRUTINY_COMPLETED`, `APPROVED`, `REJECTED`, deficiency cure/resolution) under strict separation of duties, but retains administrative case closure powers for legal withdrawals.*
 
 ---
 
-### 3. Backend Authorization Enforcement Policy
-- Built using FastAPI dependency injection (`get_current_active_user`, `require_roles([...])`, `require_institution_access(institution_id)`).
-- Every mutation checks:
-  1. Authenticated user validity & active token.
-  2. Role membership in authorized set.
-  3. Resource tenant matching: `user.institution_id == target.institution_id` for institutional users, and `user.region == target.region` for Regional Officers.
-- Violations raise immediate `HTTP 403 Forbidden` and log a security audit event.
+### 4. Authoritative Resource Scoping Rules
+
+1. **Institution Tenant Scoping**:
+   - `check_institution_scope(user, target_institution_id)` asserts that institutional users can never query or mutate applications, compliance undertakings, or document records belonging to other institutions.
+   - Cross-tenant requests immediately abort with `HTTP 403 Forbidden` (`FORBIDDEN_INSTITUTION_ACCESS`).
+
+2. **Regional Boundary Scoping**:
+   - `check_regional_scope(user, target_region)` restricts Regional Officers to institutions located within their assigned jurisdiction (e.g. `Western`, `Northern`).
+   - Any attempt by a Regional Officer to issue deficiencies, resolve deficiencies, sign off scrutiny, schedule EVC inspections, or verify compliance outside their assigned region is denied with `HTTP 403 Forbidden` (`FORBIDDEN_REGIONAL_ACCESS`).
+
+3. **Separation of Duties & Self-Approval Prevention**:
+   - Institution users can never trigger transitions beyond `SUBMITTED` or `RESUBMITTED`.
+   - Regional Officers cannot issue final statutory approvals (`APPROVED` / `REJECTED`).
+   - System Administrators cannot perform statutory scrutiny sign-offs or approvals.
+   - Final approval/rejection is exclusively reserved for `COMPETENT_AUTHORITY`.

@@ -73,10 +73,16 @@ export const ApplicationDetail: React.FC = () => {
       await api.transitionApplication(app.id, {
         to_stage: 'RESUBMITTED',
         remarks: 'Institution has cured all itemized deficiencies with verified compliance documents attached.',
+        expected_version: app.version,
       });
       loadData();
     } catch (err: any) {
-      alert(err.message || 'Resubmission failed');
+      if (err.message?.includes('Conflict')) {
+        alert('Conflict: Application was updated by another process. Refreshing latest state.');
+        loadData();
+      } else {
+        alert(err.message || 'Resubmission failed');
+      }
     } finally {
       setResubmitting(false);
     }

@@ -53,6 +53,16 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   getMe: () => request<User>('/auth/me'),
+  logout: () =>
+    request<{ message: string }>('/auth/logout', {
+      method: 'POST',
+    }),
+  switchActiveRole: (role: string) =>
+    request<User>('/auth/switch-active-role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role }),
+    }),
   getDemoUsers: () => request<{ demo_users: any[] }>('/auth/demo-users'),
 
   // Applications
@@ -70,7 +80,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
-  transitionApplication: (id: number, payload: { to_stage: string; remarks?: string }) =>
+  transitionApplication: (id: number, payload: { to_stage: string; remarks?: string; expected_version?: number }) =>
     request<ApplicationDetailResponse>(`/applications/${id}/transition`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

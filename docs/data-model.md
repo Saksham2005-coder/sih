@@ -1,12 +1,12 @@
 # Data Model Specification — ReguFlow 360
 ## Relational Schema & Entity Relationship Definitions
 **SIH 2026 Problem Statement 26262**  
-**Version:** 1.0.0
+**Version:** 2.0.0 (Phase 2 Hardened)
 
 ---
 
 ### 1. Schema Overview & Relational Integrity
-ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchemy 2.0 with strict foreign key constraints, explicit indexing on frequently filtered lookup columns (`institution_id`, `current_stage`, `due_date`, `expiry_date`, `idempotency_key`), and UTC-timestamped audit triggers.
+ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchemy 2.0 with strict foreign key constraints, explicit indexing on frequently filtered lookup columns (`institution_id`, `current_stage`, `due_date`, `expiry_date`, `idempotency_key`), monotonic versioning for optimistic locking, and UTC-timestamped audit triggers.
 
 ```
                   +-------------------+
@@ -17,7 +17,7 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
            +----------------+----------------+
            | *                               | *
 +----------v----------+            +---------v---------+
-|        users        |            |   applications    |
+|        users        |            |   applications    |  (version: Integer)
 +----------+----------+            +----+----+----+----+
            | 1                          | 1  | 1  | 1
            | *                          | *  | *  | 1
@@ -44,10 +44,10 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
 | compliance_evidence |            | document_versions |
 +---------------------+            +-------------------+
 
-+---------------------+     +-----------------------+     +-------------------+
-|    notifications    |     |   alert_escalations   |     |   audit_events    |
-| (user / inst scope) |     | (idempotent triggers) |     | (immutable log)   |
-+---------------------+     +-----------------------+     +-------------------+
++---------------------+     +-----------------------+     +-------------------+     +-------------------+
+|    notifications    |     |   alert_escalations   |     |   audit_events    |     |  revoked_tokens   |
+| (user / inst scope) |     | (idempotent triggers) |     | (immutable log)   |     | (session jti ban) |
++---------------------+     +-----------------------+     +-------------------+     +-------------------+
 ```
 
 ---
@@ -81,7 +81,14 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `user_id` (FK -> `users.id`, ON DELETE CASCADE)
   - `role` (VARCHAR(64), NOT NULL) — Enum (`INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER`, `REGIONAL_OFFICER`, `BUREAU_OFFICER`, `COMMITTEE_MEMBER`, `EVC_COORDINATOR`, `COMPETENT_AUTHORITY`, `SYSTEM_ADMIN`)
 
-#### 2.3 `applications` & `application_stages`
+#### 2.3 `revoked_tokens` (Hardened Token Invalidation)
+- `id` (Primary Key)
+- `jti` (VARCHAR(64), UNIQUE, INDEXED, NOT NULL) — Unique token identifier claim
+- `token_type` (VARCHAR(32), NOT NULL, DEFAULT `"access"`)
+- `revoked_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, DEFAULT UTC)
+- `expires_at` (TIMESTAMP WITH TIME ZONE, NOT NULL, INDEXED)
+
+#### 2.4 `applications` & `application_stages`
 - `applications`:
   - `id` (Primary Key)
   - `application_number` (VARCHAR(64), UNIQUE, INDEXED) — E.g. `"AICTE-2026-EOA-98124"`
@@ -90,6 +97,7 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `application_type` (VARCHAR(64), NOT NULL) — E.g. `"EOA_ANNUAL"`, `"NEW_INSTITUTION"`, `"INTAKE_VARIATION"`
   - `workflow_template_code` (VARCHAR(64), NOT NULL, DEFAULT `"EOA_ANNUAL"`)
   - `current_stage` (VARCHAR(64), NOT NULL, INDEXED)
+  - `version` (INTEGER, NOT NULL, DEFAULT 1) — **Monotonic Optimistic Lock Version**
   - `scrutiny_officer_id` (FK -> `users.id`, NULLABLE)
   - `priority_score` (INTEGER, DEFAULT 0) — 0 to 100 Explainable Priority Index
   - `priority_factors` (JSON / TEXT) — Itemized explanation breakdown
@@ -105,7 +113,7 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `remarks` (TEXT)
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.4 `deficiencies`
+#### 2.5 `deficiencies`
 - `id` (Primary Key)
 - `application_id` (FK -> `applications.id`, ON DELETE CASCADE)
 - `category` (VARCHAR(64), NOT NULL) — E.g. `"INFRASTRUCTURE"`, `"FACULTY_CADRE"`, `"FINANCIAL_AUDIT"`, `"LAND_TITLE"`
@@ -118,12 +126,12 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
 - `resolved_by_officer_id` (FK -> `users.id`, NULLABLE)
 - `created_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.5 Compliance Passport: `compliance_undertakings` & `compliance_evidence`
+#### 2.6 Compliance Passport: `compliance_undertakings` & `compliance_evidence`
 - `compliance_undertakings`:
   - `id` (Primary Key)
   - `institution_id` (FK -> `institutions.id`, NOT NULL)
-  - `title` (VARCHAR(255), NOT NULL) — E.g. `"Establishment of Barrier-Free Access Ramps & Lift"`
-  - `category` (VARCHAR(64), NOT NULL) — `"INFRASTRUCTURE"`, `"SAFETY"`, `"FACULTY"`, `"ACADEMIC"`
+  - `title` (VARCHAR(255), NOT NULL)
+  - `category` (VARCHAR(64), NOT NULL)
   - `description` (TEXT)
   - `due_date` (TIMESTAMP WITH TIME ZONE, NOT NULL, INDEXED)
   - `status` (VARCHAR(32), NOT NULL, DEFAULT `"NOT_YET_DUE"`) — `"NOT_YET_DUE"`, `"DUE_SOON"`, `"PENDING_VERIFICATION"`, `"VERIFIED"`, `"DEFICIENT"`, `"OVERDUE"`
@@ -141,16 +149,16 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `submitted_by_id` (FK -> `users.id`)
   - `submitted_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.6 Document Lifecycle: `document_records` & `document_versions`
+#### 2.7 Document Lifecycle: `document_records` & `document_versions`
 - `document_records`:
   - `id` (Primary Key)
   - `institution_id` (FK -> `institutions.id`, NOT NULL)
-  - `document_type` (VARCHAR(64), NOT NULL) — E.g. `"LAND_LEASE_DEED"`, `"FIRE_SAFETY_NOC"`, `"BUILDING_STABILITY"`, `"OCCUPANCY_CERTIFICATE"`
+  - `document_type` (VARCHAR(64), NOT NULL)
   - `title` (VARCHAR(255), NOT NULL)
   - `document_number` (VARCHAR(128))
   - `issue_date` (DATE)
-  - `expiry_date` (DATE, INDEXED) — E.g. 33-year lease expiration or annual Fire NOC date
-  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"ACTIVE"`) — `"ACTIVE"`, `"EXPIRING_SOON"`, `"RENEWAL_SUBMITTED"`, `"VERIFIED"`, `"EXPIRED"`
+  - `expiry_date` (DATE, INDEXED)
+  - `status` (VARCHAR(32), NOT NULL, DEFAULT `"ACTIVE"`)
   - `current_version` (INTEGER, DEFAULT 1)
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 - `document_versions`:
@@ -162,12 +170,12 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `checksum_sha256` (VARCHAR(64), NOT NULL)
   - `uploaded_by_id` (FK -> `users.id`)
   - `uploaded_at` (TIMESTAMP WITH TIME ZONE)
-  - `verification_status` (VARCHAR(32), DEFAULT `"PENDING"`) — `"PENDING"`, `"VERIFIED"`, `"REJECTED"`
+  - `verification_status` (VARCHAR(32), DEFAULT `"PENDING"`)
   - `verified_by_id` (FK -> `users.id`, NULLABLE)
   - `verified_at` (TIMESTAMP WITH TIME ZONE, NULLABLE)
   - `verification_notes` (TEXT, NULLABLE)
 
-#### 2.7 `evc_inspections`
+#### 2.8 `evc_inspections`
 - `id` (Primary Key)
 - `application_id` (FK -> `applications.id`, NOT NULL)
 - `inspection_type` (VARCHAR(32), NOT NULL) — `"PHYSICAL_ONSITE"`, `"VIRTUAL_REMOTE"`
@@ -177,10 +185,10 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
 - `status` (VARCHAR(32), NOT NULL, DEFAULT `"PENDING_ASSIGNMENT"`)
 - `report_url` (VARCHAR(512), NULLABLE)
 - `report_notes` (TEXT, NULLABLE)
-- `recommendation` (VARCHAR(64), NULLABLE) — `"RECOMMENDED_APPROVAL"`, `"RECOMMENDED_REJECTION"`, `"DEFICIENCY_NOTED"`
+- `recommendation` (VARCHAR(64), NULLABLE)
 - `created_at`, `updated_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.8 `notifications` & `alert_escalations`
+#### 2.9 `notifications` & `alert_escalations`
 - `notifications`:
   - `id` (Primary Key)
   - `user_id` (FK -> `users.id`, NULLABLE)
@@ -188,29 +196,29 @@ ReguFlow 360 uses a normalized relational architecture implemented via SQLAlchem
   - `title` (VARCHAR(255), NOT NULL)
   - `message` (TEXT, NOT NULL)
   - `channel` (VARCHAR(32), DEFAULT `"IN_APP"`)
-  - `level` (VARCHAR(32), DEFAULT `"INFO"`) — `"INFO"`, `"WARNING"`, `"DANGER"`, `"SUCCESS"`
+  - `level` (VARCHAR(32), DEFAULT `"INFO"`)
   - `is_read` (BOOLEAN, DEFAULT FALSE)
   - `link_url` (VARCHAR(255))
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 - `alert_escalations`:
   - `id` (Primary Key)
   - `idempotency_key` (VARCHAR(128), UNIQUE, INDEXED)
-  - `entity_type` (VARCHAR(64), NOT NULL) — `"APPLICATION"`, `"UNDERTAKING"`, `"DOCUMENT"`, `"EVC"`
+  - `entity_type` (VARCHAR(64), NOT NULL)
   - `entity_id` (INTEGER, NOT NULL)
-  - `trigger_type` (VARCHAR(64), NOT NULL) — `"SLA_APPROACHING"`, `"SLA_OVERDUE"`, `"EXPIRY_WARNING"`
+  - `trigger_type` (VARCHAR(64), NOT NULL)
   - `threshold_days` (INTEGER, NOT NULL)
-  - `escalation_level` (VARCHAR(64), NOT NULL) — `"REMINDER_L1"`, `"ESCALATION_L1_RO"`, `"ESCALATION_L2_BO"`, `"ESCALATION_L3_MEMBER_SEC"`
+  - `escalation_level` (VARCHAR(64), NOT NULL)
   - `recipient_role` (VARCHAR(64))
-  - `status` (VARCHAR(32), DEFAULT `"ACTIVE"`) — `"ACTIVE"`, `"ACKNOWLEDGED"`, `"RESOLVED"`
+  - `status` (VARCHAR(32), DEFAULT `"ACTIVE"`)
   - `created_at` (TIMESTAMP WITH TIME ZONE)
 
-#### 2.9 `audit_events` & `rule_definitions`
+#### 2.10 `audit_events` & `rule_definitions`
 - `audit_events`:
   - `id` (Primary Key)
   - `actor_id` (INTEGER, NULLABLE)
   - `actor_name` (VARCHAR(128))
   - `actor_role` (VARCHAR(64))
-  - `action` (VARCHAR(64), NOT NULL) — E.g. `"STAGE_TRANSITION"`, `"DEFICIENCY_ISSUED"`, `"EVIDENCE_VERIFIED"`, `"EVC_SCHEDULED"`
+  - `action` (VARCHAR(64), NOT NULL)
   - `entity_type` (VARCHAR(64), NOT NULL)
   - `entity_id` (INTEGER, NOT NULL)
   - `details` (JSON / TEXT)
