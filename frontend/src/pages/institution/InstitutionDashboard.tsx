@@ -53,22 +53,22 @@ export const InstitutionDashboard: React.FC = () => {
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-teal-950/80 text-brand-teal dark:text-teal-300 border border-teal-300 dark:border-teal-700/80">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-[#143633] text-brand-teal dark:text-[#39C6B4] border border-teal-300 dark:border-[#225650]">
               AICTE APPROVED
             </span>
-            <span className="text-xs text-brand-muted">PID: {user?.institution_id === 2 ? '1-7782104' : '1-3324901'}</span>
+            <span className="text-xs text-brand-text-muted">PID: {user?.institution_id === 2 ? '1-7782104' : '1-3324901'}</span>
           </div>
-          <h1 className="text-xl font-bold text-brand-ink mt-1">
+          <h1 className="text-xl font-bold text-brand-text-primary mt-1">
             {user?.institution_name || 'Technical Institution Workspace'}
           </h1>
-          <p className="text-xs text-brand-muted mt-0.5">
+          <p className="text-xs text-brand-text-secondary mt-0.5">
             {user?.region || (user?.institution_id === 2 ? 'Northern' : 'Western')} Region • Academic Year 2026-2027 Regulatory Filing Cycle
           </p>
         </div>
 
         <Link
           to="/institution/applications"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-dark text-white text-xs font-semibold shadow-sm transition-colors duration-150"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm transition-colors duration-150"
         >
           <FileText className="w-4 h-4" /> View My Applications
         </Link>
@@ -76,17 +76,17 @@ export const InstitutionDashboard: React.FC = () => {
 
       {/* Critical Action Banner if Deficiency Communicated */}
       {deficientApp && (
-        <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-300 dark:border-amber-700/80 rounded-xl p-5 shadow-sm">
+        <div className="bg-amber-50 dark:bg-[#352A18] border border-amber-300 dark:border-[#5C4520] rounded-xl p-5 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-900/60 rounded-lg text-[#99630D] dark:text-amber-300 shrink-0">
+              <div className="p-2 bg-amber-100 dark:bg-[#483318] rounded-lg text-[#99630D] dark:text-[#F2C96D] shrink-0">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-brand-ink">
+                <h4 className="text-sm font-bold text-brand-text-primary">
                   Statutory Deficiency Cure Required — Application {deficientApp.application_number}
                 </h4>
-                <p className="text-xs text-brand-muted mt-1">
+                <p className="text-xs text-brand-text-secondary mt-1">
                   Regional Officer has communicated {deficientApp.open_deficiencies_count} itemized deficiencies. Please review the deficiency memo and upload cure documentation within the statutory cure window.
                 </p>
               </div>
@@ -94,7 +94,7 @@ export const InstitutionDashboard: React.FC = () => {
 
             <Link
               to={`/institution/applications/${deficientApp.id}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#99630D] hover:bg-amber-800 text-white text-xs font-semibold shadow-sm shrink-0 transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#99630D] hover:bg-amber-800 dark:bg-[#C5892B] dark:hover:bg-[#A8721F] text-white text-xs font-semibold shadow-sm shrink-0 transition-colors duration-150"
             >
               Cure & Resubmit <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -185,11 +185,11 @@ export const InstitutionDashboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {app.open_deficiencies_count > 0 ? (
-                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-[#99630D] dark:text-amber-200 border border-amber-300 dark:border-amber-700/80">
+                        <span className="px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 dark:bg-[#352A18] text-[#99630D] dark:text-[#F2C96D] border border-amber-300 dark:border-[#5C4520]">
                           {app.open_deficiencies_count} Open
                         </span>
                       ) : (
-                        <span className="text-teal-700 dark:text-teal-400 text-xs font-semibold">Clear</span>
+                        <span className="text-teal-700 dark:text-[#39C6B4] text-xs font-semibold">Clear</span>
                       )}
                     </td>
                     <td className="px-6 py-4 text-brand-muted">

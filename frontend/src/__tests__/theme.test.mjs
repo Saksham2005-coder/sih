@@ -16,20 +16,26 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
     // Light theme token checks
     assert.match(indexCss, /--brand-ink:\s*#152536/, 'Light ink must be Midnight Ink #152536');
     assert.match(indexCss, /--brand-porcelain:\s*#F4F6F8/, 'Light porcelain must be Cool Porcelain #F4F6F8');
+    assert.match(indexCss, /--brand-header-bg:\s*#101E2D/, 'Light header bg must be #101E2D');
     assert.match(indexCss, /--brand-teal:\s*#0E746B/, 'Light teal must be Meridian Teal #0E746B');
     assert.match(indexCss, /--brand-amber:\s*#C5892B/, 'Light amber must be Warning #C5892B');
     assert.match(indexCss, /--brand-red:\s*#B9474F/, 'Light red must be Danger #B9474F');
     assert.match(indexCss, /--brand-border:\s*#DFE5E9/, 'Light border must be Slate #DFE5E9');
 
-    // Dark theme token checks
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-ink:\s*#F1F5F8/, 'Dark ink must be high contrast #F1F5F8');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-porcelain:\s*#101820/, 'Dark app bg must be Obsidian #101820');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-surface:\s*#1B2835/, 'Dark primary surface must be #1B2835');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-surface-elevated:\s*#233342/, 'Dark elevated surface must be #233342');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-border:\s*#354653/, 'Dark border must be #354653');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-teal:\s*#14B8A6/, 'Dark teal must be readable #14B8A6');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-amber:\s*#E5A83B/, 'Dark amber must be readable #E5A83B');
-    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-red:\s*#E05661/, 'Dark red must be readable #E05661');
+    // Dark theme token checks (Midnight Slate + Meridian Teal canonical palette)
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-canvas:\s*#0C141D/, 'Dark app canvas must be #0C141D');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-header-bg:\s*#101E2D/, 'Dark header bg must be #101E2D');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-sidebar-bg:\s*#111F2E/, 'Dark sidebar bg must be #111F2E');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-surface:\s*#162432/, 'Dark primary surface must be #162432');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-surface-secondary:\s*#1A2A39/, 'Dark secondary surface must be #1A2A39');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-surface-elevated:\s*#223546/, 'Dark elevated surface must be #223546');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-text-primary:\s*#EDF3F8/, 'Dark primary text must be #EDF3F8');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-text-secondary:\s*#B0BECC/, 'Dark secondary text must be #B0BECC');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-border:\s*#2D4051/, 'Dark border must be #2D4051');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-teal:\s*#39C6B4/, 'Dark teal accent must be #39C6B4');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-action:\s*#0D8479/, 'Dark action surface must be #0D8479');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-amber:\s*#F2C96D/, 'Dark amber must be #F2C96D');
+    assert.match(indexCss, /\.dark\s*\{[\s\S]*--brand-red:\s*#F58F98/, 'Dark red must be #F58F98');
   });
 
   it('2. Tailwind configuration enables class-based dark mode and maps brand colors to CSS variables', () => {
@@ -38,6 +44,7 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
     assert.match(tailwindConfig, /ink:\s*['"]var\(--brand-ink\)['"]/, 'Tailwind ink must map to CSS variable');
     assert.match(tailwindConfig, /surface:\s*['"]var\(--brand-surface\)['"]/, 'Tailwind surface must map to CSS variable');
     assert.match(tailwindConfig, /porcelain:\s*['"]var\(--brand-porcelain\)['"]/, 'Tailwind porcelain must map to CSS variable');
+    assert.match(tailwindConfig, /canvas:\s*['"]var\(--brand-canvas\)['"]/, 'Tailwind canvas must map to CSS variable');
   });
 
   it('3. Anti-flash boot script exists in index.html to prevent flash of wrong theme', () => {
@@ -87,8 +94,8 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
 
   it('7. StatCard and PriorityGauge feature dark mode variants', () => {
     const statCard = fs.readFileSync(path.join(srcDir, 'components', 'common', 'StatCard.tsx'), 'utf-8');
-    assert.ok(statCard.includes('dark:bg-brand-surface'), 'StatCard must have dark surface');
-    assert.ok(statCard.includes('dark:border-'), 'StatCard must have dark border variants');
+    assert.ok(statCard.includes('bg-brand-surface'), 'StatCard must have brand surface');
+    assert.ok(statCard.includes('border-brand-border'), 'StatCard must have border tokens');
 
     const priorityGauge = fs.readFileSync(path.join(srcDir, 'components', 'common', 'PriorityGauge.tsx'), 'utf-8');
     assert.ok(priorityGauge.includes('dark:bg-'), 'PriorityGauge must have dark tier backgrounds');
@@ -105,11 +112,11 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
 
   it('9. Sidebar and AppLayout adapt seamlessly between light and dark themes', () => {
     const sidebar = fs.readFileSync(path.join(srcDir, 'components', 'layout', 'Sidebar.tsx'), 'utf-8');
-    assert.ok(sidebar.includes('dark:bg-brand-surface'), 'Sidebar must adapt background in dark mode');
-    assert.ok(sidebar.includes('dark:border-brand-border'), 'Sidebar must adapt border in dark mode');
+    assert.ok(sidebar.includes('bg-brand-sidebar-bg'), 'Sidebar must adapt background with semantic token');
+    assert.ok(sidebar.includes('border-brand-border'), 'Sidebar must adapt border with semantic token');
 
     const appLayout = fs.readFileSync(path.join(srcDir, 'components', 'layout', 'AppLayout.tsx'), 'utf-8');
-    assert.ok(appLayout.includes('bg-brand-porcelain'), 'AppLayout must use tokenized porcelain bg');
+    assert.ok(appLayout.includes('bg-brand-canvas'), 'AppLayout must use tokenized canvas bg');
   });
 
   it('10. Global index.css contains dark mode normalizations for tables, form controls, and scrollbars', () => {
@@ -119,5 +126,66 @@ describe('ReguFlow 360 — Theme System & Token Architecture', () => {
     assert.ok(indexCss.includes('.dark select:not'), 'index.css must normalize dark select');
     assert.ok(indexCss.includes('.dark ::-webkit-scrollbar-thumb'), 'index.css must configure dark scrollbars');
     assert.ok(indexCss.includes('prefers-reduced-motion'), 'index.css must support prefers-reduced-motion');
+  });
+
+  it('11. Regression test: Header background must not resolve to light background in dark mode', () => {
+    const indexCss = fs.readFileSync(path.join(srcDir, 'index.css'), 'utf-8');
+    const headerTsx = fs.readFileSync(path.join(srcDir, 'components', 'layout', 'Header.tsx'), 'utf-8');
+
+    // Extract dark theme block
+    const darkBlockMatch = indexCss.match(/\.dark\s*\{([\s\S]*?)\}/);
+    assert.ok(darkBlockMatch, 'Dark mode CSS block must exist');
+    const darkBlock = darkBlockMatch[1];
+
+    // Extract light theme (:root) block
+    const rootBlockMatch = indexCss.match(/:root\s*\{([\s\S]*?)\}/);
+    assert.ok(rootBlockMatch, ':root CSS block must exist');
+    const rootBlock = rootBlockMatch[1];
+
+    // Header background token must be #101E2D in both themes
+    const lightHeaderBg = rootBlock.match(/--brand-header-bg:\s*([^;]+);/)[1].trim();
+    const darkHeaderBg = darkBlock.match(/--brand-header-bg:\s*([^;]+);/)[1].trim();
+    assert.strictEqual(lightHeaderBg, '#101E2D', 'Light header bg must be #101E2D');
+    assert.strictEqual(darkHeaderBg, '#101E2D', 'Dark header bg must be #101E2D');
+
+    // Header component must NOT use bg-brand-ink or light background
+    assert.ok(!headerTsx.includes('bg-brand-ink'), 'Header must not use bg-brand-ink (prevents light bg collision in dark mode)');
+    assert.ok(headerTsx.includes('bg-[var(--brand-header-bg)]') || headerTsx.includes('bg-brand-header-bg'), 'Header must explicitly bind to --brand-header-bg');
+
+    // Header children options must not use bg-brand-ink with white text
+    assert.ok(!headerTsx.includes('className="bg-brand-ink text-white"'), 'Header select options must not use colliding bg-brand-ink');
+  });
+
+  it('12. Contrast verification: Dark mode palette tokens satisfy WCAG contrast hierarchy', () => {
+    function hexToRgb(hex) {
+      const bigint = parseInt(hex.replace('#', ''), 16);
+      return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    }
+    function luminance([r, g, b]) {
+      const a = [r, g, b].map(v => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    }
+    function contrastRatio(hex1, hex2) {
+      const lum1 = luminance(hexToRgb(hex1));
+      const lum2 = luminance(hexToRgb(hex2));
+      const brightest = Math.max(lum1, lum2);
+      const darkest = Math.min(lum1, lum2);
+      return (brightest + 0.05) / (darkest + 0.05);
+    }
+
+    const headerContrast = contrastRatio('#101E2D', '#EDF3F8');
+    assert.ok(headerContrast > 10, `Header contrast (${headerContrast.toFixed(2)}) must exceed AAA 7:1`);
+
+    const canvasContrast = contrastRatio('#0C141D', '#EDF3F8');
+    assert.ok(canvasContrast > 10, `Canvas contrast (${canvasContrast.toFixed(2)}) must exceed AAA 7:1`);
+
+    const surfaceContrast = contrastRatio('#162432', '#EDF3F8');
+    assert.ok(surfaceContrast > 10, `Surface contrast (${surfaceContrast.toFixed(2)}) must exceed AAA 7:1`);
+
+    const actionContrast = contrastRatio('#0D8479', '#FFFFFF');
+    assert.ok(actionContrast > 4.5, `Action button contrast (${actionContrast.toFixed(2)}) must exceed AA 4.5:1`);
   });
 });

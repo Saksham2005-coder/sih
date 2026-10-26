@@ -141,10 +141,10 @@ export const LoginPage: React.FC = () => {
 
       {/* Top Header Branding */}
       <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-ink text-brand-teal shadow-xl mb-3 border border-gray-700/50">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--brand-header-bg)] text-brand-teal shadow-xl mb-3 border border-gray-700/50">
           <span className="text-3xl font-extrabold tracking-tight">R</span>
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-brand-ink">
+        <h1 className="text-3xl font-extrabold tracking-tight text-brand-text-primary">
           ReguFlow 360
         </h1>
         <p className="mt-1 text-xs text-brand-muted max-w-md mx-auto">
@@ -196,7 +196,7 @@ export const LoginPage: React.FC = () => {
                 onClick={() => handlePortalSwitch('officer')}
                 className={`flex flex-col items-center justify-center py-3 px-3 rounded-lg text-xs font-bold transition-all ${
                   portalType === 'officer'
-                    ? 'bg-brand-ink text-white shadow-md'
+                    ? 'bg-[#101E2D] text-white shadow-md border border-[#274059]'
                     : 'text-brand-muted hover:text-brand-ink hover:bg-white/80 dark:hover:bg-brand-surface-elevated'
                 }`}
               >
@@ -332,7 +332,7 @@ export const LoginPage: React.FC = () => {
               className={`w-full flex justify-center items-center gap-2 py-3 px-4 rounded-xl shadow-md text-xs font-bold text-white transition-all ${
                 portalType === 'institution'
                   ? 'bg-brand-teal hover:bg-brand-teal-dark'
-                  : 'bg-brand-ink dark:bg-brand-surface-elevated hover:bg-gray-800 dark:hover:bg-brand-teal border border-transparent dark:border-brand-border'
+                  : 'bg-brand-action hover:bg-brand-action-hover border border-transparent'
               }`}
             >
               <KeyRound className="w-4 h-4" />

@@ -165,9 +165,9 @@ export const EVCQueue: React.FC = () => {
                 {insp.status === 'SCHEDULED' && (
                   <button
                     onClick={() => handleOpenReport(insp)}
-                    className="px-4 py-2 rounded-lg bg-brand-ink text-white hover:bg-gray-800 text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
                   >
-                    <FileCheck className="w-3.5 h-3.5 text-brand-teal" /> Upload Visit Report
+                    <FileCheck className="w-3.5 h-3.5 text-white" /> Upload Visit Report
                   </button>
                 )}
               </div>

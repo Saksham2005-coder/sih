@@ -57,3 +57,4 @@ backend/reguflow.db-wal
 *.swo
 .DS_Store
 Thumbs.db
+*.log

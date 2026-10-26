@@ -5,32 +5,76 @@
 @layer base {
   :root {
     /* Civic Precision Light Theme Tokens */
-    --brand-ink: #152536;
+    --brand-canvas: #F4F6F8;
     --brand-porcelain: #F4F6F8;
+
+    /* Fixed Brand Masthead Header Tokens (Navy in both themes) */
+    --brand-header-bg: #101E2D;
+    --brand-header-text: #EDF3F8;
+    --brand-header-muted: #8799AA;
+    --brand-header-border: #1F3347;
+
+    /* Role Navigation Sidebar Tokens */
+    --brand-sidebar-bg: #FFFFFF;
+    --brand-sidebar-text: #152536;
+    --brand-sidebar-muted: #596B7A;
+    --brand-sidebar-active-bg: #E7F5F3;
+    --brand-sidebar-active-text: #0E746B;
+
+    /* Surface Hierarchy */
     --brand-surface: #FFFFFF;
     --brand-surface-secondary: #F7F9FB;
     --brand-surface-elevated: #FFFFFF;
+
+    /* Typography Hierarchy */
+    --brand-text-primary: #152536;
+    --brand-text-secondary: #596B7A;
+    --brand-text-muted: #8799AA;
+    --brand-muted: #596B7A;
+    --brand-ink: #152536;
+
+    /* Boundaries & Dividers */
+    --brand-border: #DFE5E9;
+    --brand-divider: #E9EEF2;
+
+    /* Brand Accents & Interactive Actions */
     --brand-teal: #0E746B;
     --brand-teal-light: #E7F5F3;
     --brand-teal-dark: #0B5B54;
+    --brand-teal-soft: #E7F5F3;
+    --brand-action: #0E746B;
+    --brand-action-hover: #0B5B54;
+
+    /* Status Tokens */
     --brand-amber: #C5892B;
     --brand-amber-light: #FEF7ED;
     --brand-red: #B9474F;
     --brand-red-light: #FDF2F2;
-    --brand-border: #DFE5E9;
-    --brand-muted: #596B7A;
-    --brand-divider: #E9EEF2;
-    --brand-text-primary: #152536;
-    --brand-text-secondary: #596B7A;
 
-    /* Semantic Theme Tokens */
+    --brand-success-text: #18794E;
+    --brand-success-surface: #E8F5E9;
+    --brand-success-border: #A3D9C9;
+
+    --brand-warning-text: #99630D;
+    --brand-warning-surface: #FEF7ED;
+    --brand-warning-border: #F6D8A8;
+
+    --brand-danger-text: #B42332;
+    --brand-danger-surface: #FDF2F2;
+    --brand-danger-border: #F8B4B8;
+
+    --brand-info-text: #0284C7;
+    --brand-info-surface: #F0F9FF;
+    --brand-info-border: #BAE6FD;
+
+    /* Semantic Compatibility Tokens */
     --app-bg: #F4F6F8;
     --surface: #FFFFFF;
     --surface-secondary: #F7F9FB;
     --surface-elevated: #FFFFFF;
     --text-primary: #152536;
     --text-secondary: #596B7A;
-    --text-tertiary: #8395A7;
+    --text-tertiary: #8799AA;
     --border-main: #DFE5E9;
     --border-subtle: #E9EEF2;
     --primary: #0E746B;
@@ -43,47 +87,91 @@
   }
 
   .dark {
-    /* Civic Precision Dark Theme Tokens */
-    --brand-ink: #F1F5F8;
-    --brand-porcelain: #101820;
-    --brand-surface: #1B2835;
-    --brand-surface-secondary: #152536;
-    --brand-surface-elevated: #233342;
-    --brand-teal: #14B8A6;
-    --brand-teal-light: rgba(20, 184, 166, 0.15);
-    --brand-teal-dark: #0D9488;
-    --brand-amber: #E5A83B;
-    --brand-amber-light: rgba(229, 168, 59, 0.15);
-    --brand-red: #E05661;
-    --brand-red-light: rgba(224, 86, 97, 0.15);
-    --brand-border: #354653;
-    --brand-muted: #B3C0CA;
-    --brand-divider: #293A47;
-    --brand-text-primary: #F1F5F8;
-    --brand-text-secondary: #B3C0CA;
+    /* Civic Precision Dark Theme Tokens (Midnight Slate + Meridian Teal) */
+    --brand-canvas: #0C141D;
+    --brand-porcelain: #0C141D;
 
-    /* Semantic Theme Tokens */
-    --app-bg: #101820;
-    --surface: #172430;
-    --surface-secondary: #1D2B38;
-    --surface-elevated: #243543;
-    --text-primary: #F1F5F8;
-    --text-secondary: #B0BEC9;
-    --text-tertiary: #718290;
-    --border-main: #344654;
-    --border-subtle: #293A47;
+    /* Fixed Brand Masthead Header Tokens (Consistently dark navy in both themes) */
+    --brand-header-bg: #101E2D;
+    --brand-header-text: #EDF3F8;
+    --brand-header-muted: #8799AA;
+    --brand-header-border: #1F3347;
+
+    /* Role Navigation Sidebar Tokens */
+    --brand-sidebar-bg: #111F2E;
+    --brand-sidebar-text: #EDF3F8;
+    --brand-sidebar-muted: #B0BECC;
+    --brand-sidebar-active-bg: #143633;
+    --brand-sidebar-active-text: #39C6B4;
+
+    /* Surface Hierarchy */
+    --brand-surface: #162432;
+    --brand-surface-secondary: #1A2A39;
+    --brand-surface-elevated: #223546;
+
+    /* Typography Hierarchy */
+    --brand-text-primary: #EDF3F8;
+    --brand-text-secondary: #B0BECC;
+    --brand-text-muted: #8799AA;
+    --brand-muted: #B0BECC;
+    --brand-ink: #EDF3F8;
+
+    /* Boundaries & Dividers */
+    --brand-border: #2D4051;
+    --brand-divider: #233543;
+
+    /* Brand Accents & Interactive Actions */
+    --brand-teal: #39C6B4;
+    --brand-teal-light: rgba(57, 198, 180, 0.15);
+    --brand-teal-dark: #0D8479;
+    --brand-teal-soft: #143633;
+    --brand-action: #0D8479;
+    --brand-action-hover: #11988A;
+
+    /* Status Tokens */
+    --brand-amber: #F2C96D;
+    --brand-amber-light: rgba(242, 201, 109, 0.15);
+    --brand-red: #F58F98;
+    --brand-red-light: rgba(245, 143, 152, 0.15);
+
+    --brand-success-text: #79D9AD;
+    --brand-success-surface: #16372D;
+    --brand-success-border: #265947;
+
+    --brand-warning-text: #F2C96D;
+    --brand-warning-surface: #352A18;
+    --brand-warning-border: #5C4520;
+
+    --brand-danger-text: #F58F98;
+    --brand-danger-surface: #3A2027;
+    --brand-danger-border: #64313B;
+
+    --brand-info-text: #92C8FA;
+    --brand-info-surface: #192F43;
+    --brand-info-border: #2C4D6B;
+
+    /* Semantic Compatibility Tokens */
+    --app-bg: #0C141D;
+    --surface: #162432;
+    --surface-secondary: #1A2A39;
+    --surface-elevated: #223546;
+    --text-primary: #EDF3F8;
+    --text-secondary: #B0BECC;
+    --text-tertiary: #8799AA;
+    --border-main: #2D4051;
+    --border-subtle: #233543;
     --primary: #39C6B4;
-    --primary-hover: #5BD7C6;
-    --primary-soft: rgba(57, 198, 180, 0.15);
-    --warning: #F59E0B;
-    --danger: #EF4444;
-    --success: #34D399;
-    --info: #38BDF8;
+    --primary-hover: #11988A;
+    --primary-soft: #143633;
+    --warning: #F2C96D;
+    --danger: #F58F98;
+    --success: #79D9AD;
+    --info: #92C8FA;
   }
 
   body {
-    background-color: var(--brand-porcelain);
-    color: var(--brand-ink);
+    background-color: var(--brand-canvas);
+    color: var(--brand-text-primary);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
@@ -91,8 +179,8 @@
 
 /* Global Dark Theme Component Normalization */
 .dark body {
-  background-color: var(--brand-porcelain);
-  color: var(--brand-ink);
+  background-color: var(--brand-canvas);
+  color: var(--brand-text-primary);
 }
 
 .dark .bg-white {
@@ -119,53 +207,23 @@
 
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: var(--brand-border);
+  border-color: var(--brand-divider);
 }
 
 /* Text color adaptations */
 .dark .text-gray-900,
 .dark .text-gray-800 {
-  color: var(--brand-ink);
+  color: var(--brand-text-primary);
 }
 
+.dark .text-gray-700,
 .dark .text-gray-600,
-.dark .text-gray-500,
+.dark .text-gray-500 {
+  color: var(--brand-text-secondary);
+}
+
 .dark .text-gray-400 {
-  color: var(--brand-muted);
-}
-
-/* Dark mode normalizations for alert banners */
-.dark .bg-amber-50 {
-  background-color: rgba(229, 168, 59, 0.12);
-  border-color: rgba(229, 168, 59, 0.35);
-}
-
-.dark .bg-amber-100 {
-  background-color: rgba(229, 168, 59, 0.22);
-}
-
-.dark .bg-teal-50 {
-  background-color: rgba(20, 184, 166, 0.12);
-  border-color: rgba(20, 184, 166, 0.35);
-}
-
-.dark .bg-teal-100 {
-  background-color: rgba(20, 184, 166, 0.22);
-}
-
-.dark .bg-red-50 {
-  background-color: rgba(224, 86, 97, 0.12);
-  border-color: rgba(224, 86, 97, 0.35);
-}
-
-.dark .bg-red-100 {
-  background-color: rgba(224, 86, 97, 0.22);
-}
-
-.dark .bg-blue-50,
-.dark .bg-sky-50 {
-  background-color: rgba(56, 189, 248, 0.12);
-  border-color: rgba(56, 189, 248, 0.35);
+  color: var(--brand-text-muted);
 }
 
 /* Form Controls in Dark Mode */
@@ -173,13 +231,13 @@
 .dark select:not(.bg-transparent),
 .dark textarea:not(.bg-transparent) {
   background-color: var(--brand-surface-secondary);
-  color: var(--brand-ink);
+  color: var(--brand-text-primary);
   border-color: var(--brand-border);
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: var(--brand-muted);
+  color: var(--brand-text-muted);
   opacity: 0.7;
 }
 
@@ -196,8 +254,16 @@
 }
 
 .dark table thead th {
-  color: var(--brand-muted);
-  border-color: var(--brand-border);
+  color: var(--brand-text-muted);
+  border-color: var(--brand-divider);
+}
+
+.dark table tbody tr {
+  border-color: var(--brand-divider);
+}
+
+.dark table tbody tr:hover {
+  background-color: var(--brand-surface-elevated);
 }
 
 /* Scrollbars */
@@ -206,7 +272,7 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--brand-porcelain);
+  background: var(--brand-canvas);
 }
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
@@ -217,14 +283,14 @@
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: var(--brand-porcelain);
+  background: var(--brand-canvas);
 }
 .dark ::-webkit-scrollbar-thumb {
   background: var(--brand-border);
   border-radius: 3px;
 }
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--brand-muted);
+  background: var(--brand-text-muted);
 }
 
 /* Animations */

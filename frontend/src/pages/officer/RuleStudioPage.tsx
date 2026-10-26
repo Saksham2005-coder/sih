@@ -396,7 +396,7 @@ export const RuleStudioPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSimModalOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-brand-ink dark:bg-brand-surface-elevated hover:bg-brand-teal dark:hover:bg-brand-teal border border-brand-border text-white font-semibold transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-brand-surface-secondary hover:bg-brand-surface-elevated text-brand-text-primary border border-brand-border font-semibold transition-colors text-xs"
               >
                 Close Simulation
               </button>
@@ -449,7 +449,7 @@ export const RuleStudioPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setHistoryModalOpen(false)}
-                className="px-4 py-1.5 rounded-lg bg-brand-ink dark:bg-brand-surface-elevated hover:bg-brand-teal dark:hover:bg-brand-teal border border-brand-border text-white font-semibold transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-brand-surface-secondary hover:bg-brand-surface-elevated text-brand-text-primary border border-brand-border font-semibold transition-colors text-xs"
               >
                 Close Ledger
               </button>

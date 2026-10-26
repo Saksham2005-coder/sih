@@ -254,7 +254,7 @@ export const EscalationsPage: React.FC = () => {
                       {esc.status === 'ACTIVE' ? (
                         <button
                           onClick={() => handleOpenAcknowledge(esc)}
-                          className="px-2.5 py-1 rounded bg-brand-ink hover:bg-gray-800 text-white text-xs font-semibold shadow-sm transition-colors"
+                          className="px-2.5 py-1 rounded bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm transition-colors"
                         >
                           Acknowledge
                         </button>

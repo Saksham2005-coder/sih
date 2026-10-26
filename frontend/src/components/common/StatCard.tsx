@@ -18,17 +18,17 @@ export const StatCard: React.FC<StatCardProps> = ({
   onClick,
 }) => {
   const variantStyles = {
-    default: 'border-brand-border bg-white dark:bg-brand-surface text-brand-ink',
-    teal: 'border-teal-300 dark:border-teal-700/80 bg-white dark:bg-brand-surface text-brand-ink',
-    amber: 'border-amber-300 dark:border-amber-700/80 bg-white dark:bg-brand-surface text-brand-ink',
-    red: 'border-red-300 dark:border-red-700/80 bg-white dark:bg-brand-surface text-brand-ink',
+    default: 'border-brand-border bg-brand-surface text-brand-text-primary',
+    teal: 'border-brand-teal/40 bg-brand-surface text-brand-text-primary',
+    amber: 'border-amber-300 dark:border-[#5C4520] bg-brand-surface text-brand-text-primary',
+    red: 'border-red-300 dark:border-[#64313B] bg-brand-surface text-brand-text-primary',
   };
 
   const iconColors = {
-    default: 'text-brand-muted',
-    teal: 'text-brand-teal dark:text-teal-400',
-    amber: 'text-[#99630D] dark:text-amber-400',
-    red: 'text-[#B42332] dark:text-red-400',
+    default: 'text-brand-text-muted',
+    teal: 'text-brand-teal',
+    amber: 'text-[#99630D] dark:text-[#F2C96D]',
+    red: 'text-[#B42332] dark:text-[#F58F98]',
   };
 
   return (
@@ -41,13 +41,13 @@ export const StatCard: React.FC<StatCardProps> = ({
       }`}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-brand-muted">{title}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand-text-muted">{title}</p>
         {icon && <div className={iconColors[variant]}>{icon}</div>}
       </div>
       <div className="mt-3 flex items-baseline gap-2">
-        <span className="text-2xl font-bold tracking-tight text-brand-ink">{value}</span>
+        <span className="text-2xl font-bold tracking-tight text-brand-text-primary">{value}</span>
       </div>
-      {subtext && <p className="mt-1 text-xs text-brand-muted">{subtext}</p>}
+      {subtext && <p className="mt-1 text-xs text-brand-text-secondary">{subtext}</p>}
     </div>
   );
 };

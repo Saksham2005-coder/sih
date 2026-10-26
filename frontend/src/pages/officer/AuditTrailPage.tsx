@@ -79,9 +79,9 @@ export const AuditTrailPage: React.FC = () => {
           </button>
           <button
             onClick={handleExportCsv}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-ink text-white hover:bg-gray-800 text-xs font-semibold shadow-sm transition-colors"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm transition-colors"
           >
-            <Download className="w-3.5 h-3.5 text-brand-teal" /> Export Sanitized CSV
+            <Download className="w-3.5 h-3.5 text-white" /> Export Sanitized CSV
           </button>
         </div>
       </div>
@@ -289,7 +289,7 @@ export const AuditTrailPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedEvent(null)}
-                className="px-4 py-1.5 rounded-lg bg-brand-ink text-white font-semibold"
+                className="px-4 py-1.5 rounded-lg bg-brand-surface-secondary hover:bg-brand-surface-elevated text-brand-text-primary border border-brand-border text-xs font-semibold transition-colors"
               >
                 Close Audit Record
               </button>

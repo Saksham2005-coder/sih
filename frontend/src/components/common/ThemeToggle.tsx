@@ -28,13 +28,17 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
 
   const displayLabel = showLabel || variant === 'with-label' || variant === 'segmented';
 
+  const defaultClasses = className
+    ? className
+    : 'border-brand-border bg-brand-surface text-brand-text-primary hover:bg-brand-surface-secondary';
+
   return (
     <button
       type="button"
       onClick={toggleTheme}
       aria-label={ariaLabel}
       title={labelText}
-      className={`inline-flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal select-none cursor-pointer border-brand-border bg-brand-surface text-brand-ink hover:bg-brand-surface-secondary active:scale-95 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal select-none cursor-pointer active:scale-95 ${defaultClasses}`}
     >
       {isDark ? (
         <Sun className="w-4 h-4 text-amber-400 shrink-0 transition-transform duration-200 hover:rotate-45" />

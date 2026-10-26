@@ -78,7 +78,7 @@ export const BureauOfficerWorkspace: React.FC = () => {
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-ink text-white">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#182C40] text-teal-300 border border-[#274059]">
               AICTE APEX BUREAU OVERSIGHT
             </span>
             <span className="text-xs text-brand-muted">
