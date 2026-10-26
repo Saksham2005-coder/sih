@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Files, Upload, AlertTriangle, CheckCircle, Clock, History } from 'lucide-react';
+import { Files, Upload, AlertTriangle, CheckCircle, Clock, History, Cpu, FileSearch } from 'lucide-react';
 import { api } from '../../api/client';
 import { DocumentRecord } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Modal } from '../../components/common/Modal';
+import { DocumentIntelligenceModal } from '../../components/common/DocumentIntelligenceModal';
 
 export const DocumentsRenewals: React.FC = () => {
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDoc, setSelectedDoc] = useState<DocumentRecord | null>(null);
   const [renewModalOpen, setRenewModalOpen] = useState(false);
+  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
+  const [analysisTargetDoc, setAnalysisTargetDoc] = useState<DocumentRecord | null>(null);
+  const [analysisTargetVersionId, setAnalysisTargetVersionId] = useState<number | null>(null);
   const [newExpiry, setNewExpiry] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -29,6 +33,12 @@ export const DocumentsRenewals: React.FC = () => {
   useEffect(() => {
     loadDocs();
   }, []);
+
+  const handleOpenAnalysis = (doc: DocumentRecord, versionId?: number) => {
+    setAnalysisTargetDoc(doc);
+    setAnalysisTargetVersionId(versionId || null);
+    setAnalysisModalOpen(true);
+  };
 
   const handleOpenRenew = (doc: DocumentRecord) => {
     setSelectedDoc(doc);
@@ -96,12 +106,20 @@ export const DocumentsRenewals: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                onClick={() => handleOpenRenew(doc)}
-                className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
-              >
-                <Upload className="w-3.5 h-3.5" /> Submit Document Renewal
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleOpenAnalysis(doc)}
+                  className="px-3 py-1.5 rounded-lg border border-brand-teal/40 bg-brand-teal/10 hover:bg-brand-teal/20 text-brand-teal text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <Cpu className="w-3.5 h-3.5" /> Intelligence Scan
+                </button>
+                <button
+                  onClick={() => handleOpenRenew(doc)}
+                  className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <Upload className="w-3.5 h-3.5" /> Submit Document Renewal
+                </button>
+              </div>
             </div>
 
             {/* Expiry Details */}
@@ -154,13 +172,21 @@ export const DocumentsRenewals: React.FC = () => {
                         )}
                       </div>
 
-                      <span className="text-[11px] text-brand-muted dark:text-brand-muted shrink-0">
-                        {new Date(ver.uploaded_at).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => handleOpenAnalysis(doc, ver.id)}
+                          className="px-2.5 py-1 rounded-md border border-brand-border dark:border-brand-border bg-white dark:bg-brand-surface hover:border-brand-teal text-brand-teal text-[11px] font-semibold inline-flex items-center gap-1 transition-colors shadow-xs"
+                        >
+                          <Cpu className="w-3 h-3" /> Inspect Intelligence
+                        </button>
+                        <span className="text-[11px] text-brand-muted dark:text-brand-muted shrink-0">
+                          {new Date(ver.uploaded_at).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -234,6 +260,15 @@ export const DocumentsRenewals: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Document Intelligence & Compliance Cross-Check Modal */}
+      <DocumentIntelligenceModal
+        isOpen={analysisModalOpen}
+        onClose={() => setAnalysisModalOpen(false)}
+        documentRecord={analysisTargetDoc}
+        documentVersionId={analysisTargetVersionId}
+        onRecordUpdated={loadDocs}
+      />
     </div>
   );
 };

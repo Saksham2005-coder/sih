@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint .",
-    "test": "node --test src/__tests__/theme.test.mjs",
+    "test": "node --test src/__tests__/*.test.mjs",
     "test:theme": "node --test src/__tests__/theme.test.mjs",
+    "test:docintel": "node --test src/__tests__/document_intelligence.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

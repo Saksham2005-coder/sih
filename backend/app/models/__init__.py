@@ -4,6 +4,7 @@ from app.models.user import User, UserRole
 from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.document import DocumentRecord, DocumentVersion
+from app.models.document_analysis import DocumentAnalysis
 from app.models.evc import EVCInspection
 from app.models.alert import Notification, AlertEscalation, DeadlineEngineRun, SchedulerLease
 from app.models.audit import AuditEvent
@@ -22,6 +23,7 @@ __all__ = [
     "ComplianceEvidence",
     "DocumentRecord",
     "DocumentVersion",
+    "DocumentAnalysis",
     "EVCInspection",
     "Notification",
     "AlertEscalation",

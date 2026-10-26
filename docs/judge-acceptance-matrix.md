@@ -150,29 +150,45 @@ Every requirement was inspected and verified against five non-negotiable enginee
 
 ---
 
-### 11. Known Limitations & Prototype Boundaries
+### 11. Document Intelligence, Evidence Extraction and Compliance Cross-Checking Matrix (Section G)
+
+| Req ID | Requirement Description | Explicit / Derived | Status | Backend Implementation | Frontend UI Surface | Verification Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **REQ-DOCINT-01** | Local Open-Source PDF Text Extraction | Explicit | **IMPLEMENTED** | `DocumentIntelligenceService.extract_text_from_file` uses `pypdf` without external cloud/paid APIs | `DocumentIntelligenceModal` displays extraction engine and page metrics | `test_synthetic_pdf_text_extraction`, `test_graceful_handling_of_malformed_pdf` |
+| **REQ-DOCINT-02** | Scanned PDF & Local OCR Handling | Explicit | **IMPLEMENTED** | Dynamic host detection of Tesseract executable (`shutil.which`). When unavailable, sets `ocr_provider: "UNAVAILABLE"` and retains manual review | Telemetry badge shows `OCR: UNAVAILABLE` with zero UI crash | `test_scanned_document_without_ocr_engine` verifies `EXTRACTION_UNAVAILABLE` finding |
+| **REQ-DOCINT-03** | Field-Specific Candidate Extraction | Explicit | **IMPLEMENTED** | Extracts category, doc number, issuing authority, issue/expiry dates (including 33-year term derivation), and property identifiers with source page and verbatim excerpts | Side-by-side candidate comparison table in `DocumentIntelligenceModal` | `test_candidate_field_and_expiry_extraction`, `test_date_string_normalization` |
+| **REQ-DOCINT-04** | Traceable Lifecycle & Idempotency | Explicit | **IMPLEMENTED** | `QUEUED` &rarr; `PROCESSING` &rarr; `REVIEW_REQUIRED` &rarr; `CONFIRMED`/`FAILED`. Idempotency key `DOC_VERSION:{id}:{checksum}:1.0.0` | Progress badge, confidence gauge, and Re-Scan action | `test_analysis_idempotency` proves duplicate scans do not create duplicate rows |
+| **REQ-DOCINT-05** | Regulatory Cross-Checking Rules | Explicit | **IMPLEMENTED** | 8 cross-checks: date mismatch, expired certs, doc number, category, renewal progression, compliance condition, OCR availability | Structured finding cards with badges: `MATCH`, `POSSIBLE_MISMATCH`, `MISSING_EVIDENCE`, `EXTRACTION_UNAVAILABLE` | `test_conflicting_entered_and_extracted_dates`, `test_already_expired_certificate_cross_check`, `test_renewal_version_progression_check` |
+| **REQ-DOCINT-06** | Officer Review Desk & Non-Automation Invariant | Explicit | **IMPLEMENTED** | Extraction NEVER autonomously changes dates or approves compliance. Officers review with `CONFIRMED`/`CORRECTED`/`REJECTED`, mandatory remarks, and `apply_to_record` | Officer Statutory Decision Desk with correction form and audit register display | `test_reviewer_confirmation_and_correction_flow`, `test_non_automation_statutory_invariant` |
+| **REQ-DOCINT-07** | Strict RBAC & Tenant/Regional Scoping | Explicit | **IMPLEMENTED** | Institution users can only query/trigger for their `institution_id`. Regional officers scoped to region. Institution users blocked from review endpoint with 403 | Dynamic role rendering (officer controls visible only to authorized officer roles) | `test_cross_tenant_access_isolation` (403 on cross-tenant access), `test_reviewer_confirmation_and_correction_flow` (403 on institution review) |
+
+---
+
+### 12. Known Limitations & Prototype Boundaries
 
 1. **AICTE Handbook Norms as Configurable Rules**:
    - Statutory penalty clauses, quota allocations, and hearing calendars are modeled as configurable seed defaults under Rule Studio. Production deployment by AICTE requires uploading the official gazette configuration.
-2. **External Gateway Connectivity**:
+2. **Local OCR Binary Dependency**:
+   - The document intelligence engine executes native local text extraction via `pypdf`. Where raster images or scanned documents without text layers are encountered, the system invokes local Tesseract OCR if installed on the host. When Tesseract is not installed, the platform gracefully records `ocr_provider: "UNAVAILABLE"` and creates an `EXTRACTION_UNAVAILABLE` finding, preserving the manual officer review pathway without calling external paid APIs.
+3. **External Gateway Connectivity**:
    - External SMS and Email dispatches are simulated within the notification subsystem with explicit UI disclosures ("Simulated Regulatory Notice - SIH Demo Mode"). Live dispatch requires AICTE NIC/CDAC SMS gateway API keys.
-3. **National Single Sign-On (SSO)**:
+4. **National Single Sign-On (SSO)**:
    - Platform authentication uses RFC 7519 JSON Web Tokens with database session revocation. Integration with official AICTE national portal credentials requires authorized SAML 2.0 / OAuth2 federation endpoints.
 
 ---
 
-### 12. Verification Commands and Evidence Summary
+### 13. Verification Commands and Evidence Summary
 
 ```bash
-# Backend Automated Tests (151/151 Passed)
+# Backend Automated Tests (163/163 Passed)
 cd backend
 python -m pytest -v
-# Result: 151 passed in 49.06s across 16 test modules
+# Result: 163 passed in 49.21s across 17 test modules
 
-# Frontend Token Architecture Tests (12/12 Passed)
+# Frontend Token Architecture & Document Intelligence Tests (18/18 Passed)
 cd frontend
 npm test
-# Result: 12 passed in 106.78ms
+# Result: 18 passed in 116.32ms across 2 test suites
 
 # Frontend Linting Check (0 Errors)
 npm run lint
@@ -180,5 +196,5 @@ npm run lint
 
 # Production Bundle Build
 npm run build
-# Result: built in 8.13s (dist/ generated cleanly)
+# Result: built in 3.27s (dist/ generated cleanly with zero TypeScript errors)
 ```

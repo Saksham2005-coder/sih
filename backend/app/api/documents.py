@@ -209,6 +209,13 @@ def submit_document_renewal(
             }
         )
 
+        # Trigger document intelligence analysis (non-blocking)
+        try:
+            from app.services.document_intelligence_service import DocumentIntelligenceService
+            DocumentIntelligenceService.analyze_document_version(db=db, document_version_id=version.id)
+        except Exception:
+            pass
+
         return {
             "message": "Document renewal submitted successfully",
             "version": new_version_num,

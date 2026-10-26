@@ -534,3 +534,67 @@ export interface CaseBriefData {
   }>;
   regulatory_disclaimer: string;
 }
+
+export interface ExtractedFieldCandidate {
+  value?: string | null;
+  confidence: number;
+  source_page?: number | null;
+  source_excerpt?: string | null;
+  field_label?: string | null;
+}
+
+export interface CrossCheckFinding {
+  field: string;
+  rule_code: string;
+  status: 'MATCH' | 'POSSIBLE_MISMATCH' | 'MISSING_EVIDENCE' | 'EXTRACTION_UNAVAILABLE' | 'HUMAN_REVIEW_REQUIRED';
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  entered_value?: string | null;
+  extracted_value?: string | null;
+  source_page?: number | null;
+  source_excerpt?: string | null;
+  description: string;
+}
+
+export interface DocumentAnalysisData {
+  id: number;
+  document_record_id?: number | null;
+  document_version_id?: number | null;
+  compliance_evidence_id?: number | null;
+  institution_id: number;
+  institution_name?: string | null;
+  status: 'QUEUED' | 'PROCESSING' | 'REVIEW_REQUIRED' | 'CONFIRMED' | 'FAILED';
+  idempotency_key: string;
+  extraction_engine: string;
+  engine_version: string;
+  ocr_applied: boolean;
+  ocr_provider: string;
+  file_name: string;
+  file_size?: number | null;
+  checksum_sha256: string;
+  page_count: number;
+  has_text_layer: boolean;
+  is_scanned: boolean;
+  extracted_fields: Record<string, ExtractedFieldCandidate>;
+  cross_check_findings: CrossCheckFinding[];
+  overall_confidence: number;
+  summary_findings?: string | null;
+  error_message?: string | null;
+  reviewer_decision?: 'CONFIRMED' | 'CORRECTED' | 'REJECTED' | null;
+  reviewed_by_id?: number | null;
+  reviewed_by_name?: string | null;
+  reviewed_at?: string | null;
+  reviewer_remarks?: string | null;
+  corrected_fields?: Record<string, any> | null;
+  processing_started_at?: string | null;
+  processing_completed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentAnalysisReviewRequest {
+  decision: 'CONFIRMED' | 'CORRECTED' | 'REJECTED';
+  reviewer_remarks: string;
+  corrected_fields?: Record<string, any> | null;
+  apply_to_record?: boolean;
+}
+

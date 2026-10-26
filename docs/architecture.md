@@ -229,4 +229,43 @@ ReguFlow 360 separates local development ergonomics from production deployment s
    - `seed_database()` executes conditionally in development mode only when `is_demo_allowed and not is_production`.
    - In production mode, `seed_database()` actively raises a `RuntimeError`, guaranteeing that shared demo accounts and synthetic fixtures cannot be inadvertently inserted into a production database.
 
+---
+
+### 8. Document Intelligence, Evidence Extraction and Compliance Cross-Checking Architecture
+
+ReguFlow 360 integrates an explainable, local, and auditable Document Intelligence subsystem designed for statutory compliance corroboration without relying on paid third-party APIs or sending confidential institutional documents to external cloud services:
+
+1. **Local Open-Source Extraction Engine**:
+   - Built on `pypdf` for native digital PDF text and font extraction.
+   - Graceful fallback for scanned documents: detects absence of text layer, queries host for local Tesseract executable (`shutil.which('tesseract')`), and records `ocr_provider: "UNAVAILABLE"` with zero crashes when OCR binary is missing.
+   - Conservative regex heuristics extract field candidates:
+     - Document Category (`LAND_LEASE_DEED`, `FIRE_SAFETY_NOC`, `BUILDING_STABILITY`, `OCCUPANCY_CERTIFICATE`, `POLLUTION_NOC`, `EVC_INSPECTION_REPORT`, `COMPLIANCE_EVIDENCE`).
+     - Reference / Registration Numbers.
+     - Issuing Authorities.
+     - Issue Dates and Expiry / Validity Dates (including derived multi-year terms, e.g., "period of 33 years from 01/04/2021").
+     - Property / Land survey and plot numbers.
+   - Extracts exact source page indices and verbatim character excerpts for every candidate fact.
+
+2. **Persistent Traceable Lifecycle**:
+   - State Machine: `QUEUED` &rarr; `PROCESSING` &rarr; `REVIEW_REQUIRED` &rarr; `CONFIRMED` / `FAILED`.
+   - **Idempotency Guarantee**: Keyed to `f"DOC_VERSION:{version.id}:{version.checksum_sha256}:1.0.0"`. Repeat scans of identical files return the existing record without duplicate DB rows.
+   - Engine telemetry, page count, text layer status, overall confidence score, and timestamps are recorded in the `document_analyses` table.
+
+3. **Deterministic Regulatory Cross-Checks**:
+   - **EXPIRY_DATE_MISMATCH**: Compares institution-entered expiry against extracted certificate validity date.
+   - **CERTIFICATE_ALREADY_EXPIRED**: Flags documents whose extracted validity date is in the past.
+   - **DOCUMENT_NUMBER_MISMATCH**: Detects discrepancies between vault record numbers and deed text.
+   - **CATEGORY_MISMATCH**: Flags when an uploaded file's content signatures contradict its record type.
+   - **RENEWAL_VALIDITY_EXTENDED**: Confirms that a renewal version extends validity beyond prior versions.
+   - **RENEWAL_VALIDITY_NOT_EXTENDED**: Flags renewals that fail to extend tenure.
+   - **COMPLIANCE_EVIDENCE_CORROBORATED**: Verifies that submitted evidence contains required regulatory domain terms.
+   - **OCR_EXTRACTION_UNAVAILABLE**: Accurately flags scanned documents requiring manual human review when local OCR engine is unavailable.
+   - Classification labels: `MATCH`, `POSSIBLE_MISMATCH`, `MISSING_EVIDENCE`, `EXTRACTION_UNAVAILABLE`, `HUMAN_REVIEW_REQUIRED`.
+
+4. **Non-Automation Statutory Invariant**:
+   - Extraction and cross-checks NEVER autonomously alter database validity dates, approve compliance, or reject applications.
+   - Authoritative dates in `DocumentRecord` are mutated ONLY when an authorized AICTE officer (`REGIONAL_OFFICER`, `BUREAU_OFFICER`, `SYSTEM_ADMIN`) reviews the analysis, inputs mandatory remarks, and explicitly selects `apply_to_record=True`.
+   - All review actions log immutable `DOCUMENT_ANALYSIS_REVIEWED` audit events.
+
+
 

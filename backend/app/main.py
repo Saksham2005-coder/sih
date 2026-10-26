@@ -6,7 +6,7 @@ from app.core.database import Base, engine
 from app.seed.seed_data import seed_database
 
 # Routers
-from app.api import health, auth, applications, compliance, documents, evc, alerts, rules, audit, reports
+from app.api import health, auth, applications, compliance, documents, evc, alerts, rules, audit, reports, document_intelligence
 
 from app.services.scheduler import scheduler
 
@@ -54,6 +54,7 @@ app.include_router(alerts.router, prefix=settings.API_V1_STR)
 app.include_router(rules.router, prefix=settings.API_V1_STR)
 app.include_router(audit.router, prefix=settings.API_V1_STR)
 app.include_router(reports.router, prefix=settings.API_V1_STR)
+app.include_router(document_intelligence.router, prefix=settings.API_V1_STR)
 
 @app.get("/")
 def root():

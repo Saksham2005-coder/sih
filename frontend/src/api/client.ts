@@ -7,7 +7,8 @@ import {
   RuleSimulateResponse, AuditExplorerData, CommandCentreData,
   SlaAdherenceData, EvcAnalyticsData, ComplianceAnalyticsData,
   DocumentAnalyticsData, EscalationsAnalyticsData,
-  RegionalPerformanceData, ApplicationLifecycleData
+  RegionalPerformanceData, ApplicationLifecycleData,
+  DocumentAnalysisData, DocumentAnalysisReviewRequest
 } from '../types';
 
 const API_BASE = '/api';
@@ -143,6 +144,29 @@ export const api = {
     }),
   verifyDocumentVersion: (documentId: number, versionId: number, payload: { verification_status: string; verification_notes?: string }) =>
     request<any>(`/documents/${documentId}/verify-version/${versionId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  getDocumentAnalyses: (params?: { status?: string; institution_id?: number; document_record_id?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.institution_id) query.set('institution_id', String(params.institution_id));
+    if (params?.document_record_id) query.set('document_record_id', String(params.document_record_id));
+    return request<DocumentAnalysisData[]>(`/documents/analysis?${query.toString()}`);
+  },
+  getDocumentAnalysis: (id: number) =>
+    request<DocumentAnalysisData>(`/documents/analysis/${id}`),
+  getDocumentAnalysisByVersion: (versionId: number) =>
+    request<DocumentAnalysisData>(`/documents/analysis/by-version/${versionId}`),
+  triggerDocumentAnalysis: (payload: { document_record_id?: number; document_version_id?: number; force_retry?: boolean }) =>
+    request<DocumentAnalysisData>('/documents/analysis/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  reviewDocumentAnalysis: (id: number, payload: DocumentAnalysisReviewRequest) =>
+    request<DocumentAnalysisData>(`/documents/analysis/${id}/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

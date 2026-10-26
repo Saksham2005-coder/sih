@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FileText, AlertTriangle, Compass, CheckCircle2, ShieldAlert,
-  BarChart3, RefreshCw, ArrowRight, Eye, CheckSquare, Layers, Clock
+  BarChart3, RefreshCw, ArrowRight, Eye, CheckSquare, Layers, Clock, Cpu, FileSearch
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
@@ -11,6 +11,7 @@ import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityGauge } from '../../components/common/PriorityGauge';
 import { Modal } from '../../components/common/Modal';
+import { DocumentIntelligenceModal } from '../../components/common/DocumentIntelligenceModal';
 
 export const RegionalOfficerWorkspace: React.FC = () => {
   const { user } = useAuth();
@@ -18,6 +19,8 @@ export const RegionalOfficerWorkspace: React.FC = () => {
   const [undertakings, setUndertakings] = useState<ComplianceUndertaking[]>([]);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [intelModalOpen, setIntelModalOpen] = useState(false);
+  const [selectedDocForIntel, setSelectedDocForIntel] = useState<DocumentRecord | null>(null);
 
   // Deficiency creation state
   const [deficiencyModalApp, setDeficiencyModalApp] = useState<Application | null>(null);
@@ -84,6 +87,11 @@ export const RegionalOfficerWorkspace: React.FC = () => {
     } catch (err: any) {
       alert(err.message || 'Verification failed');
     }
+  };
+
+  const handleOpenDocIntelligence = (doc: DocumentRecord) => {
+    setSelectedDocForIntel(doc);
+    setIntelModalOpen(true);
   };
 
   const summary = data?.summary;
@@ -327,6 +335,79 @@ export const RegionalOfficerWorkspace: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Regional Document Intelligence & Cross-Check Verification Desk */}
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-brand-teal" />
+              <h3 className="text-sm font-bold text-brand-ink">Document Intelligence & Regulatory Cross-Check Desk</h3>
+            </div>
+            <p className="text-xs text-brand-muted">
+              Inspect candidate extraction findings, cross-check against recorded dates, and commit statutory review orders
+            </p>
+          </div>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-teal/10 text-brand-teal border border-brand-teal/20">
+            {documents.length} Tracked Documents
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+              <tr>
+                <th className="px-6 py-3.5">Document Title & Type</th>
+                <th className="px-6 py-3.5">Institution</th>
+                <th className="px-6 py-3.5">Version & Doc Number</th>
+                <th className="px-6 py-3.5">Authoritative Expiry</th>
+                <th className="px-6 py-3.5">Status</th>
+                <th className="px-6 py-3.5 text-right">Intelligence Scrutiny</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
+              {documents.map((doc) => (
+                <tr key={doc.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
+                  <td className="px-6 py-4">
+                    <p className="font-bold text-brand-ink">{doc.title}</p>
+                    <span className="text-[10px] text-brand-teal font-mono">{doc.document_type.replace(/_/g, ' ')}</span>
+                  </td>
+                  <td className="px-6 py-4 font-semibold text-brand-ink">
+                    {doc.institution_name || 'Apex Institute of Technology'}
+                  </td>
+                  <td className="px-6 py-4 font-mono text-brand-ink">
+                    v{doc.current_version} • <span className="text-brand-muted">{doc.document_number || 'N/A'}</span>
+                  </td>
+                  <td className="px-6 py-4 font-mono font-medium text-brand-ink">
+                    {doc.expiry_date
+                      ? new Date(doc.expiry_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+                      : 'Continuous'}
+                  </td>
+                  <td className="px-6 py-4">
+                    <StatusBadge status={doc.status} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => handleOpenDocIntelligence(doc)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
+                    >
+                      <Cpu className="w-3.5 h-3.5" /> Intelligence Review
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Document Intelligence Modal */}
+      <DocumentIntelligenceModal
+        isOpen={intelModalOpen}
+        onClose={() => setIntelModalOpen(false)}
+        documentRecord={selectedDocForIntel}
+        onRecordUpdated={loadData}
+      />
     </div>
   );
 };
