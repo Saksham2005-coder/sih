@@ -10,6 +10,7 @@ import { Application, CommandCentreData } from '../../types';
 import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Modal } from '../../components/common/Modal';
+import { StatutoryOrderModal } from '../../components/common/StatutoryOrderModal';
 
 export const CompetentAuthorityWorkspace: React.FC = () => {
   const { user } = useAuth();
@@ -22,6 +23,7 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
   const [orderType, setOrderType] = useState<'APPROVED' | 'REJECTED' | 'DEFICIENCY_COMMUNICATED'>('APPROVED');
   const [orderRemarks, setOrderRemarks] = useState('');
   const [executingOrder, setExecutingOrder] = useState(false);
+  const [selectedOrderApp, setSelectedOrderApp] = useState<Application | null>(null);
 
   const loadData = async () => {
     setLoading(true);
@@ -244,12 +246,20 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
                     <StatusBadge status={app.current_stage} />
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <Link
-                      to={`/officer/applications/${app.id}`}
-                      className="text-xs font-semibold text-brand-teal hover:underline transition-colors"
-                    >
-                      Inspect Order Dossier
-                    </Link>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setSelectedOrderApp(app)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded border border-brand-teal/40 bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20 transition-colors inline-flex items-center gap-1"
+                      >
+                        <FileText className="w-3.5 h-3.5" /> Order Artifact
+                      </button>
+                      <Link
+                        to={`/officer/applications/${app.id}`}
+                        className="text-xs font-semibold text-brand-muted hover:text-brand-ink transition-colors"
+                      >
+                        Inspect
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -361,6 +371,19 @@ export const CompetentAuthorityWorkspace: React.FC = () => {
             </div>
           </form>
         </Modal>
+      )}
+
+      {/* Statutory Order Modal */}
+      {selectedOrderApp && (
+        <StatutoryOrderModal
+          isOpen={true}
+          onClose={() => setSelectedOrderApp(null)}
+          applicationId={selectedOrderApp.id}
+          applicationNumber={selectedOrderApp.application_number}
+          applicationStage={selectedOrderApp.current_stage}
+          currentUser={user}
+          onOrderChanged={loadData}
+        />
       )}
     </div>
   );

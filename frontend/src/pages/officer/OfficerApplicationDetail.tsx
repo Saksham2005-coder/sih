@@ -11,6 +11,7 @@ import { ApplicationDetailResponse, ApplicationLifecycleData } from '../../types
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityGauge } from '../../components/common/PriorityGauge';
 import { Modal } from '../../components/common/Modal';
+import { StatutoryOrderModal } from '../../components/common/StatutoryOrderModal';
 
 export const OfficerApplicationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +33,7 @@ export const OfficerApplicationDetail: React.FC = () => {
   const [targetStage, setTargetStage] = useState('');
   const [transitionRemarks, setTransitionRemarks] = useState('');
   const [submittingTransition, setSubmittingTransition] = useState(false);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
 
   const loadData = async () => {
     if (!id) return;
@@ -177,6 +179,14 @@ export const OfficerApplicationDetail: React.FC = () => {
             className="px-3.5 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
           >
             <ShieldCheck className="w-4 h-4" /> Stage Progression
+          </button>
+
+          {/* Statutory Order Artifact Button */}
+          <button
+            onClick={() => setOrderModalOpen(true)}
+            className="px-3.5 py-2 rounded-lg border border-brand-teal/40 bg-brand-teal/10 text-brand-teal hover:bg-brand-teal/20 text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+          >
+            <FileText className="w-4 h-4" /> Statutory Order Artifact
           </button>
         </div>
       </div>
@@ -684,6 +694,19 @@ export const OfficerApplicationDetail: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Statutory Order Modal */}
+      {app && (
+        <StatutoryOrderModal
+          isOpen={orderModalOpen}
+          onClose={() => setOrderModalOpen(false)}
+          applicationId={app.id}
+          applicationNumber={app.application_number}
+          applicationStage={app.current_stage}
+          currentUser={user}
+          onOrderChanged={loadData}
+        />
+      )}
     </div>
   );
 };

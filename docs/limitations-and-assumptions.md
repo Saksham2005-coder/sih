@@ -60,4 +60,11 @@
 - **Only Scrutiny Route**: Applications under the "Only Scrutiny" route (such as routine Extension of Approval renewals) bypass EVC inspection because physical inspection is not prescribed. Upon scrutiny sign-off (`SCRUTINY_COMPLETED`), the application advances directly to `AWAITING_COMPETENT_AUTHORITY`.
 - **Preservation of Explicit Human Decision**: Bypassing EVC does **NOT** grant automatic statutory approval. Final statutory approval or rejection strictly requires an explicit, recorded decision by the Competent Authority (`member.sec@aicte.gov.in`). No scheduler, report generator, AI summary, or officer can bypass this final statutory requirement.
 
+#### 2.11 Statutory Decision Order Generation & Digital Signature Provider Boundary
+- **Persisted Regulatory Dossier**: Generated decision documents are rooted strictly in persisted database records (`StatutoryOrder` entity in `statutory_orders` table). The generator cannot invent statutory clauses, conditions, reference numbers, or CA remarks.
+- **Explicit Digital Signature State**: The platform does not fabricate fake PKI certificates or simulate legally binding cryptographic signatures without authorized credentials. Generated decision documents are explicitly classified as `UNSIGNED_PROTOTYPE` with transparent UI and document disclosures.
+- **Integration Boundary for Authorized Signing Providers**: Under Section 10 of the AICTE Act and the Information Technology Act, 2000, official legally binding statutory orders require signing via a licensed Certifying Authority (CCA) e-Sign provider (e.g., eMudhra, CDAC, NSDL) or Class-3 Hardware Security Module (HSM) tokens. An abstract `DigitalSignatureProvider` interface defines this boundary (`sign_document`, `verify_signature`). The system transitions from `UNSIGNED_PROTOTYPE` to `SIGNED_BY_CONFIGURED_PROVIDER` only when real credentials and active signing gateways are provisioned.
+- **Cryptographic Provenance vs. Legal Signature**: Embedded QR codes point to a public-safe verification endpoint (`/api/orders/verify/{token}`) that confirms artifact provenance against the registered SHA-256 database digest. The QR code serves as an instant reference integrity check and does not substitute for a statutory digital signature.
+
+
 

@@ -36,6 +36,8 @@ import { AuditTrailPage } from './pages/officer/AuditTrailPage';
 import { RuleStudioPage } from './pages/officer/RuleStudioPage';
 import { AdminPage } from './pages/officer/AdminPage';
 
+import { PublicOrderVerification } from './pages/PublicOrderVerification';
+
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isLoading } = useAuth();
   if (isLoading) {
@@ -61,6 +63,8 @@ export const App: React.FC = () => {
           <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/verify-order" element={<PublicOrderVerification />} />
+            <Route path="/verify-order/:token" element={<PublicOrderVerification />} />
             <Route path="/" element={<RootRedirect />} />
 
             {/* Protected Portal Routes under AppLayout */}

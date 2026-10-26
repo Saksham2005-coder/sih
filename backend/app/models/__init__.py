@@ -10,6 +10,7 @@ from app.models.alert import Notification, AlertEscalation, DeadlineEngineRun, S
 from app.models.audit import AuditEvent
 from app.models.rule import RuleDefinition, RuleVersionHistory
 from app.models.token_blacklist import RevokedToken
+from app.models.statutory_order import StatutoryOrder
 
 __all__ = [
     "Base",
@@ -33,4 +34,5 @@ __all__ = [
     "RuleDefinition",
     "RuleVersionHistory",
     "RevokedToken",
+    "StatutoryOrder",
 ]

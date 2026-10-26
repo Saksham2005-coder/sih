@@ -8,7 +8,8 @@ import {
   SlaAdherenceData, EvcAnalyticsData, ComplianceAnalyticsData,
   DocumentAnalyticsData, EscalationsAnalyticsData,
   RegionalPerformanceData, ApplicationLifecycleData,
-  DocumentAnalysisData, DocumentAnalysisReviewRequest
+  DocumentAnalysisData, DocumentAnalysisReviewRequest,
+  StatutoryOrderData, StatutoryOrderPublicVerificationData, OrderArtifactVerifyUploadData
 } from '../types';
 
 const API_BASE = '/api';
@@ -335,4 +336,68 @@ export const api = {
     return `/api/reports/export-csv?${query.toString()}`;
   },
 };
+
+export const ordersApi = {
+  generateOrder: (payload: {
+    application_id: number;
+    remarks?: string;
+    custom_remarks?: string;
+    additional_conditions?: string[];
+    override_reason?: string;
+    template_version?: string;
+  }) => {
+    return request<StatutoryOrderData>('/orders/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
+  revokeOrder: (orderId: number, revocationReason: string) => {
+    return request<StatutoryOrderData>(`/orders/${orderId}/revoke`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ revocation_reason: revocationReason }),
+    });
+  },
+
+  getOrdersByApplication: (applicationId: number) => {
+    return request<StatutoryOrderData[]>(`/orders/by-application/${applicationId}`);
+  },
+
+  verifyOrderByToken: (token: string) => {
+    return request<StatutoryOrderPublicVerificationData>(`/orders/verify/${encodeURIComponent(token)}`);
+  },
+
+  verifyOrderUpload: async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('reguflow_token');
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE}/orders/verify-upload`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!response.ok) {
+      let errorDetail = 'Verification failed';
+      try {
+        const errJson = await response.json();
+        errorDetail = errJson.detail || errJson.message || 'Verification failed';
+      } catch (e) {
+        // fallback
+      }
+      throw new Error(errorDetail);
+    }
+    return response.json() as Promise<OrderArtifactVerifyUploadData>;
+  },
+
+  getOrderDownloadUrl: (orderId: number) => {
+    return `${API_BASE}/orders/${orderId}/download`;
+  },
+};
+
 

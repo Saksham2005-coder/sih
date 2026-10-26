@@ -17,7 +17,7 @@ Every requirement was inspected and verified against five non-negotiable enginee
 1. **Source Code Implementation**: Validated in backend FastAPI routers, domain services, Pydantic v2 schemas, and React Vite frontend pages.
 2. **Database Persistence**: Persisted state verified in PostgreSQL/SQLite models (`applications`, `deficiencies`, `evc_inspections`, `compliance_undertakings`, `document_records`, `alert_escalations`, `audit_events`, `rules`).
 3. **Multi-Tenant & Regional RBAC Enforcement**: Scoped queries and authorization guards strictly enforced across all 8 canonical roles (`INSTITUTION_ADMIN`, `COMPLIANCE_OFFICER`, `REGIONAL_OFFICER`, `BUREAU_OFFICER`, `COMMITTEE_MEMBER`, `EVC_COORDINATOR`, `COMPETENT_AUTHORITY`, `SYSTEM_ADMIN`).
-4. **Automated Test Coverage**: 151 backend automated tests passing across 16 test modules (`python -m pytest`), 12 frontend theme token tests passing (`npm test`), 0 linter errors (`eslint .`), and full production build passing (`tsc && vite build`).
+4. **Automated Test Coverage**: 173 backend automated tests passing across 18 test modules (`python -m pytest`), 25 frontend unit tests passing across 3 test suites (`node --test`), 0 linter errors (`eslint .`), and full production build passing (`tsc && vite build`).
 5. **Concrete Evaluator Q&A**: Every lifecycle stage answers the 6 statutory evaluator questions: *Who acted? Which record changed? What was previous & resulting state? Why was the action taken? Which rule applied? What was the outcome?*
 
 ---
@@ -164,31 +164,49 @@ Every requirement was inspected and verified against five non-negotiable enginee
 
 ---
 
-### 12. Known Limitations & Prototype Boundaries
+### 12. Formal Statutory Decision Order Generator & QR Integrity Verification Matrix (Section H)
+
+| Req ID | Requirement Description | Explicit / Derived | Status | Backend Implementation | Frontend UI Surface | Verification Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **REQ-ORDER-01** | Persistent Statutory Order Records & Traceable Lifecycle | Explicit | **IMPLEMENTED** | `StatutoryOrder` entity in `statutory_orders` table linked to application, institution, CA actor, version, SHA-256 checksum, 64-char verification token, template version, and signature metadata | `StatutoryOrderModal` displays order number, version badge, status, and signatory details | `test_generate_approval_order_success`, `test_generate_rejection_order_success` |
+| **REQ-ORDER-02** | Government-Administration Restrained PDF Generator | Explicit | **IMPLEMENTED** | `OrderGenerationService.generate_pdf_artifact` using ReportLab `SimpleDocTemplate` + `NumberedCanvas` running footers (`Page X of Y`), official masthead, order details table, conditions, and QR code | Download PDF Order button streams authenticated byte response (`application/pdf`) with strict headers | `test_generate_approval_order_success` confirms on-disk PDF structure and byte validity |
+| **REQ-ORDER-03** | Server-Side Authority Exclusivity & State Invariant | Explicit | **IMPLEMENTED** | Generation guarded by `require_roles(["COMPETENT_AUTHORITY", "SYSTEM_ADMIN"])`. Order generation rejected with HTTP 400 if application stage is not `APPROVED` or `REJECTED` | Generation form rendered exclusively for Competent Authority / System Admin in workspace | `test_unauthorized_generation_rejected` (403 for RO/Institution), `test_premature_generation_rejected` (400 for unapproved) |
+| **REQ-ORDER-04** | Non-Overwriting Version Preservation & Superseding | Explicit | **IMPLEMENTED** | Re-generating an order increments version ($N+1$). Previous versions transition to `SUPERSEDED` with `superseded_by_order_id` link. Prior artifacts preserved on disk | Version history tab and version badges (`v1.0 (Superseded)`, `v2.0 (Active)`) | `test_order_versioning_and_superseding` proves both v1 and v2 files exist with different hashes |
+| **REQ-ORDER-05** | Public-Safe QR Verification Endpoint | Explicit | **IMPLEMENTED** | `GET /api/orders/verify/{token}` resolves minimal public facts (order number, institution name, region, decision, version, status, hash match, signature disclaimer) without leaking dossiers | Dedicated public page at `/verify-order?token=...` with genuine green badge and facts table | `test_public_verification_by_token` verifies token resolution without auth token |
+| **REQ-ORDER-06** | File Tamper Detection via SHA-256 Checksum | Explicit | **IMPLEMENTED** | If physical PDF on disk is altered after issuance, token verification detects hash mismatch and reports `TAMPERED_HASH_MISMATCH`. `POST /api/orders/verify-upload` matches uploaded PDF against registry | Real-time integrity badge: `TAMPERED_HASH_MISMATCH` (Red) or `VERIFIED_AUTHENTIC` (Green) + file upload tab | `test_tampered_artifact_detection`, `test_upload_artifact_verification` |
+| **REQ-ORDER-07** | Order Revocation Workflow & Audit | Explicit | **IMPLEMENTED** | `POST /api/orders/{id}/revoke` marks order as `REVOKED` with mandatory administrative justification. Verification endpoint immediately reflects revoked status | Revoke Order modal requiring mandatory reason + red revocation warning banner | `test_order_revocation` verifies order revocation and public token response |
+| **REQ-ORDER-08** | Digital Signature Boundary & Explicit Prototype State | Explicit | **IMPLEMENTED** | `DigitalSignatureProvider` boundary with `PrototypeUnsignedProvider`. Document explicitly marked `UNSIGNED_PROTOTYPE` with disclosure that legal e-Sign requires authorized CCA provider | Prominent amber disclosure card explaining DSC / Aadhaar e-Sign integration requirement | `test_signature_status_is_unsigned_prototype`, `test_public_verification_by_token` |
+| **REQ-ORDER-09** | Multi-Tenant & Regional Isolation Boundaries | Explicit | **IMPLEMENTED** | `download_order_pdf` and `get_orders_by_application` enforce `verify_institution_access` and `verify_regional_access`. Institution 2 cannot download Institution 1's order | Scoped views across Institution Portal, Officer Scrutiny, and CA Command Centre | `test_cross_tenant_order_download_isolation` (403 on cross-institution download) |
+
+---
+
+### 13. Known Limitations & Prototype Boundaries
 
 1. **AICTE Handbook Norms as Configurable Rules**:
    - Statutory penalty clauses, quota allocations, and hearing calendars are modeled as configurable seed defaults under Rule Studio. Production deployment by AICTE requires uploading the official gazette configuration.
 2. **Local OCR Binary Dependency**:
    - The document intelligence engine executes native local text extraction via `pypdf`. Where raster images or scanned documents without text layers are encountered, the system invokes local Tesseract OCR if installed on the host. When Tesseract is not installed, the platform gracefully records `ocr_provider: "UNAVAILABLE"` and creates an `EXTRACTION_UNAVAILABLE` finding, preserving the manual officer review pathway without calling external paid APIs.
-3. **External Gateway Connectivity**:
+3. **Digital Signature Provider Integration Boundary**:
+   - Statutory decision orders generated by the platform are explicitly classified and watermarked as `UNSIGNED_PROTOTYPE` documents. Under the Information Technology Act, 2000, legally enforceable digital signatures require Class-3 DSC or Aadhaar e-Sign certificates issued by a Controller of Certifying Authorities (CCA) licensed provider (e.g. eMudhra, CDAC, NSDL). The architecture provides a clean integration boundary (`DigitalSignatureProvider`) ready to plug in licensed provider HSM credentials in production.
+4. **External Gateway Connectivity**:
    - External SMS and Email dispatches are simulated within the notification subsystem with explicit UI disclosures ("Simulated Regulatory Notice - SIH Demo Mode"). Live dispatch requires AICTE NIC/CDAC SMS gateway API keys.
-4. **National Single Sign-On (SSO)**:
+5. **National Single Sign-On (SSO)**:
    - Platform authentication uses RFC 7519 JSON Web Tokens with database session revocation. Integration with official AICTE national portal credentials requires authorized SAML 2.0 / OAuth2 federation endpoints.
 
 ---
 
-### 13. Verification Commands and Evidence Summary
+### 14. Verification Commands and Evidence Summary
 
 ```bash
-# Backend Automated Tests (163/163 Passed)
+# Backend Automated Tests (173/173 Passed)
 cd backend
 python -m pytest -v
-# Result: 163 passed in 49.21s across 17 test modules
+# Result: 173 passed in 164.02s across 18 test modules
 
-# Frontend Token Architecture & Document Intelligence Tests (18/18 Passed)
+# Frontend Unit Tests (25/25 Passed across 3 test suites)
 cd frontend
-npm test
-# Result: 18 passed in 116.32ms across 2 test suites
+node --test src/__tests__/*.test.mjs
+# Result: 25 passed in 659.28ms (statutory_orders, document_intelligence, theme)
 
 # Frontend Linting Check (0 Errors)
 npm run lint
@@ -196,5 +214,6 @@ npm run lint
 
 # Production Bundle Build
 npm run build
-# Result: built in 3.27s (dist/ generated cleanly with zero TypeScript errors)
+# Result: built in 13.29s (dist/ generated cleanly with zero TypeScript errors)
 ```
+

@@ -598,3 +598,88 @@ export interface DocumentAnalysisReviewRequest {
   apply_to_record?: boolean;
 }
 
+export interface StatutoryOrderData {
+  id: number;
+  application_id: number;
+  application_number: string;
+  institution_id: number;
+  institution_name: string;
+  order_number: string;
+  decision: 'APPROVED' | 'REJECTED';
+  status: 'ACTIVE' | 'SUPERSEDED' | 'REVOKED';
+  version: number;
+  order_date: string;
+  decision_recorded_at: string;
+  issued_by_id?: number | null;
+  issued_by_name: string;
+  issued_by_designation: string;
+  decision_remarks: string;
+  conditions: Array<{
+    rule_code?: string;
+    title: string;
+    category?: string;
+    due_date?: string;
+    status?: string;
+  }>;
+  reference_identifiers: Record<string, any>;
+  pdf_filename: string;
+  pdf_storage_key: string;
+  pdf_url: string;
+  checksum_sha256: string;
+  verification_token: string;
+  verification_url: string;
+  template_version: string;
+  signature_status: 'UNSIGNED_PROTOTYPE' | 'AWAITING_AUTHORIZED_SIGNATURE' | 'SIGNED_BY_CONFIGURED_PROVIDER' | 'SIGNATURE_VERIFICATION_FAILED';
+  signing_provider: string;
+  signing_metadata: Record<string, any>;
+  signature_disclaimer: string;
+  is_revoked: boolean;
+  revoked_at?: string | null;
+  revocation_reason?: string | null;
+  superseded_by_order_id?: number | null;
+  superseded_at?: string | null;
+  superseding_reason?: string | null;
+  created_at: string;
+}
+
+export interface StatutoryOrderPublicVerificationData {
+  is_authentic: boolean;
+  verification_status: 'VERIFIED_AUTHENTIC' | 'TAMPERED_HASH_MISMATCH' | 'REVOKED' | 'SUPERSEDED' | 'NOT_FOUND';
+  artifact_hash_match: boolean;
+  order_number: string;
+  application_number: string;
+  institution_name: string;
+  regional_office: string;
+  decision: 'APPROVED' | 'REJECTED';
+  order_date: string;
+  version: number;
+  status: 'ACTIVE' | 'SUPERSEDED' | 'REVOKED';
+  order_status?: string;
+  is_revoked: boolean;
+  revocation_reason?: string | null;
+  superseded_by?: string | null;
+  checksum_sha256: string;
+  signature_status: string;
+  signing_provider: string;
+  signature_disclaimer: string;
+  regulatory_disclaimer?: string;
+  status_details: string;
+  verified_at: string;
+}
+
+export interface OrderArtifactVerifyUploadData {
+  is_valid: boolean;
+  is_match: boolean;
+  verification_status: 'AUTHENTIC_MATCH' | 'NO_MATCH_FOUND' | 'TAMPERED_OR_UNREGISTERED';
+  integrity_status?: string;
+  order_number?: string | null;
+  matched_order_number?: string | null;
+  decision?: string | null;
+  version?: number | null;
+  institution_name?: string | null;
+  computed_checksum_sha256: string;
+  stored_checksum_sha256?: string | null;
+  message: string;
+}
+
+

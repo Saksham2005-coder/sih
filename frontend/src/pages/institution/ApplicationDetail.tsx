@@ -9,6 +9,7 @@ import { ApplicationDetailResponse, ApplicationLifecycleData } from '../../types
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityGauge } from '../../components/common/PriorityGauge';
 import { Modal } from '../../components/common/Modal';
+import { StatutoryOrderModal } from '../../components/common/StatutoryOrderModal';
 
 export const ApplicationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +24,7 @@ export const ApplicationDetail: React.FC = () => {
   const [cureFileUrl, setCureFileUrl] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resubmitting, setResubmitting] = useState(false);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
 
   const loadData = async () => {
     if (!id) return;
@@ -148,6 +150,17 @@ export const ApplicationDetail: React.FC = () => {
           >
             <Send className="w-4 h-4" />
             {resubmitting ? 'Resubmitting...' : 'Resubmit Application to Officer'}
+          </button>
+        )}
+
+        {/* View Statutory Order Artifact Button for Approved/Rejected */}
+        {(app.current_stage === 'APPROVED' || app.current_stage === 'REJECTED') && (
+          <button
+            onClick={() => setOrderModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors"
+          >
+            <FileText className="w-4 h-4" />
+            View Official Statutory Order
           </button>
         )}
       </div>
@@ -565,6 +578,18 @@ export const ApplicationDetail: React.FC = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Statutory Order Modal */}
+      {app && (
+        <StatutoryOrderModal
+          isOpen={orderModalOpen}
+          onClose={() => setOrderModalOpen(false)}
+          applicationId={app.id}
+          applicationNumber={app.application_number}
+          applicationStage={app.current_stage}
+          onOrderChanged={loadData}
+        />
+      )}
     </div>
   );
 };
