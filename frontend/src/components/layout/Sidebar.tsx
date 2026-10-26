@@ -59,6 +59,7 @@ export const Sidebar: React.FC = () => {
         { to: '/officer/evc', label: 'EVC Inspection Queue', icon: Compass },
         { to: '/officer/escalations', label: 'Regional Escalations', icon: AlertOctagon, badge: 'SLA' },
         { to: '/officer/reports', label: 'Reports & Analytics', icon: BarChart3 },
+        { to: '/officer/notifications/outbox', label: 'Notification Outbox', icon: Bell, badge: 'Live' },
         { to: '/officer/audit', label: 'Immutable Audit Trail', icon: ShieldAlert },
       ];
       break;
@@ -73,6 +74,7 @@ export const Sidebar: React.FC = () => {
         { to: '/officer/evc', label: 'EVC Inspection Queue', icon: Compass },
         { to: '/officer/escalations', label: 'Multi-Tier Escalations', icon: AlertOctagon, badge: 'SLA' },
         { to: '/officer/reports', label: 'Performance & Trends', icon: BarChart3 },
+        { to: '/officer/notifications/outbox', label: 'Notification Outbox', icon: Bell, badge: 'Live' },
         { to: '/officer/audit', label: 'Immutable Audit Trail', icon: ShieldAlert },
       ];
       break;
@@ -119,6 +121,7 @@ export const Sidebar: React.FC = () => {
         { to: '/officer/admin', label: 'Diagnostics & Accounts', icon: Users },
         { to: '/officer/rules', label: 'Regulatory Rule Studio', icon: Sliders },
         { to: '/officer/escalations', label: 'SLA Engine & Scans', icon: AlertOctagon },
+        { to: '/officer/notifications/outbox', label: 'Outbox & Delivery', icon: Bell, badge: 'Live' },
         { to: '/officer/audit', label: 'Immutable Audit Explorer', icon: ShieldAlert },
         { to: '/officer/reports', label: 'System Analytics', icon: BarChart3 },
       ];

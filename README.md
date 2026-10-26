@@ -2,8 +2,8 @@
 ## SIH 2026 Problem Statement 26262
 **Platform Repository:** `https://github.com/Saksham2005-coder/sih`  
 **Active Branch:** `main`  
-**Version:** 3.0.0 (Final Release Sign-Off Verified)  
-**Quality Status:** 145 Passing Backend Tests (100%), 10 Passing Frontend Tests (100%), 0 Linter Warnings, 0 Test Warnings, Production Build Verified, Fail-Closed Security Invariants Enforced
+**Version:** 3.1.0 (Reliable Notification Outbox, Real-Time SSE & Live Operational Updates)  
+**Quality Status:** 193 Passing Backend Tests (100%), 30 Passing Frontend Tests (100%), 0 Linter Warnings, 0 Test Warnings, Production Build Verified, Fail-Closed Security Invariants Enforced
 
 ---
 
@@ -109,15 +109,15 @@ docker-compose -f docker-compose.prod.yml up --build -d
 
 ### 5. Running Quality Checks & Tests
 
-- **Backend Pytest Suite (145 Tests across 15 modules — 100% Passing, 0 Warnings):**
+- **Backend Pytest Suite (193 Tests across 19 modules — 100% Passing, 0 Warnings):**
   ```bash
   cd backend
   python -m pytest
   ```
-- **Frontend Theme & Design-Token Test Suite (10 Tests — 100% Passing):**
+- **Frontend Unit & Theme Test Suite (30 Tests across 4 suites — 100% Passing):**
   ```bash
   cd frontend
-  npm test
+  node --test src/__tests__/*.test.mjs
   ```
 - **Frontend ESLint (0 Errors, 0 Warnings):**
   ```bash
@@ -163,15 +163,27 @@ ReguFlow 360 features a full design-token driven light and dark theme system bas
 
 ---
 
-### 8. Source of Truth Documentation (`/docs`)
+### 8. Reliable Notification Delivery, Transactional Outbox & Real-Time SSE
+ReguFlow 360 implements a robust, observable regulatory notification lifecycle:
+- **Transactional Outbox Pattern**: State mutations (stage transitions, deficiency memos, cures, SLA alerts, compliance evidence, orders) atomically write `NotificationOutbox` rows within the active business transaction. Business mutations never wait on external provider network roundtrips.
+- **Honest Delivery Evidence**: Distinguishes MTA relay acceptance (`ACCEPTED_BY_PROVIDER`) from confirmed recipient delivery. Unconfigured services report `NOT_CONFIGURED`, while sandbox dispatches report `SIMULATED`—never fabricating live telecom delivery.
+- **Bounded Backoff & Dead-Letter Handling**: Asynchronous background dispatcher applies bounded exponential backoff (`next_retry_at = now + 2^attempt * base`) with a max 4-attempt limit before transitioning to `DEAD_LETTER` for officer triage and manual retry.
+- **Real-Time Server-Sent Events (SSE)**: Authenticated `/api/notifications/stream` connection streams authorized event summaries with periodic 15-second heartbeats. Event broadcasts are strictly scoped by user, tenant (`institution_id`), and regional jurisdiction. The client UI seamlessly falls back to 25-second interval polling if SSE is disconnected.
+- **Officer Outbox Command Desk**: Scoped administrative desk (`/officer/notifications/outbox`) exposes live SMTP, SMS, and SSE channel health cards, delivery metrics, filterable outbox records, plain text/HTML payload inspectors, and manual retry controls.
+
+---
+
+### 9. Source of Truth Documentation (`/docs`)
 1. [`docs/product-spec.md`](./docs/product-spec.md): Product vision, regulatory context, personas, and modules.
-2. [`docs/architecture.md`](./docs/architecture.md): Modular monolith design, idempotent background scans, data flows.
-3. [`docs/workflow-matrix.md`](./docs/workflow-matrix.md): Guarded state machine transitions and permissions.
-4. [`docs/role-permission-matrix.md`](./docs/role-permission-matrix.md): Granular 8-role RBAC authorization matrix.
-5. [`docs/data-model.md`](./docs/data-model.md): Entity relationship definitions, indexes, and constraints.
-6. [`docs/ui-design-system.md`](./docs/ui-design-system.md): Civic Precision design tokens, typography, and badges.
-7. [`docs/api-contracts.md`](./docs/api-contracts.md): REST endpoints, request/response envelopes.
-8. [`docs/acceptance-tests.md`](./docs/acceptance-tests.md): Verification checklists and test criteria.
-9. [`docs/demo-script.md`](./docs/demo-script.md): Step-by-step regulatory presentation script.
-10. [`docs/limitations-and-assumptions.md`](./docs/limitations-and-assumptions.md): Regulatory boundaries and assumptions.
-11. [`AGENTS.md`](./AGENTS.md): Engineering guidelines and canonical status dictionary.
+2. [`docs/architecture.md`](./docs/architecture.md): Modular monolith design, transactional outbox, SSE pub/sub, idempotent scans.
+3. [`docs/judge-acceptance-matrix.md`](./docs/judge-acceptance-matrix.md): Comprehensive 50-item requirement verification matrix with test commands.
+4. [`docs/sih-26262-requirement-traceability.md`](./docs/sih-26262-requirement-traceability.md): Regulatory compliance audit and requirement mapping.
+5. [`docs/workflow-matrix.md`](./docs/workflow-matrix.md): Guarded state machine transitions and permissions.
+6. [`docs/role-permission-matrix.md`](./docs/role-permission-matrix.md): Granular 8-role RBAC authorization matrix.
+7. [`docs/data-model.md`](./docs/data-model.md): Entity relationship definitions, indexes, and constraints.
+8. [`docs/ui-design-system.md`](./docs/ui-design-system.md): Civic Precision design tokens, typography, and badges.
+9. [`docs/api-contracts.md`](./docs/api-contracts.md): REST endpoints, request/response envelopes.
+10. [`docs/acceptance-tests.md`](./docs/acceptance-tests.md): Verification checklists and test criteria.
+11. [`docs/demo-script.md`](./docs/demo-script.md): Step-by-step regulatory presentation script.
+12. [`docs/limitations-and-assumptions.md`](./docs/limitations-and-assumptions.md): Regulatory boundaries and assumptions.
+13. [`AGENTS.md`](./AGENTS.md): Engineering guidelines and canonical status dictionary.

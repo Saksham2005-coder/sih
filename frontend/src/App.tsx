@@ -35,6 +35,7 @@ import { ReportsPage } from './pages/officer/ReportsPage';
 import { AuditTrailPage } from './pages/officer/AuditTrailPage';
 import { RuleStudioPage } from './pages/officer/RuleStudioPage';
 import { AdminPage } from './pages/officer/AdminPage';
+import { NotificationOutboxPage } from './pages/officer/NotificationOutboxPage';
 
 import { PublicOrderVerification } from './pages/PublicOrderVerification';
 
@@ -105,6 +106,7 @@ export const App: React.FC = () => {
               <Route path="/officer/audit" element={<AuditTrailPage />} />
               <Route path="/officer/rules" element={<RuleStudioPage />} />
               <Route path="/officer/admin" element={<AdminPage />} />
+              <Route path="/officer/notifications/outbox" element={<NotificationOutboxPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

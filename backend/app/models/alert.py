@@ -20,6 +20,7 @@ class Notification(Base):
     is_read = Column(Boolean, default=False, nullable=False)
     read_at = Column(DateTime, nullable=True)
     link_url = Column(String(255), nullable=True)
+    outbox_id = Column(Integer, ForeignKey("notification_outbox.id", ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
 class AlertEscalation(Base):

@@ -9,7 +9,8 @@ import {
   DocumentAnalyticsData, EscalationsAnalyticsData,
   RegionalPerformanceData, ApplicationLifecycleData,
   DocumentAnalysisData, DocumentAnalysisReviewRequest,
-  StatutoryOrderData, StatutoryOrderPublicVerificationData, OrderArtifactVerifyUploadData
+  StatutoryOrderData, StatutoryOrderPublicVerificationData, OrderArtifactVerifyUploadData,
+  NotificationOutboxItem, NotificationOutboxSummary, NotificationChannelStatus, NotificationUnreadCount
 } from '../types';
 
 const API_BASE = '/api';
@@ -334,6 +335,50 @@ export const api = {
     if (params?.date_from) query.set('date_from', params.date_from);
     if (params?.date_to) query.set('date_to', params.date_to);
     return `/api/reports/export-csv?${query.toString()}`;
+  },
+
+  // Reliable Notifications & Outbox
+  getNotificationOutbox: (params?: {
+    channel?: string;
+    status?: string;
+    institution_id?: number;
+    region?: string;
+    skip?: number;
+    limit?: number;
+  }) => {
+    const q = new URLSearchParams();
+    if (params?.channel) q.append('channel', params.channel);
+    if (params?.status) q.append('status', params.status);
+    if (params?.institution_id) q.append('institution_id', String(params.institution_id));
+    if (params?.region) q.append('region', params.region);
+    if (params?.skip !== undefined) q.append('skip', String(params.skip));
+    if (params?.limit !== undefined) q.append('limit', String(params.limit));
+    const qs = q.toString() ? `?${q.toString()}` : '';
+    return request<NotificationOutboxItem[]>(`/notifications/outbox${qs}`);
+  },
+
+  getOutboxSummary: () => {
+    return request<NotificationOutboxSummary>('/notifications/outbox/summary');
+  },
+
+  retryOutboxItem: (id: number) => {
+    return request<NotificationOutboxItem>(`/notifications/outbox/${id}/retry`, {
+      method: 'POST',
+    });
+  },
+
+  triggerOutboxDispatch: () => {
+    return request<{ message: string; summary: Record<string, number> }>('/notifications/outbox/dispatch-now', {
+      method: 'POST',
+    });
+  },
+
+  getNotificationChannelsStatus: () => {
+    return request<NotificationChannelStatus>('/notifications/channels/status');
+  },
+
+  getNotificationUnreadCount: () => {
+    return request<NotificationUnreadCount>('/notifications/unread-count');
   },
 };
 

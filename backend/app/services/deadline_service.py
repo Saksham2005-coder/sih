@@ -120,24 +120,100 @@ class DeadlineService:
         link_url: Optional[str],
         channel: str = "IN_APP"
     ) -> Notification:
-        """Creates durable notification and records simulated external channel metadata."""
-        notif = Notification(
-            institution_id=institution_id,
-            user_id=user_id,
-            recipient_role=recipient_role,
+        """Creates durable notification and records transactional outbox dispatch."""
+        from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+        from app.models.user import User
+
+        recipient_email = None
+        recipient_phone = None
+        if user_id:
+            u = db.query(User).filter(User.id == user_id).first()
+            if u:
+                recipient_email = u.email
+                recipient_phone = getattr(u, "phone", None)
+        elif institution_id:
+            from app.models.institution import Institution
+            inst = db.query(Institution).filter(Institution.id == institution_id).first()
+            if inst:
+                recipient_email = getattr(inst, "email", None) or f"admin@inst{inst.id}.edu.in"
+                recipient_phone = getattr(inst, "contact_number", None) or f"+91987654{inst.id:04d}"
+
+        # 1. Enqueue in-app notification in Outbox
+        outbox = OutboxDispatcherService.queue_notification(
+            db=db,
+            event_type=f"{entity_type}_ALERT",
             entity_type=entity_type,
             entity_id=entity_id,
-            title=title,
-            message=message,
             channel=channel,
-            delivery_channel=channel,
-            delivery_status="DELIVERED",
-            level=level,
-            is_read=False,
+            template_code="SLA_WARNING" if "SLA" in title else "DEFICIENCY_COMMUNICATED",
+            params={
+                "subject": title,
+                "message": message,
+                "link_url": link_url,
+                "institution_name": f"Institution #{institution_id}" if institution_id else "AICTE Authority",
+                "app_num": f"APP-{entity_id:04d}",
+                "summary": message,
+                "deadline": "Immediate Action Required"
+            },
+            institution_id=institution_id,
+            recipient_role=recipient_role,
+            recipient_user_id=user_id,
+            recipient_email=recipient_email,
+            recipient_phone=recipient_phone,
             link_url=link_url,
-            created_at=datetime.now(timezone.utc)
+            level=level
         )
-        db.add(notif)
+
+        # Retrieve or create Notification object linked to outbox
+        notif = db.query(Notification).filter(Notification.outbox_id == outbox.id).first()
+        if not notif:
+            notif = Notification(
+                institution_id=institution_id,
+                user_id=user_id,
+                recipient_role=recipient_role,
+                entity_type=entity_type,
+                entity_id=entity_id,
+                title=title,
+                message=message,
+                channel=channel,
+                delivery_channel=channel,
+                delivery_status="DELIVERED",
+                level=level,
+                is_read=False,
+                link_url=link_url,
+                outbox_id=outbox.id,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.add(notif)
+
+        # Also queue external EMAIL outbox item for high-priority or warning notifications
+        if level in ["WARNING", "DANGER"] and channel == "IN_APP" and recipient_email:
+            email_idempotency = f"OUTBOX:{entity_type}:{entity_id}:EMAIL:{title[:30]}:{recipient_email}"
+            OutboxDispatcherService.queue_notification(
+                db=db,
+                event_type=f"{entity_type}_URGENT_NOTICE",
+                entity_type=entity_type,
+                entity_id=entity_id,
+                channel="EMAIL",
+                template_code="SLA_WARNING" if "SLA" in title else "DEFICIENCY_COMMUNICATED",
+                params={
+                    "subject": title,
+                    "message": message,
+                    "app_num": f"APP-{entity_id:04d}",
+                    "institution_name": f"Institution #{institution_id}" if institution_id else "AICTE",
+                    "summary": message,
+                    "deadline": "Immediate Compliance Required",
+                    "link_url": link_url
+                },
+                institution_id=institution_id,
+                recipient_role=recipient_role,
+                recipient_user_id=user_id,
+                recipient_email=recipient_email,
+                idempotency_key=email_idempotency,
+                link_url=link_url,
+                level=level
+            )
+
         return notif
 
     @staticmethod

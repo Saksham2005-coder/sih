@@ -682,4 +682,80 @@ export interface OrderArtifactVerifyUploadData {
   message: string;
 }
 
+export interface NotificationOutboxItem {
+  id: number;
+  idempotency_key: string;
+  correlation_id: string;
+  event_type: string;
+  entity_type: string;
+  entity_id: number;
+  institution_id?: number | null;
+  region?: string | null;
+  recipient_role?: string | null;
+  recipient_user_id?: number | null;
+  recipient_email?: string | null;
+  recipient_phone?: string | null;
+  channel: 'EMAIL' | 'SMS' | 'IN_APP';
+  template_code: string;
+  subject: string;
+  body_text: string;
+  body_html?: string | null;
+  link_url?: string | null;
+  status: 'QUEUED' | 'PROCESSING' | 'ACCEPTED_BY_PROVIDER' | 'SIMULATED' | 'NOT_CONFIGURED' | 'RETRY_SCHEDULED' | 'DEAD_LETTER' | 'FAILED';
+  attempt_count: number;
+  max_attempts: number;
+  next_retry_at?: string | null;
+  last_attempt_at?: string | null;
+  last_error_category?: string | null;
+  last_error_message?: string | null;
+  provider_message_id?: string | null;
+  provider_response?: string | null;
+  sent_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationOutboxSummary {
+  total: number;
+  queued: number;
+  processing: number;
+  accepted_by_provider: number;
+  simulated: number;
+  not_configured: number;
+  retry_scheduled: number;
+  dead_letter: number;
+  failed: number;
+}
+
+export interface ChannelHealthStatus {
+  channel: string;
+  transport: string;
+  is_configured: boolean;
+  status: string;
+  details: Record<string, any>;
+}
+
+export interface NotificationChannelStatus {
+  channels: ChannelHealthStatus[];
+  active_sse_subscribers: number;
+}
+
+export interface NotificationUnreadCount {
+  unread_count: number;
+  total_count: number;
+}
+
+export interface LiveSSEEventSummary {
+  event_type: string;
+  title: string;
+  message: string;
+  level: string;
+  entity_type?: string | null;
+  entity_id?: number | null;
+  link_url?: string | null;
+  timestamp: string;
+  institution_id?: number | null;
+  recipient_role?: string | null;
+}
+
 

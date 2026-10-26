@@ -84,16 +84,29 @@ class ComplianceService:
                 }
             )
 
-            # Notification for regional office
+            # Notification & Outbox for regional office
             if undertaking.institution:
-                notif = Notification(
+                from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+                OutboxDispatcherService.queue_notification(
+                    db=db,
+                    event_type="COMPLIANCE_EVIDENCE_SUBMITTED",
+                    entity_type="UNDERTAKING",
+                    entity_id=undertaking.id,
+                    channel="IN_APP",
+                    template_code="CURE_SUBMITTED",
+                    params={
+                        "app_num": f"UND-{undertaking.id:04d}",
+                        "institution_name": undertaking.institution.name,
+                        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+                        "summary": f"Version {new_version} of compliance evidence submitted by {actor.full_name} for condition '{undertaking.title}'.",
+                        "link_url": "/compliance"
+                    },
                     institution_id=undertaking.institution_id,
-                    title=f"Evidence submitted for: {undertaking.title}",
-                    message=f"Version {new_version} of evidence submitted by {actor.full_name}.",
-                    level="INFO",
-                    link_url=f"/compliance"
+                    region=undertaking.institution.region,
+                    recipient_role="REGIONAL_OFFICER",
+                    link_url="/compliance",
+                    level="INFO"
                 )
-                db.add(notif)
 
             db.commit()
             db.refresh(evidence)
@@ -193,16 +206,58 @@ class ComplianceService:
             }
         )
 
-        # Institution notification
+        # Institution notification & Outbox
         notif_level = "SUCCESS" if outcome_status == "VERIFIED" else ("WARNING" if outcome_status == "CORRECTION_REQUIRED" else "DANGER")
-        notif = Notification(
+        from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+        inst = undertaking.institution
+        recipient_email = getattr(inst, "email", None) if inst else None
+
+        OutboxDispatcherService.queue_notification(
+            db=db,
+            event_type="COMPLIANCE_VERIFIED" if outcome_status == "VERIFIED" else "COMPLIANCE_CORRECTION_REQUIRED",
+            entity_type="UNDERTAKING",
+            entity_id=undertaking.id,
+            channel="IN_APP",
+            template_code="UNDERTAKING_DUE_SOON" if outcome_status == "CORRECTION_REQUIRED" else "APPLICATION_STAGE_CHANGED",
+            params={
+                "subject": f"Compliance Undertaking '{undertaking.title}' marked as {outcome_status}",
+                "institution_name": inst.name if inst else f"Institution #{undertaking.institution_id}",
+                "message": notes,
+                "summary": notes,
+                "link_url": "/compliance"
+            },
             institution_id=undertaking.institution_id,
-            title=f"Compliance Undertaking '{undertaking.title}' marked as {outcome_status}",
-            message=notes,
-            level=notif_level,
-            link_url=f"/compliance"
+            recipient_role="INSTITUTION_ADMIN",
+            recipient_email=recipient_email,
+            link_url="/compliance",
+            level=notif_level
         )
-        db.add(notif)
+
+        if recipient_email and outcome_status in ["CORRECTION_REQUIRED", "DEFICIENT"]:
+            OutboxDispatcherService.queue_notification(
+                db=db,
+                event_type="COMPLIANCE_CORRECTION_REQUIRED",
+                entity_type="UNDERTAKING",
+                entity_id=undertaking.id,
+                channel="EMAIL",
+                template_code="UNDERTAKING_DUE_SOON",
+                params={
+                    "subject": f"[AICTE ReguFlow 360] Urgent: Compliance Correction Required for '{undertaking.title}'",
+                    "institution_name": inst.name if inst else f"Institution #{undertaking.institution_id}",
+                    "category": undertaking.category,
+                    "title": undertaking.title,
+                    "deadline": str(undertaking.due_date),
+                    "days_remaining": "Action Required Immediately",
+                    "message": notes,
+                    "link_url": "/compliance"
+                },
+                institution_id=undertaking.institution_id,
+                recipient_role="INSTITUTION_ADMIN",
+                recipient_email=recipient_email,
+                idempotency_key=f"OUTBOX:UNDERTAKING:{undertaking.id}:EMAIL:{outcome_status}",
+                link_url="/compliance",
+                level=notif_level
+            )
 
         db.commit()
         db.refresh(undertaking)

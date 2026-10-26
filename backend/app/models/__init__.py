@@ -7,6 +7,7 @@ from app.models.document import DocumentRecord, DocumentVersion
 from app.models.document_analysis import DocumentAnalysis
 from app.models.evc import EVCInspection
 from app.models.alert import Notification, AlertEscalation, DeadlineEngineRun, SchedulerLease
+from app.models.notification_outbox import NotificationOutbox
 from app.models.audit import AuditEvent
 from app.models.rule import RuleDefinition, RuleVersionHistory
 from app.models.token_blacklist import RevokedToken
@@ -27,6 +28,7 @@ __all__ = [
     "DocumentAnalysis",
     "EVCInspection",
     "Notification",
+    "NotificationOutbox",
     "AlertEscalation",
     "DeadlineEngineRun",
     "SchedulerLease",

@@ -654,6 +654,61 @@ class OrderGenerationService:
             }
         )
 
+        # 13. Queue Transactional Outbox Notifications
+        from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+        inst = app.institution
+        recipient_email = getattr(inst, "email", None) if inst else None
+        verify_url = f"/verify-order?token={order.verification_token}"
+
+        OutboxDispatcherService.queue_notification(
+            db=db,
+            event_type="STATUTORY_ORDER_ISSUED",
+            entity_type="STATUTORY_ORDER",
+            entity_id=order.id,
+            channel="IN_APP",
+            template_code="ORDER_ISSUED",
+            params={
+                "app_num": app.application_number,
+                "institution_name": inst.name if inst else f"Institution #{app.institution_id}",
+                "decision": app.current_stage,
+                "order_number": order.order_number,
+                "order_date": str(order.order_date),
+                "remarks": decision_remarks,
+                "link_url": verify_url
+            },
+            institution_id=app.institution_id,
+            recipient_role="INSTITUTION_ADMIN",
+            recipient_email=recipient_email,
+            idempotency_key=f"OUTBOX:ORDER:{order.id}:IN_APP:{order.version}",
+            link_url=verify_url,
+            level="SUCCESS" if app.current_stage == "APPROVED" else "DANGER"
+        )
+
+        if recipient_email:
+            OutboxDispatcherService.queue_notification(
+                db=db,
+                event_type="STATUTORY_ORDER_ISSUED",
+                entity_type="STATUTORY_ORDER",
+                entity_id=order.id,
+                channel="EMAIL",
+                template_code="ORDER_ISSUED",
+                params={
+                    "app_num": app.application_number,
+                    "institution_name": inst.name if inst else f"Institution #{app.institution_id}",
+                    "decision": app.current_stage,
+                    "order_number": order.order_number,
+                    "order_date": str(order.order_date),
+                    "remarks": decision_remarks,
+                    "link_url": verify_url
+                },
+                institution_id=app.institution_id,
+                recipient_role="INSTITUTION_ADMIN",
+                recipient_email=recipient_email,
+                idempotency_key=f"OUTBOX:ORDER:{order.id}:EMAIL:{order.version}",
+                link_url=verify_url,
+                level="SUCCESS" if app.current_stage == "APPROVED" else "DANGER"
+            )
+
         db.commit()
         db.refresh(order)
         return order

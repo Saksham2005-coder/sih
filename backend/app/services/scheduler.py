@@ -158,6 +158,10 @@ class DeadlineScheduler:
 
             DeadlineService.run_deadline_and_escalation_scan(db, trigger_mode="SCHEDULED")
 
+            # Reliable Outbox: Asynchronously dispatch pending email/SMS notifications
+            from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+            OutboxDispatcherService.dispatch_pending_outbox(db, batch_size=50)
+
         except Exception as e:
             logger.error(f"Error during scheduled execution or lease check: {e}")
         finally:

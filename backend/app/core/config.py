@@ -1,5 +1,5 @@
 import os
-from typing import List, Union
+from typing import List, Union, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator
 
@@ -37,6 +37,26 @@ class Settings(BaseSettings):
     
     # Optional AI Case Brief Assistant
     GEMINI_API_KEY: str = ""
+
+    # External Notification Channels
+    # SMTP Email Dispatch
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_FROM_EMAIL: str = "notifications@aicte.gov.in"
+    SMTP_FROM_NAME: str = "AICTE ReguFlow 360"
+
+    # SMS Dispatch (e.g. NIC / CDAC Gateway)
+    SMS_GATEWAY_URL: Optional[str] = None
+    SMS_GATEWAY_API_KEY: Optional[str] = None
+    SMS_SENDER_ID: str = "AICTEN"
+
+    # Outbox Dispatcher
+    NOTIFICATION_OUTBOX_MAX_RETRIES: int = 4
+    NOTIFICATION_OUTBOX_BATCH_SIZE: int = 50
+    NOTIFICATION_OUTBOX_RETRY_BACKOFF_BASE_SECONDS: int = 60
 
     @property
     def is_production(self) -> bool:

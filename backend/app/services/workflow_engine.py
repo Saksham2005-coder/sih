@@ -230,21 +230,72 @@ def execute_transition(
     )
     db.add(stage_event)
 
-    # 8. Dispatch notification
+    # 8. Transactional Outbox & Notification Dispatch
     level = "INFO"
     if to_stage in ["DEFICIENCY_COMMUNICATED", "REJECTED"]:
         level = "DANGER"
     elif to_stage in ["APPROVED", "SCRUTINY_COMPLETED"]:
         level = "SUCCESS"
 
-    notif = Notification(
+    notif_title = f"Application {application.application_number} status updated to {to_stage}"
+    notif_msg = remarks or f"Application status transitioned from {from_stage} to {to_stage} by {actor.full_name}."
+    link_url = f"/applications/{application.id}"
+
+    from app.services.notification.outbox_dispatcher import OutboxDispatcherService
+    inst = application.institution
+    recipient_email = getattr(inst, "email", None) if inst else None
+
+    # In-App Outbox & persistent inbox notification
+    OutboxDispatcherService.queue_notification(
+        db=db,
+        event_type="APPLICATION_STAGE_CHANGED",
+        entity_type="APPLICATION",
+        entity_id=application.id,
+        channel="IN_APP",
+        template_code="DEFICIENCY_COMMUNICATED" if to_stage == "DEFICIENCY_COMMUNICATED" else "CURE_SUBMITTED" if to_stage == "RESUBMITTED" else "APPLICATION_STAGE_CHANGED",
+        params={
+            "app_num": application.application_number,
+            "institution_name": inst.name if inst else f"Institution #{application.institution_id}",
+            "from_stage": from_stage,
+            "to_stage": to_stage,
+            "remarks": remarks,
+            "summary": notif_msg,
+            "link_url": link_url
+        },
         institution_id=application.institution_id,
-        title=f"Application {application.application_number} status updated to {to_stage}",
-        message=remarks or f"Application status transitioned from {from_stage} to {to_stage} by {actor.full_name}.",
-        level=level,
-        link_url=f"/applications/{application.id}"
+        recipient_role="INSTITUTION_ADMIN",
+        recipient_email=recipient_email,
+        link_url=link_url,
+        level=level
     )
-    db.add(notif)
+
+    # External EMAIL Outbox for high-impact milestones
+    if recipient_email and to_stage in ["DEFICIENCY_COMMUNICATED", "RESUBMITTED", "APPROVED", "REJECTED"]:
+        email_key = f"OUTBOX:APPLICATION:{application.id}:EMAIL:{to_stage}:{len(application.stages or [])}"
+        OutboxDispatcherService.queue_notification(
+            db=db,
+            event_type="APPLICATION_STAGE_CHANGED",
+            entity_type="APPLICATION",
+            entity_id=application.id,
+            channel="EMAIL",
+            template_code="DEFICIENCY_COMMUNICATED" if to_stage == "DEFICIENCY_COMMUNICATED" else "CURE_SUBMITTED" if to_stage == "RESUBMITTED" else "APPLICATION_STAGE_CHANGED",
+            params={
+                "app_num": application.application_number,
+                "institution_name": inst.name if inst else f"Institution #{application.institution_id}",
+                "from_stage": from_stage,
+                "to_stage": to_stage,
+                "remarks": remarks,
+                "summary": notif_msg,
+                "deadline": "15 Days" if to_stage == "DEFICIENCY_COMMUNICATED" else "Under Review",
+                "link_url": link_url
+            },
+            institution_id=application.institution_id,
+            recipient_role="INSTITUTION_ADMIN",
+            recipient_email=recipient_email,
+            idempotency_key=email_key,
+            link_url=link_url,
+            level=level
+        )
 
     # 9. Immutable audit log (Atomic with stage transition)
     log_audit_event(
