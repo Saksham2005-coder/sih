@@ -225,14 +225,14 @@ def review_document_analysis(
     id: int,
     request: DocumentAnalysisReviewRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["REGIONAL_OFFICER", "BUREAU_OFFICER"]))
 ):
     analysis = db.query(DocumentAnalysis).filter(DocumentAnalysis.id == id).first()
     if not analysis:
         raise HTTPException(status_code=404, detail="Document analysis record not found")
 
     # Scope check
-    if "REGIONAL_OFFICER" in [r.role for r in current_user.roles] and "SYSTEM_ADMIN" not in [r.role for r in current_user.roles] and "BUREAU_OFFICER" not in [r.role for r in current_user.roles]:
+    if "REGIONAL_OFFICER" in [r.role for r in current_user.roles] and "BUREAU_OFFICER" not in [r.role for r in current_user.roles]:
         if analysis.institution and current_user.region and current_user.region != analysis.institution.region:
             raise HTTPException(status_code=403, detail="Access denied: Regional Officer cannot review document analysis outside assigned region.")
 

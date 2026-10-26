@@ -454,3 +454,164 @@ def test_non_automation_statutory_invariant():
         assert refetched_doc.status == initial_status, "Document status must NOT mutate automatically from extraction!"
     finally:
         db.close()
+
+
+def test_system_admin_cannot_make_statutory_document_review_decisions(client):
+    """
+    Separation of duties invariant:
+    SYSTEM_ADMIN cannot make statutory document-review decisions merely because it has platform admin privileges.
+    POST /documents/analysis/{id}/review must reject SYSTEM_ADMIN with HTTP 403 Forbidden.
+    """
+    sysadmin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
+    db = SessionLocal()
+    try:
+        analysis = DocumentAnalysis(
+            document_record_id=1,
+            institution_id=1,
+            status="REVIEW_REQUIRED",
+            idempotency_key=f"SYSADMIN_AUTH_TEST_{datetime.now(timezone.utc).timestamp()}",
+            file_name="Apex_Doc_Review_Auth_Test.pdf",
+            checksum_sha256="sysadmin_test_sha256",
+            extracted_fields={"expiry_date": {"value": "2035-12-31"}},
+            cross_check_findings=[],
+            overall_confidence=0.9
+        )
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        analysis_id = analysis.id
+    finally:
+        db.close()
+
+    res = client.post(
+        f"/api/documents/analysis/{analysis_id}/review",
+        headers={"Authorization": f"Bearer {sysadmin_token}"},
+        json={
+            "decision": "CONFIRMED",
+            "reviewer_remarks": "System Administrator attempting statutory document review."
+        }
+    )
+    assert res.status_code == 403, f"Expected 403 Forbidden for System Admin review attempt, got {res.status_code}: {res.text}"
+
+
+def test_review_requires_recorded_justification_remarks(client):
+    """
+    Ensures that every document review decision requires mandatory remarks/justification (at least 5 chars).
+    """
+    ro_token = get_auth_token(client, "ro.western@aicte.gov.in")
+    db = SessionLocal()
+    try:
+        analysis = DocumentAnalysis(
+            document_record_id=1,
+            institution_id=1,
+            status="REVIEW_REQUIRED",
+            idempotency_key=f"REMARKS_JUSTIFICATION_TEST_{datetime.now(timezone.utc).timestamp()}",
+            file_name="Apex_Doc_Remarks_Test.pdf",
+            checksum_sha256="remarks_test_sha256",
+            extracted_fields={"expiry_date": {"value": "2035-12-31"}},
+            cross_check_findings=[],
+            overall_confidence=0.9
+        )
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+        analysis_id = analysis.id
+    finally:
+        db.close()
+
+    # Empty remarks -> 400 or 422
+    res_empty = client.post(
+        f"/api/documents/analysis/{analysis_id}/review",
+        headers={"Authorization": f"Bearer {ro_token}"},
+        json={
+            "decision": "CONFIRMED",
+            "reviewer_remarks": ""
+        }
+    )
+    assert res_empty.status_code in [400, 422]
+
+    # Remarks too short -> 400 or 422
+    res_short = client.post(
+        f"/api/documents/analysis/{analysis_id}/review",
+        headers={"Authorization": f"Bearer {ro_token}"},
+        json={
+            "decision": "CONFIRMED",
+            "reviewer_remarks": "ok"
+        }
+    )
+    assert res_short.status_code in [400, 422]
+
+
+def test_asia_kolkata_expiry_boundary_conditions():
+    """
+    Boundary tests for Asia/Kolkata IST date calculation:
+    1. Around midnight IST (00:05 IST = 18:35 UTC previous day)
+    2. An already expired document (yesterday IST)
+    3. An expiry date today (today IST)
+    4. An expiry date in the future (tomorrow IST and beyond)
+    """
+    IST = timezone(timedelta(hours=5, minutes=30))
+    # Midnight test time: 2026-10-27 00:05:00 IST -> UTC is 2026-10-26 18:35:00 UTC
+    ref_midnight_ist = datetime(2026, 10, 26, 18, 35, 0, tzinfo=timezone.utc)
+    today_in_ist = date(2026, 10, 27)
+
+    # 1. Expired document: 2026-10-26 (was valid yesterday, but now it's 2026-10-27 in IST)
+    findings_expired = DocumentIntelligenceService.cross_check_extracted_facts(
+        extracted_fields={"expiry_date": {"value": "2026-10-26", "source_page": 1, "source_excerpt": "Valid up to 26/10/2026"}},
+        doc_record=None,
+        doc_version=None,
+        compliance_undertaking=None,
+        institution=None,
+        reference_time=ref_midnight_ist
+    )
+    f_expired = next((f for f in findings_expired if f["rule_code"] == "CERTIFICATE_ALREADY_EXPIRED"), None)
+    assert f_expired is not None
+    assert f_expired["status"] == "POSSIBLE_MISMATCH"
+    assert f_expired["severity"] == "CRITICAL"
+    assert "in the past (Asia/Kolkata)" in f_expired["description"]
+
+    # 2. Expiry date TODAY: 2026-10-27
+    findings_today = DocumentIntelligenceService.cross_check_extracted_facts(
+        extracted_fields={"expiry_date": {"value": "2026-10-27", "source_page": 1, "source_excerpt": "Valid up to 27/10/2026"}},
+        doc_record=None,
+        doc_version=None,
+        compliance_undertaking=None,
+        institution=None,
+        reference_time=ref_midnight_ist
+    )
+    f_today = next((f for f in findings_today if f["rule_code"] == "CERTIFICATE_EXPIRES_TODAY"), None)
+    assert f_today is not None
+    assert f_today["status"] == "POSSIBLE_MISMATCH"
+    assert f_today["severity"] == "WARNING"
+    assert "expires today (Asia/Kolkata)" in f_today["description"]
+
+    # 3. Expiry date in the FUTURE (expiring soon: 10 days out)
+    findings_soon = DocumentIntelligenceService.cross_check_extracted_facts(
+        extracted_fields={"expiry_date": {"value": "2026-11-06", "source_page": 1, "source_excerpt": "Valid up to 06/11/2026"}},
+        doc_record=None,
+        doc_version=None,
+        compliance_undertaking=None,
+        institution=None,
+        reference_time=ref_midnight_ist
+    )
+    f_soon = next((f for f in findings_soon if f["rule_code"] == "CERTIFICATE_EXPIRING_SOON"), None)
+    assert f_soon is not None
+    assert f_soon["status"] == "MATCH"
+    assert f_soon["severity"] == "WARNING"
+    assert "expiring soon in 10 day(s)" in f_soon["description"]
+
+    # 4. Expiry date in the FUTURE (valid long term: 1 year out)
+    findings_future = DocumentIntelligenceService.cross_check_extracted_facts(
+        extracted_fields={"expiry_date": {"value": "2027-10-27", "source_page": 1, "source_excerpt": "Valid up to 27/10/2027"}},
+        doc_record=None,
+        doc_version=None,
+        compliance_undertaking=None,
+        institution=None,
+        reference_time=ref_midnight_ist
+    )
+    f_future = next((f for f in findings_future if f["rule_code"] == "CERTIFICATE_VALID"), None)
+    assert f_future is not None
+    assert f_future["status"] == "MATCH"
+    assert f_future["severity"] == "INFO"
+    assert "currently valid through 2027-10-27" in f_future["description"]
+

@@ -7,6 +7,7 @@ from datetime import datetime, date, timezone, timedelta
 from dateutil import parser as date_parser
 import pypdf
 
+from fastapi import HTTPException, status
 from app.core.config import settings
 from app.models.document import DocumentRecord, DocumentVersion
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
@@ -17,6 +18,20 @@ from app.services.audit_service import log_audit_event
 
 # Minimum character count to consider a document text-searchable
 MIN_TEXT_CHARS_THRESHOLD = 20
+
+# Asia/Kolkata Indian Standard Time (IST) convention
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def get_ist_now(reference_time: Optional[datetime] = None) -> datetime:
+    """Returns current or reference datetime localized to Asia/Kolkata (IST)."""
+    now = reference_time or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    return now.astimezone(IST)
+
+def get_ist_today(reference_time: Optional[datetime] = None) -> date:
+    """Returns calendar date in Asia/Kolkata timezone (IST)."""
+    return get_ist_now(reference_time).date()
 
 # Canonical Date Normalizer
 def normalize_date_string(raw_date_str: str) -> Optional[str]:
@@ -418,7 +433,8 @@ class DocumentIntelligenceService:
         compliance_undertaking: Optional[ComplianceUndertaking],
         institution: Optional[Institution],
         prior_versions: Optional[List[DocumentVersion]] = None,
-        extraction_meta: Optional[Dict[str, Any]] = None
+        extraction_meta: Optional[Dict[str, Any]] = None,
+        reference_time: Optional[datetime] = None
     ) -> List[Dict[str, Any]]:
         """
         Executes cross-checks comparing extracted facts against database records.
@@ -426,7 +442,7 @@ class DocumentIntelligenceService:
         Labels: MATCH, POSSIBLE_MISMATCH, MISSING_EVIDENCE, EXTRACTION_UNAVAILABLE, HUMAN_REVIEW_REQUIRED.
         """
         findings: List[Dict[str, Any]] = []
-        today = date.today()
+        today_ist = get_ist_today(reference_time)
 
         # Check 0: Scanned document without OCR availability
         if extraction_meta and extraction_meta.get("is_scanned") and not extraction_meta.get("ocr_applied"):
@@ -487,12 +503,12 @@ class DocumentIntelligenceService:
                     "description": "Explicit expiry date clause could not be conclusively extracted. Review document image manually."
                 })
 
-        # Check 2: Expired Certificate Check
+        # Check 2: Expired Certificate Check (Asia/Kolkata IST)
         ext_exp = extracted_fields.get("expiry_date")
         if ext_exp and ext_exp.get("value"):
             try:
                 ext_d = date.fromisoformat(ext_exp["value"])
-                if ext_d < today:
+                if ext_d < today_ist:
                     findings.append({
                         "field": "validity_status",
                         "rule_code": "CERTIFICATE_ALREADY_EXPIRED",
@@ -502,8 +518,46 @@ class DocumentIntelligenceService:
                         "extracted_value": ext_exp["value"],
                         "source_page": ext_exp.get("source_page"),
                         "source_excerpt": ext_exp.get("source_excerpt"),
-                        "description": f"Extracted document validity date ({ext_exp['value']}) is in the past. Certificate appears to have expired."
+                        "description": f"Extracted document validity date ({ext_exp['value']}) is in the past (Asia/Kolkata). Certificate has expired."
                     })
+                elif ext_d == today_ist:
+                    findings.append({
+                        "field": "validity_status",
+                        "rule_code": "CERTIFICATE_EXPIRES_TODAY",
+                        "status": "POSSIBLE_MISMATCH",
+                        "severity": "WARNING",
+                        "entered_value": doc_record.expiry_date.isoformat() if (doc_record and doc_record.expiry_date) else None,
+                        "extracted_value": ext_exp["value"],
+                        "source_page": ext_exp.get("source_page"),
+                        "source_excerpt": ext_exp.get("source_excerpt"),
+                        "description": f"Extracted document validity date ({ext_exp['value']}) expires today (Asia/Kolkata). Renewal is required immediately."
+                    })
+                else:
+                    days_remaining = (ext_d - today_ist).days
+                    if days_remaining <= 30:
+                        findings.append({
+                            "field": "validity_status",
+                            "rule_code": "CERTIFICATE_EXPIRING_SOON",
+                            "status": "MATCH",
+                            "severity": "WARNING",
+                            "entered_value": doc_record.expiry_date.isoformat() if (doc_record and doc_record.expiry_date) else None,
+                            "extracted_value": ext_exp["value"],
+                            "source_page": ext_exp.get("source_page"),
+                            "source_excerpt": ext_exp.get("source_excerpt"),
+                            "description": f"Certificate is valid ({ext_exp['value']}) but expiring soon in {days_remaining} day(s) (Asia/Kolkata)."
+                        })
+                    else:
+                        findings.append({
+                            "field": "validity_status",
+                            "rule_code": "CERTIFICATE_VALID",
+                            "status": "MATCH",
+                            "severity": "INFO",
+                            "entered_value": doc_record.expiry_date.isoformat() if (doc_record and doc_record.expiry_date) else None,
+                            "extracted_value": ext_exp["value"],
+                            "source_page": ext_exp.get("source_page"),
+                            "source_excerpt": ext_exp.get("source_excerpt"),
+                            "description": f"Certificate is currently valid through {ext_exp['value']} (Asia/Kolkata, {days_remaining} days remaining)."
+                        })
             except Exception:
                 pass
 
@@ -829,6 +883,26 @@ class DocumentIntelligenceService:
         analysis = db.query(DocumentAnalysis).filter(DocumentAnalysis.id == analysis_id).first()
         if not analysis:
             raise ValueError(f"DocumentAnalysis #{analysis_id} not found")
+
+        # Statutory reviewer separation of duties
+        if reviewer and hasattr(reviewer, "roles") and reviewer.roles:
+            reviewer_roles = [r.role for r in reviewer.roles]
+            if "SYSTEM_ADMIN" in reviewer_roles and not any(r in ["REGIONAL_OFFICER", "BUREAU_OFFICER"] for r in reviewer_roles):
+                raise HTTPException(
+                    status_code=403,
+                    detail="System Administrator cannot make statutory document review decisions. Verification is strictly reserved for Regional Officers and Bureau Officers."
+                )
+            if not any(r in ["REGIONAL_OFFICER", "BUREAU_OFFICER"] for r in reviewer_roles):
+                raise HTTPException(
+                    status_code=403,
+                    detail="Unauthorized reviewer role. Only Regional Officers and Bureau Officers can review document extractions."
+                )
+
+        if not remarks or len(remarks.strip()) < 5:
+            raise HTTPException(
+                status_code=400,
+                detail="Review remarks with recorded justification (at least 5 characters) are required."
+            )
 
         analysis.reviewer_decision = decision
         analysis.reviewer_remarks = remarks
