@@ -363,3 +363,105 @@ def test_upload_artifact_verification(client):
     data_altered = res_altered.json()
     assert data_altered["is_match"] is False
     assert data_altered["verification_status"] == "NO_MATCH_FOUND"
+
+
+def test_system_admin_order_generation_rejected(client):
+    """
+    Separation of duties invariant:
+    SYSTEM_ADMIN cannot generate or re-issue statutory decision orders.
+    Only COMPETENT_AUTHORITY holds statutory decision order creation powers.
+    POST /orders/generate must return HTTP 403 Forbidden for System Admin.
+    """
+    sysadmin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
+
+    res = client.post(
+        "/api/orders/generate",
+        headers={"Authorization": f"Bearer {sysadmin_token}"},
+        json={
+            "application_id": 4,
+            "custom_remarks": "System Admin attempting statutory order issuance."
+        }
+    )
+    assert res.status_code == 403, f"Expected 403 Forbidden for sysadmin generate order, got {res.status_code}: {res.text}"
+
+
+def test_system_admin_order_revocation_rejected(client):
+    """
+    Separation of duties invariant:
+    SYSTEM_ADMIN cannot revoke statutory decision orders.
+    POST /orders/{id}/revoke must return HTTP 403 Forbidden for System Admin.
+    """
+    sysadmin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
+
+    db = SessionLocal()
+    try:
+        order = db.query(StatutoryOrder).filter(
+            StatutoryOrder.application_id == 4,
+            StatutoryOrder.status == "ACTIVE"
+        ).first()
+        order_id = order.id
+    finally:
+        db.close()
+
+    res = client.post(
+        f"/api/orders/{order_id}/revoke",
+        headers={"Authorization": f"Bearer {sysadmin_token}"},
+        json={
+            "revocation_reason": "System Admin attempting unauthorized statutory revocation."
+        }
+    )
+    assert res.status_code == 403, f"Expected 403 Forbidden for sysadmin revoke order, got {res.status_code}: {res.text}"
+
+
+def test_cross_region_order_access_rejected(client):
+    """
+    Regional boundary scoping invariant:
+    Regional Officer for Western region (ro.western@aicte.gov.in) cannot access
+    statutory orders belonging to an institution in the Northern region (NIER, Application 4).
+    """
+    ro_token = get_auth_token(client, "ro.western@aicte.gov.in")
+
+    # Application 4 belongs to Institution 2 (NIER), which is in Northern region
+    res = client.get(
+        "/api/orders/by-application/4",
+        headers={"Authorization": f"Bearer {ro_token}"}
+    )
+    assert res.status_code == 403, f"Expected 403 Forbidden for cross-region order listing, got {res.status_code}: {res.text}"
+    assert "region" in res.json()["detail"].lower()
+
+
+def test_system_admin_read_only_access_permitted(client):
+    """
+    Supervisory invariant:
+    SYSTEM_ADMIN retains read-only supervisory access to existing order artifacts
+    (listing and downloading) for platform telemetry and regulatory auditing,
+    without holding statutory mutation authority.
+    """
+    sysadmin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
+
+    db = SessionLocal()
+    try:
+        order = db.query(StatutoryOrder).filter(
+            StatutoryOrder.application_id == 4,
+            StatutoryOrder.status == "ACTIVE"
+        ).first()
+        order_id = order.id
+    finally:
+        db.close()
+
+    # System Admin listing orders for application 4 -> 200 OK
+    res_list = client.get(
+        "/api/orders/by-application/4",
+        headers={"Authorization": f"Bearer {sysadmin_token}"}
+    )
+    assert res_list.status_code == 200
+    assert len(res_list.json()) >= 1
+
+    # System Admin downloading existing PDF artifact -> 200 OK
+    res_dl = client.get(
+        f"/api/orders/{order_id}/download",
+        headers={"Authorization": f"Bearer {sysadmin_token}"}
+    )
+    assert res_dl.status_code == 200
+    assert res_dl.headers["content-type"] == "application/pdf"
+

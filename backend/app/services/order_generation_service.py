@@ -444,6 +444,19 @@ class OrderGenerationService:
             raise HTTPException(status_code=400, detail="application_id is required")
 
         user = current_user or actor
+        if user and hasattr(user, "roles") and user.roles:
+            caller_roles = [r.role for r in user.roles]
+            if "SYSTEM_ADMIN" in caller_roles and "COMPETENT_AUTHORITY" not in caller_roles:
+                raise HTTPException(
+                    status_code=403,
+                    detail="System Administrator cannot create or re-issue statutory decision orders. Only Competent Authority holds statutory order issuance authority."
+                )
+            if "COMPETENT_AUTHORITY" not in caller_roles:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Only Competent Authority is authorized to generate or re-issue statutory decision orders."
+                )
+
         eff_remarks = custom_remarks or remarks or (request.custom_remarks if request else None) or (request.remarks if request else None)
         eff_conditions = additional_conditions or (request.additional_conditions if request else None) or []
         eff_override_reason = override_reason or (request.override_reason if request else None)
@@ -656,6 +669,19 @@ class OrderGenerationService:
         """
         Formally revokes an issued statutory order with mandatory justification.
         """
+        if current_user and hasattr(current_user, "roles") and current_user.roles:
+            caller_roles = [r.role for r in current_user.roles]
+            if "SYSTEM_ADMIN" in caller_roles and "COMPETENT_AUTHORITY" not in caller_roles:
+                raise HTTPException(
+                    status_code=403,
+                    detail="System Administrator cannot revoke statutory decision orders. Only Competent Authority holds statutory order revocation authority."
+                )
+            if "COMPETENT_AUTHORITY" not in caller_roles:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Only Competent Authority is authorized to revoke statutory decision orders."
+                )
+
         order = db.query(StatutoryOrder).filter(StatutoryOrder.id == order_id).first()
         if not order:
             raise HTTPException(status_code=404, detail=f"StatutoryOrder #{order_id} not found")

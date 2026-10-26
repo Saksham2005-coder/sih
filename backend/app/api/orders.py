@@ -29,11 +29,11 @@ def generate_order(
     req: StatutoryOrderGenerateRequest,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["COMPETENT_AUTHORITY", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["COMPETENT_AUTHORITY"]))
 ):
     """
     Generates a formal statutory approval or rejection order PDF artifact.
-    Strictly restricted to Competent Authority or System Admin.
+    Strictly restricted to Competent Authority. SYSTEM_ADMIN receives HTTP 403.
     Can only be invoked after a statutory decision has been recorded on the application.
     """
     # Derive frontend verification base URL
@@ -63,11 +63,11 @@ def revoke_order(
     order_id: int,
     req: StatutoryOrderRevokeRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(["COMPETENT_AUTHORITY", "SYSTEM_ADMIN"]))
+    current_user: User = Depends(require_roles(["COMPETENT_AUTHORITY"]))
 ):
     """
     Revokes an issued statutory order with a mandatory administrative reason.
-    Strictly restricted to Competent Authority or System Admin.
+    Strictly restricted to Competent Authority. SYSTEM_ADMIN receives HTTP 403.
     """
     order = OrderGenerationService.revoke_order(
         db=db,
