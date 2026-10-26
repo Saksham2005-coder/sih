@@ -65,6 +65,7 @@ def get_evc_queue(
     return results
 
 @router.post("/schedule", response_model=EVCInspectionResponse)
+@router.post("/inspections", response_model=EVCInspectionResponse)
 def schedule_evc_inspection(
     request: EVCScheduleRequest,
     db: Session = Depends(get_db),

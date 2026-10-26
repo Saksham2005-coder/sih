@@ -383,10 +383,92 @@ export interface SlaAdherenceData {
 
 export interface EvcAnalyticsData {
   total_inspections: number;
+  eligible_count?: number;
   scheduled_count: number;
   completed_count: number;
   recommendations: Record<string, number>;
   inspection_types: Record<string, number>;
+  filtered_region?: string | null;
+}
+
+export interface ComplianceAnalyticsData {
+  total_undertakings: number;
+  verified_count: number;
+  pending_verification_count: number;
+  correction_required_count: number;
+  overdue_count: number;
+  compliance_percentage: number;
+  category_breakdown: Record<string, number>;
+  status_breakdown: Record<string, number>;
+  filtered_region?: string | null;
+}
+
+export interface DocumentAnalyticsData {
+  total_documents: number;
+  active_count: number;
+  expiring_soon_count: number;
+  renewal_submitted_count: number;
+  expired_count: number;
+  validity_compliance_percentage: number;
+  type_breakdown: Record<string, number>;
+  filtered_region?: string | null;
+}
+
+export interface EscalationsAnalyticsData {
+  total_escalations: number;
+  active_count: number;
+  acknowledged_count: number;
+  resolved_count: number;
+  tier_breakdown: Record<string, number>;
+  trigger_breakdown: Record<string, number>;
+  filtered_region?: string | null;
+}
+
+export interface RegionalPerformanceItem {
+  region: string;
+  total_applications: number;
+  pending_scrutiny: number;
+  in_evc: number;
+  approved: number;
+  rejected: number;
+  avg_turnaround_days: number;
+  sla_compliance_rate: number;
+  active_escalations: number;
+}
+
+export interface RegionalPerformanceData {
+  regions: RegionalPerformanceItem[];
+  national_avg_turnaround_days: number;
+  national_sla_compliance_rate: number;
+}
+
+export interface ApplicationAuditTrailItem {
+  id?: number | null;
+  timestamp: string;
+  event_type: string;
+  actor_name?: string | null;
+  actor_role?: string | null;
+  actor_id?: number | null;
+  previous_state?: string | null;
+  resulting_state?: string | null;
+  reason_or_remarks?: string | null;
+  rule_or_version_applied?: string | null;
+  outcome_status?: string | null;
+  entity_type: string;
+  entity_id: number;
+  metadata?: any;
+}
+
+export interface ApplicationLifecycleData {
+  application_id: number;
+  application_number: string;
+  institution_name: string;
+  region: string;
+  current_stage: string;
+  academic_year: string;
+  workflow_template_code: string;
+  version: number;
+  timeline: ApplicationAuditTrailItem[];
 }
 
 export interface CaseBriefData {

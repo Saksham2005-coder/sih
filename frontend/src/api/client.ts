@@ -5,7 +5,9 @@ import {
   RuleDefinitionItem, OperationalSummary,
   CaseBriefData, RuleVersionHistoryItem, RuleValidateResponse,
   RuleSimulateResponse, AuditExplorerData, CommandCentreData,
-  SlaAdherenceData, EvcAnalyticsData
+  SlaAdherenceData, EvcAnalyticsData, ComplianceAnalyticsData,
+  DocumentAnalyticsData, EscalationsAnalyticsData,
+  RegionalPerformanceData, ApplicationLifecycleData
 } from '../types';
 
 const API_BASE = '/api';
@@ -106,6 +108,7 @@ export const api = {
       method: 'POST',
     }),
   getCaseBrief: (id: number) => request<CaseBriefData>(`/applications/${id}/case-brief`),
+  getApplicationAuditTrail: (id: number) => request<ApplicationLifecycleData>(`/applications/${id}/audit-trail`),
 
   // Compliance
   getUndertakings: (params?: { status_filter?: string; category?: string }) => {
@@ -241,9 +244,71 @@ export const api = {
   },
 
   // Reports & Command Centre
-  getOperationalSummary: () => request<OperationalSummary>('/reports/summary'),
+  getOperationalSummary: (params?: { region?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<OperationalSummary>(`/reports/summary?${query.toString()}`);
+  },
   getCommandCentre: () => request<CommandCentreData>('/reports/command-centre'),
-  getSlaAdherence: () => request<SlaAdherenceData>('/reports/sla-adherence'),
-  getEvcAnalytics: () => request<EvcAnalyticsData>('/reports/evc-analytics'),
+  getSlaAdherence: (params?: { region?: string; stage?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.stage) query.set('stage', params.stage);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<SlaAdherenceData>(`/reports/sla-adherence?${query.toString()}`);
+  },
+  getEvcAnalytics: (params?: { region?: string; inspection_type?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.inspection_type) query.set('inspection_type', params.inspection_type);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<EvcAnalyticsData>(`/reports/evc-analytics?${query.toString()}`);
+  },
+  getComplianceAnalytics: (params?: { region?: string; status_filter?: string; category?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.status_filter) query.set('status_filter', params.status_filter);
+    if (params?.category) query.set('category', params.category);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<ComplianceAnalyticsData>(`/reports/compliance-analytics?${query.toString()}`);
+  },
+  getDocumentAnalytics: (params?: { region?: string; status_filter?: string; document_type?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.status_filter) query.set('status_filter', params.status_filter);
+    if (params?.document_type) query.set('document_type', params.document_type);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<DocumentAnalyticsData>(`/reports/document-analytics?${query.toString()}`);
+  },
+  getEscalationsAnalytics: (params?: { region?: string; status_filter?: string; escalation_level?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.status_filter) query.set('status_filter', params.status_filter);
+    if (params?.escalation_level) query.set('escalation_level', params.escalation_level);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<EscalationsAnalyticsData>(`/reports/escalations-analytics?${query.toString()}`);
+  },
+  getRegionalPerformance: (params?: { date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return request<RegionalPerformanceData>(`/reports/regional-performance?${query.toString()}`);
+  },
+  getReportCsvUrl: (reportType: string, params?: { region?: string; stage?: string; date_from?: string; date_to?: string }) => {
+    const query = new URLSearchParams();
+    query.set('report_type', reportType);
+    if (params?.region) query.set('region', params.region);
+    if (params?.stage) query.set('stage', params.stage);
+    if (params?.date_from) query.set('date_from', params.date_from);
+    if (params?.date_to) query.set('date_to', params.date_to);
+    return `/api/reports/export-csv?${query.toString()}`;
+  },
 };
 

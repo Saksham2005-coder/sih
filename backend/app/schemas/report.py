@@ -16,6 +16,7 @@ class OperationalSummaryResponse(BaseModel):
     active_escalations: int
     stage_breakdown: Dict[str, int]
     regional_breakdown: Dict[str, int]
+    filtered_region: Optional[str] = None
 
 class PriorityActionItem(BaseModel):
     application_id: int
@@ -56,10 +57,60 @@ class SlaAdherenceResponse(BaseModel):
     breached_sla_count: int
     breached_sla_percentage: float
     stage_sla_breakdown: List[Dict[str, Any]]
+    filtered_region: Optional[str] = None
+    filtered_stage: Optional[str] = None
 
 class EvcAnalyticsResponse(BaseModel):
     total_inspections: int
+    eligible_count: int = 0
     scheduled_count: int
     completed_count: int
     recommendations: Dict[str, int]
     inspection_types: Dict[str, int]
+    filtered_region: Optional[str] = None
+
+class ComplianceAnalyticsResponse(BaseModel):
+    total_undertakings: int
+    verified_count: int
+    pending_verification_count: int
+    correction_required_count: int
+    overdue_count: int
+    compliance_percentage: float
+    category_breakdown: Dict[str, int]
+    status_breakdown: Dict[str, int]
+    filtered_region: Optional[str] = None
+
+class DocumentAnalyticsResponse(BaseModel):
+    total_documents: int
+    active_count: int
+    expiring_soon_count: int
+    renewal_submitted_count: int
+    expired_count: int
+    validity_compliance_percentage: float
+    type_breakdown: Dict[str, int]
+    filtered_region: Optional[str] = None
+
+class EscalationsAnalyticsResponse(BaseModel):
+    total_escalations: int
+    active_count: int
+    acknowledged_count: int
+    resolved_count: int
+    tier_breakdown: Dict[str, int]
+    trigger_breakdown: Dict[str, int]
+    filtered_region: Optional[str] = None
+
+class RegionalPerformanceItem(BaseModel):
+    region: str
+    total_applications: int
+    pending_scrutiny: int
+    in_evc: int
+    approved: int
+    rejected: int
+    avg_turnaround_days: float
+    sla_compliance_rate: float
+    active_escalations: int
+
+class RegionalPerformanceResponse(BaseModel):
+    regions: List[RegionalPerformanceItem]
+    national_avg_turnaround_days: float
+    national_sla_compliance_rate: float

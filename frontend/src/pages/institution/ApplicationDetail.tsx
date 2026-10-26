@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, FileText, AlertTriangle, CheckCircle, Clock,
-  Upload, Send, Bot, Shield, FileCheck
+  Upload, Send, Bot, Shield, FileCheck, History
 } from 'lucide-react';
 import { api } from '../../api/client';
-import { ApplicationDetailResponse } from '../../types';
+import { ApplicationDetailResponse, ApplicationLifecycleData } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { PriorityGauge } from '../../components/common/PriorityGauge';
 import { Modal } from '../../components/common/Modal';
@@ -14,6 +14,8 @@ export const ApplicationDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [app, setApp] = useState<ApplicationDetailResponse | null>(null);
   const [caseBrief, setCaseBrief] = useState<any | null>(null);
+  const [lifecycleData, setLifecycleData] = useState<ApplicationLifecycleData | null>(null);
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'AUDIT_TRAIL'>('OVERVIEW');
   const [loading, setLoading] = useState(true);
   const [cureModalOpen, setCureModalOpen] = useState(false);
   const [selectedDeficiencyId, setSelectedDeficiencyId] = useState<number | null>(null);
@@ -25,10 +27,14 @@ export const ApplicationDetail: React.FC = () => {
   const loadData = async () => {
     if (!id) return;
     try {
-      const data = await api.getApplicationDetail(Number(id));
+      const [data, brief, lifecycle] = await Promise.all([
+        api.getApplicationDetail(Number(id)),
+        api.getCaseBrief(Number(id)).catch(() => null),
+        api.getApplicationAuditTrail(Number(id)).catch(() => null),
+      ]);
       setApp(data);
-      const brief = await api.getCaseBrief(Number(id));
       setCaseBrief(brief);
+      setLifecycleData(lifecycle);
     } catch (err) {
       console.error(err);
     } finally {
@@ -146,6 +152,183 @@ export const ApplicationDetail: React.FC = () => {
         )}
       </div>
 
+      {/* View Switcher Tabs */}
+      <div className="flex items-center gap-2 border-b border-brand-border dark:border-brand-border pb-2">
+        <button
+          onClick={() => setActiveTab('OVERVIEW')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'OVERVIEW'
+              ? 'bg-brand-ink text-white dark:bg-white dark:text-brand-ink shadow-sm'
+              : 'text-brand-muted hover:text-brand-ink dark:hover:text-white bg-transparent'
+          }`}
+        >
+          <FileText className="w-3.5 h-3.5" />
+          Scrutiny & Application Dossier
+        </button>
+        <button
+          onClick={() => setActiveTab('AUDIT_TRAIL')}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'AUDIT_TRAIL'
+              ? 'bg-brand-ink text-white dark:bg-white dark:text-brand-ink shadow-sm'
+              : 'text-brand-muted hover:text-brand-ink dark:hover:text-white bg-transparent'
+          }`}
+        >
+          <History className="w-3.5 h-3.5" />
+          Operational Lifecycle Ledger & Audit Trail
+          {lifecycleData && (
+            <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-brand-teal text-white">
+              {lifecycleData.timeline.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Tab 2: Operational Lifecycle & Complete Audit Trail */}
+      {activeTab === 'AUDIT_TRAIL' && (
+        <div className="space-y-6">
+          {/* Statutory Accountability Ledger Summary */}
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-5 shadow-sm space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-brand-border dark:border-brand-border gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-brand-teal" />
+                  Statutory Operational Audit Trail & Lifecycle Ledger
+                </h3>
+                <p className="text-xs text-brand-muted dark:text-brand-muted">
+                  Immutable chronological ledger of all filings, deficiency memos, cures, inspections, escalations, and statutory decisions.
+                </p>
+              </div>
+              <span className="text-xs font-semibold px-2.5 py-1 rounded bg-teal-50 dark:bg-teal-950/40 text-brand-teal border border-teal-200 dark:border-teal-900 self-start sm:self-auto">
+                {lifecycleData?.timeline.length || 0} Chronological Events Persisted
+              </span>
+            </div>
+
+            {/* Regulatory Evaluation Reference */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-2 pt-1 text-center text-xs">
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">1. Who Acted?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">Actor Name & Role</span>
+              </div>
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">2. Record Changed?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">Entity Type & ID</span>
+              </div>
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">3. State Transition?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">Previous &rarr; Resulting</span>
+              </div>
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">4. Action Rationale?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">Mandatory Remarks</span>
+              </div>
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">5. Rule / Version?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">APH Clause Reference</span>
+              </div>
+              <div className="p-2 rounded bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-900/40">
+                <span className="text-[9px] font-bold uppercase text-teal-800 dark:text-teal-300 block">6. Action Outcome?</span>
+                <span className="text-brand-ink dark:text-brand-ink font-medium mt-0.5 block">Accepted / Cured / Granted</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Chronological Timeline */}
+          <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border p-6 shadow-sm space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-brand-ink dark:text-brand-ink pb-2 border-b border-brand-border dark:border-brand-border flex justify-between items-center">
+              <span>Chronological Operational Events ({lifecycleData?.timeline.length || 0} Records)</span>
+              <span className="text-brand-muted text-[10px] font-normal">Sorted Chronologically</span>
+            </h4>
+
+            {(!lifecycleData || lifecycleData.timeline.length === 0) ? (
+              <div className="p-8 text-center text-xs text-brand-muted">
+                No lifecycle events recorded for this application.
+              </div>
+            ) : (
+              <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-brand-border dark:before:bg-brand-border">
+                {lifecycleData.timeline.map((event, idx) => {
+                  const eventDate = new Date(event.timestamp);
+                  const isApproved = event.outcome_status === 'APPROVED';
+                  const isRejected = event.outcome_status === 'REJECTED';
+                  const isDeficiency = event.event_type.includes('DEFICIENCY');
+                  const isEvc = event.event_type.includes('EVC');
+                  const isEscalation = event.event_type.includes('ESCALATION');
+
+                  return (
+                    <div key={idx} className="relative text-xs">
+                      {/* Timeline dot */}
+                      <span className={`absolute -left-6 top-1.5 w-3.5 h-3.5 rounded-full ring-4 ${
+                        isApproved ? 'bg-teal-600 ring-teal-100 dark:ring-teal-900' :
+                        isRejected ? 'bg-red-600 ring-red-100 dark:ring-red-900' :
+                        isDeficiency ? 'bg-amber-500 ring-amber-100 dark:ring-amber-900' :
+                        isEvc ? 'bg-indigo-600 ring-indigo-100 dark:ring-indigo-900' :
+                        isEscalation ? 'bg-red-500 ring-red-100 dark:ring-red-900' :
+                        'bg-brand-teal ring-teal-50 dark:ring-teal-950'
+                      }`} />
+
+                      <div className="p-4 rounded-xl border border-brand-border dark:border-brand-border bg-brand-porcelain/30 dark:bg-brand-surface-elevated/40 space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-brand-ink dark:text-brand-ink">
+                              {event.event_type.replace(/_/g, ' ')}
+                            </span>
+                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-white dark:bg-brand-surface border border-brand-border text-brand-muted">
+                              {event.entity_type} #{event.entity_id}
+                            </span>
+                            {event.outcome_status && (
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                                isApproved ? 'bg-teal-100 text-teal-800 dark:bg-teal-950/60 dark:text-teal-300' :
+                                isRejected ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300' :
+                                isDeficiency ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300' :
+                                'bg-teal-50 dark:bg-teal-950/40 text-brand-teal border border-teal-200'
+                              }`}>
+                                Outcome: {event.outcome_status.replace(/_/g, ' ')}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-mono text-brand-muted">
+                            {eventDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} at {eventDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })} UTC
+                          </span>
+                        </div>
+
+                        {/* Actor & State Details */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-[11px] pt-1">
+                          <div>
+                            <span className="text-brand-muted">Actor:</span>{' '}
+                            <span className="font-semibold text-brand-ink dark:text-brand-ink">{event.actor_name || 'System Daemon'}</span>{' '}
+                            <span className="text-[10px] text-brand-muted">({event.actor_role?.replace(/_/g, ' ') || 'SYSTEM'})</span>
+                          </div>
+                          <div>
+                            <span className="text-brand-muted">State Transition:</span>{' '}
+                            <span className="font-mono text-[10px] text-brand-ink dark:text-brand-ink">
+                              {event.previous_state || 'INITIAL'} &rarr; {event.resulting_state}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-brand-muted">Rule / Policy:</span>{' '}
+                            <span className="text-brand-ink dark:text-brand-ink font-medium">{event.rule_or_version_applied || 'Standard APH Workflow'}</span>
+                          </div>
+                        </div>
+
+                        {/* Reason / Remarks */}
+                        {event.reason_or_remarks && (
+                          <div className="mt-2 p-2.5 rounded bg-white dark:bg-brand-surface border border-brand-border text-xs text-brand-ink dark:text-brand-ink">
+                            <span className="font-semibold text-brand-muted uppercase text-[9px] block mb-0.5">Recorded Reason & Observations:</span>
+                            {event.reason_or_remarks}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 1: Overview & Scrutiny */}
+      {activeTab === 'OVERVIEW' && (
+        <div className="space-y-6">
       {/* Case Brief Assistant Box */}
       {caseBrief && (
         <div className="bg-gradient-to-r from-teal-900 to-brand-ink text-white rounded-xl p-5 shadow-sm border border-teal-800">
@@ -327,6 +510,8 @@ export const ApplicationDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      </div>
+      )}
 
       {/* Deficiency Cure Submission Modal */}
       <Modal

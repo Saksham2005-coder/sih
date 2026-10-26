@@ -74,3 +74,30 @@ class ApplicationResponse(BaseModel):
 class ApplicationDetailResponse(ApplicationResponse):
     stages: List[ApplicationStageResponse] = []
     deficiencies: List[DeficiencyResponse] = []
+
+class ApplicationAuditTrailItem(BaseModel):
+    id: Optional[int] = None
+    timestamp: datetime
+    event_type: str
+    actor_name: Optional[str] = None
+    actor_role: Optional[str] = None
+    actor_id: Optional[int] = None
+    previous_state: Optional[str] = None
+    resulting_state: Optional[str] = None
+    reason_or_remarks: Optional[str] = None
+    rule_or_version_applied: Optional[str] = None
+    outcome_status: Optional[str] = None
+    entity_type: str
+    entity_id: int
+    metadata: Optional[Any] = None
+
+class ApplicationLifecycleResponse(BaseModel):
+    application_id: int
+    application_number: str
+    institution_name: str
+    region: str
+    current_stage: str
+    academic_year: str
+    workflow_template_code: str
+    version: int
+    timeline: List[ApplicationAuditTrailItem]
