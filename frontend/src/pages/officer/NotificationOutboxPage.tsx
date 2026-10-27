@@ -298,12 +298,12 @@ export const NotificationOutboxPage: React.FC = () => {
                   Active Subscribers: <span className="font-bold text-brand-text-primary">{channelStatus?.active_sse_subscribers || 0}</span>
                 </p>
                 <p className="text-[11px] text-brand-text-muted mt-0.5">
-                  Heartbeat: <span className="text-brand-text-primary">15s ping interval | Bounded Queue: 50 items</span>
+                  Heartbeat: <span className="text-brand-text-primary">15s ping interval | Process-local AsyncIO broker</span>
                 </p>
               </div>
               <div className="mt-3 pt-2 border-t border-brand-border text-[10px] text-brand-text-muted flex items-center gap-1.5">
                 <Radio className="w-3 h-3 text-purple-500 shrink-0" />
-                <span>Strictly enforces regional & institutional tenancy scopes; zero document binary leaks.</span>
+                <span>Process-local broker; cross-worker state is synchronized via database-backed polling fallback.</span>
               </div>
             </div>
           );

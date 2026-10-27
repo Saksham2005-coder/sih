@@ -36,6 +36,7 @@ describe('ReguFlow 360 — Reliable Notification Delivery & Event Outbox UI', ()
     assert.match(content, /EventSource/, 'Header must establish EventSource connection');
     assert.match(content, /\/api\/notifications\/stream/, 'Must connect to /api/notifications/stream SSE endpoint');
     assert.match(content, /getNotificationUnreadCount/, 'Must use getNotificationUnreadCount for polling fallback');
+    assert.match(content, /getStreamTicket/, 'Header must exchange single-use stream ticket');
     assert.match(content, /isSseActive/, 'Must track SSE active connection state');
     assert.match(content, /liveToast/, 'Must maintain live toast state for real-time events');
     assert.match(content, /\/officer\/notifications\/outbox/, 'Must link to Notification Outbox in notification drawer');
@@ -64,6 +65,7 @@ describe('ReguFlow 360 — Reliable Notification Delivery & Event Outbox UI', ()
     assert.match(content, /triggerOutboxDispatch:/, 'Must expose triggerOutboxDispatch');
     assert.match(content, /getNotificationChannelsStatus:/, 'Must expose getNotificationChannelsStatus');
     assert.match(content, /getNotificationUnreadCount:/, 'Must expose getNotificationUnreadCount');
+    assert.match(content, /getStreamTicket:/, 'Must expose getStreamTicket');
   });
 
   it('5. App.tsx and Sidebar.tsx wire up /officer/notifications/outbox navigation', () => {

@@ -57,46 +57,57 @@ export const Header: React.FC = () => {
     const token = localStorage.getItem('reguflow_token');
     if (!token) return;
 
+    let isCancelled = false;
     let es: EventSource | null = null;
     let fallbackInterval: any = null;
 
-    try {
-      const sseUrl = `/api/notifications/stream?token=${encodeURIComponent(token)}`;
-      es = new EventSource(sseUrl);
-      eventSourceRef.current = es;
+    const setupSSE = async () => {
+      try {
+        const ticketRes = await api.getStreamTicket();
+        if (isCancelled) return;
+        const sseUrl = `/api/notifications/stream?ticket=${encodeURIComponent(ticketRes.ticket)}`;
+        es = new EventSource(sseUrl);
+        eventSourceRef.current = es;
 
-      es.onopen = () => {
-        setIsSseActive(true);
-      };
+        es.onopen = () => {
+          setIsSseActive(true);
+        };
 
-      es.addEventListener('connected', () => {
-        setIsSseActive(true);
-      });
+        es.addEventListener('connected', () => {
+          setIsSseActive(true);
+        });
 
-      es.addEventListener('notification', (event: MessageEvent) => {
-        try {
-          const payload: LiveSSEEventSummary = JSON.parse(event.data);
-          // Show live toast banner
-          setLiveToast(payload);
-          if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-          toastTimeoutRef.current = setTimeout(() => {
-            setLiveToast(null);
-          }, 6000);
+        es.addEventListener('notification', (event: MessageEvent) => {
+          try {
+            const payload: LiveSSEEventSummary = JSON.parse(event.data);
+            // Show live toast banner
+            setLiveToast(payload);
+            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+            toastTimeoutRef.current = setTimeout(() => {
+              setLiveToast(null);
+            }, 6000);
 
-          // Refresh persistent notifications list
-          fetchNotifs();
-        } catch {
-          // ignore parsing error
-        }
-      });
+            // Refresh persistent notifications list
+            fetchNotifs();
+          } catch {
+            // ignore parsing error
+          }
+        });
 
-      es.onerror = () => {
-        // SSE disconnected, fallback to active polling
+        es.onerror = () => {
+          // SSE disconnected, fallback to active polling
+          setIsSseActive(false);
+          if (es) {
+            es.close();
+            es = null;
+          }
+        };
+      } catch {
         setIsSseActive(false);
-      };
-    } catch {
-      setIsSseActive(false);
-    }
+      }
+    };
+
+    setupSSE();
 
     // Polling fallback every 25 seconds for unread count synchronization
     fallbackInterval = setInterval(async () => {
@@ -112,6 +123,7 @@ export const Header: React.FC = () => {
     }, 25000);
 
     return () => {
+      isCancelled = true;
       if (es) {
         es.close();
       }

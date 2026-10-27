@@ -188,7 +188,9 @@ class DeadlineService:
 
         # Also queue external EMAIL outbox item for high-priority or warning notifications
         if level in ["WARNING", "DANGER"] and channel == "IN_APP" and recipient_email:
-            email_idempotency = f"OUTBOX:{entity_type}:{entity_id}:EMAIL:{title[:30]}:{recipient_email}"
+            from app.services.notification.auth_policy import build_canonical_recipient_id
+            recip_id = build_canonical_recipient_id(recipient_user_id=user_id, recipient_email=recipient_email, recipient_role=recipient_role)
+            email_idempotency = f"OUTBOX:{entity_type}:{entity_id}:EMAIL:{title[:30]}:{recip_id}"
             OutboxDispatcherService.queue_notification(
                 db=db,
                 event_type=f"{entity_type}_URGENT_NOTICE",

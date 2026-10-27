@@ -18,14 +18,20 @@
 - In enterprise production, this storage module should interface directly with encrypted Cloud Object Storage (e.g. AWS S3 with Object Lock or Azure Blob Storage) with ClamAV/anti-malware scanning pipeline before acceptance.
 
 #### 2.2 Transactional Outbox, Reliable Delivery & Notification Boundaries
-- **Transactional Outbox Persistence**: All notification dispatch intents are atomically enqueued inside the originating business database transaction into `notification_outbox`. This guarantees zero lost notifications between application commits and external dispatch workers.
-- **Provider Evidence Distinction**: 
-  - Successful SMTP transmission marks the outbox record as `ACCEPTED_BY_PROVIDER` (not falsely `DELIVERED`), acknowledging that an SMTP server response (status 250) confirms acceptance by the MTA relay, not confirmed delivery to a human recipient's inbox.
-  - When SMTP credentials (`SMTP_HOST`, `SMTP_PORT`) are not configured, dispatches are explicitly marked `NOT_CONFIGURED` rather than feigning successful delivery.
-  - The SMS Provider is engineered as an adapter boundary for future CDAC / NIC AICTE SMS Gateway integration. Until an official gateway URL and API credentials are provided, outbox records are transparently marked `SIMULATED` in development or `NOT_CONFIGURED` in production. Live carrier delivery is never falsely asserted.
-- **Retry with Bounded Exponential Backoff**: The outbox worker retries transient failures with exponential backoff (e.g. 60s, 120s, 240s, 480s) up to 4 attempts before transitioning to `DEAD_LETTER`. Authorized administrators can review failure causes and initiate manual retries via `POST /api/notifications/outbox/{id}/retry`.
-- **Real-Time Server-Sent Events (SSE)**: Authenticated SSE stream (`/api/notifications/stream`) delivers live operational summaries to subscribed browsers with 15-second heartbeat (`: ping`) keep-alives and strict user/tenant/regional scoping. If SSE connections drop or are blocked by enterprise firewalls, the frontend seamlessly degrades to interval polling (`/api/notifications/unread-count`).
-- **Autonomous Scheduling & Zero Duplicates**: The background scheduler executes repeated deadline and outbox dispatch cycles. Scans use database-level idempotency keys (`OUTBOX:{entity_type}:{entity_id}:{channel}:{event_type}...`) ensuring zero duplicate alerts or redundant dispatches on repeat scans.
+- **Transactional Outbox Persistence & Canonical Recipient Idempotency**: All notification dispatch intents are atomically enqueued inside the originating business database transaction into `notification_outbox`. Idempotency keys use canonical recipient identities (`UID:<id>` or `EMAIL_HASH:<hash>`) rather than raw PII or coarse role names, guaranteeing distinct recipients receive separate dispatches while repeated attempts are deduplicated without lost events.
+- **Atomic Outbox Claims & Concurrency Protection**: 
+  - To prevent duplicate transmissions across competing workers, dispatchers acquire durable row-level processing claims prior to initiating network operations. On PostgreSQL, claims use row locking with `SELECT ... FOR UPDATE SKIP LOCKED`. On SQLite/development dialects, atomic conditional updates (`WHERE status IN ('QUEUED', 'RETRY_SCHEDULED')`) guarantee mutual exclusion.
+  - Transactions are durably committed and closed before network calls commence, ensuring database connection pools are not held open during external SMTP latency.
+  - Crashed worker claims recover automatically after a configurable lease timeout (300 seconds) without stranding records permanently in `PROCESSING`.
+- **At-Least-Once Delivery & Generic SMTP Invariants**:
+  - Generic SMTP (RFC 5321) lacks distributed consensus or two-phase commit with client application state. If network drops occur after transmitting the body but before receiving `250 OK`, the MTA relay may accept the message while the client sees a timeout.
+  - Consequently, delivery is bounded **at-least-once**, not strictly exactly-once. Duplicate delivery risk is mitigated through deterministic Message-ID headers (`<correlation-id>@aicte.gov.in`) and atomic database claim locks. Ambiguous disconnects are categorized as `TIMEOUT`/`NETWORK_AMBIGUOUS_DELIVERY` with bounded backoff.
+  - Outbox records are marked `ACCEPTED_BY_PROVIDER` (not falsely `DELIVERED`), confirming relay acceptance rather than human recipient inbox delivery.
+- **Secure SSE Stream Tickets & In-Memory Broker Architecture**:
+  - Reusable JWT tokens are strictly prohibited from EventSource query parameters to prevent token leakage in server logs, reverse proxy traces, and browser history. Instead, clients exchange their authenticated Bearer token via `POST /api/notifications/stream-ticket` for a short-lived (45s), single-use, session-bound stream ticket consumed atomically.
+  - Long-lived SSE connections periodically revalidate session state against active user flags and token blacklist revocations.
+  - The SSE broker operates as an in-memory, process-local pub/sub engine. In multi-worker deployments, cross-worker state is synchronized via database-backed fallback polling (`/api/notifications/unread-count`).
+- **Autonomous Scheduling & Zero Duplicates**: The background scheduler executes repeated deadline and outbox dispatch cycles with distributed database leases (`scheduler_leases`), ensuring zero duplicate alerts or redundant dispatches on repeat scans.
 
 #### 2.3 AI Case Brief Assistant & Fallback Mode
 - The system includes a deterministic Case Brief synthesis engine that summarizes application milestones, resolved deficiencies, and verified evidence without requiring external paid LLM APIs.

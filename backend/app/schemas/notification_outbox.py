@@ -33,9 +33,15 @@ class NotificationOutboxResponse(BaseModel):
     last_error_message: Optional[str] = None
     provider_message_id: Optional[str] = None
     provider_response: Optional[str] = None
+    payload_json: Optional[Any] = None
     sent_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
+
+
+class StreamTicketResponse(BaseModel):
+    ticket: str
+    expires_in_seconds: int
 
 
 class NotificationOutboxSummaryResponse(BaseModel):
@@ -66,3 +72,4 @@ class NotificationChannelStatusResponse(BaseModel):
 class NotificationUnreadCountResponse(BaseModel):
     unread_count: int
     total_count: int
+

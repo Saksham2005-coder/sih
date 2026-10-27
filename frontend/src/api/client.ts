@@ -380,6 +380,12 @@ export const api = {
   getNotificationUnreadCount: () => {
     return request<NotificationUnreadCount>('/notifications/unread-count');
   },
+
+  getStreamTicket: () => {
+    return request<{ ticket: string; expires_in_seconds: number }>('/notifications/stream-ticket', {
+      method: 'POST',
+    });
+  },
 };
 
 export const ordersApi = {
