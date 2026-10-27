@@ -37,6 +37,7 @@ import { RuleStudioPage } from './pages/officer/RuleStudioPage';
 import { AdminPage } from './pages/officer/AdminPage';
 import { NotificationOutboxPage } from './pages/officer/NotificationOutboxPage';
 import { MobileFieldInspectionPage } from './pages/officer/MobileFieldInspectionPage';
+import { JudgeDemoCentre } from './pages/demo/JudgeDemoCentre';
 
 import { PublicOrderVerification } from './pages/PublicOrderVerification';
 
@@ -110,6 +111,7 @@ export const App: React.FC = () => {
               <Route path="/officer/rules" element={<RuleStudioPage />} />
               <Route path="/officer/admin" element={<AdminPage />} />
               <Route path="/officer/notifications/outbox" element={<NotificationOutboxPage />} />
+              <Route path="/demo/explorer" element={<JudgeDemoCentre />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

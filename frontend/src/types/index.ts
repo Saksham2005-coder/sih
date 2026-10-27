@@ -859,4 +859,195 @@ export interface LiveSSEEventSummary {
   recipient_role?: string | null;
 }
 
+// Judge Demonstration Centre & Live Workflow Explorer Types
+export interface DemoPersonaInfo {
+  name: string;
+  email: string;
+  role: string;
+  rationale: string;
+}
+
+export interface DemoScenarioItem {
+  scenario_id: string;
+  scenario_number: number;
+  title: string;
+  subtitle: string;
+  route_code: string;
+  application_number: string;
+  application_id: number;
+  current_stage: string;
+  priority_score: number;
+  recommended_persona: DemoPersonaInfo;
+  target_url: string;
+  key_evaluation_points: string[];
+}
+
+export interface WorkflowStageDefinition {
+  stage_code: string;
+  label: string;
+  description: string;
+  permitted_roles: string[];
+  is_terminal?: boolean;
+  sla_days: number;
+}
+
+export interface WorkflowTransitionDefinition {
+  from_stage: string;
+  to_stage: string;
+  permitted_roles: string[];
+  is_return_loop?: boolean;
+  description?: string;
+}
+
+export interface NonApplicableStageDefinition {
+  stage_code: string;
+  stage_label: string;
+  statutory_reason: string;
+  aph_rule_reference: string;
+}
+
+export interface WorkflowRouteDefinition {
+  route_code: string;
+  route_name: string;
+  description: string;
+  stages: WorkflowStageDefinition[];
+  transitions: WorkflowTransitionDefinition[];
+  non_applicable_stages: NonApplicableStageDefinition[];
+}
+
+export interface SLATrackingDetail {
+  stage: string;
+  days_elapsed: number;
+  configured_sla_days: number;
+  sla_status: 'ON_TRACK' | 'APPROACHING_BREACH' | 'BREACHED';
+  is_breached: boolean;
+  rule_citation: string;
+}
+
+export interface PriorityFactorItem {
+  factor: string;
+  points: number;
+  category: string;
+}
+
+export interface PriorityBreakdownDetail {
+  total_score: number;
+  baseline_points: number;
+  factors: PriorityFactorItem[];
+  recommended_action: string;
+  policy_version: string;
+  is_deterministic: boolean;
+}
+
+export interface ExplainabilityResponse {
+  application: {
+    id: number;
+    application_number: string;
+    institution_id: number;
+    institution_name: string;
+    region: string;
+    academic_year: string;
+    application_type: string;
+    workflow_template_code: string;
+    current_stage: string;
+    priority_score: number;
+    version: number;
+    evc_required: boolean;
+    submitted_at?: string | null;
+    updated_at?: string | null;
+    approved_at?: string | null;
+    rejected_at?: string | null;
+  };
+  sla_tracking: SLATrackingDetail;
+  deficiency_summary: {
+    total_count: number;
+    open_count: number;
+    cured_count: number;
+    resolved_count: number;
+    items: Array<{
+      id: number;
+      category: string;
+      description: string;
+      required_document?: string | null;
+      status: string;
+      cure_remarks?: string | null;
+      has_cure_file: boolean;
+    }>;
+  };
+  evc_prerequisites: {
+    evc_required: boolean;
+    has_inspection: boolean;
+    inspection_id?: number | null;
+    inspection_status: string;
+    inspection_mode?: string | null;
+    panel_confirmed: boolean;
+    panel_members_count: number;
+    report_recommendation?: string | null;
+  };
+  document_compliance: {
+    total_documents: number;
+    active_documents: number;
+    expiring_soon_documents: number;
+    expired_documents: number;
+    total_undertakings: number;
+    due_soon_undertakings: number;
+    overdue_undertakings: number;
+    verified_undertakings: number;
+  };
+  priority_breakdown: PriorityBreakdownDetail;
+  escalations_and_alerts: Array<{
+    id: number;
+    escalation_level: string;
+    rule_code: string;
+    recipient_role: string;
+    is_acknowledged: boolean;
+    created_at?: string | null;
+    idempotency_key: string;
+  }>;
+  audit_events: Array<{
+    id: number;
+    action: string;
+    actor_name: string;
+    actor_role: string;
+    timestamp?: string | null;
+    details: any;
+  }>;
+}
+
+export interface DemoResetResponse {
+  scenario_id: string;
+  application_number: string;
+  reset_stage: string;
+  message: string;
+  timestamp: string;
+}
+
+export interface DemoTelemetryResponse {
+  demo_mode: boolean;
+  scheduler_status: string;
+  scan_interval_seconds: number;
+  last_deadline_scan?: {
+    run_id: string;
+    trigger_mode: string;
+    scanned_at: string;
+    duration_ms: number;
+    obligations_scanned: number;
+    alerts_generated: number;
+    escalations_generated: number;
+  } | null;
+  notification_transport: {
+    email_provider: string;
+    sms_provider: string;
+    transport_mode: string;
+    description: string;
+  };
+  active_scheduler_leases?: {
+    holder_id: string;
+    acquired_at?: string | null;
+    expires_at: string;
+    is_active: boolean;
+  } | null;
+}
+
+
 

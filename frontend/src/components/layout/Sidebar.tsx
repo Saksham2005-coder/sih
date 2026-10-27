@@ -183,6 +183,31 @@ export const Sidebar: React.FC = () => {
             );
           })}
         </nav>
+
+        {/* Judge Demonstration Centre Link */}
+        <div className="mt-4 pt-3 border-t border-brand-border">
+          <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-brand-text-muted mb-1.5">
+            Demonstration Layer
+          </p>
+          <NavLink
+            to="/demo/explorer"
+            className={({ isActive }) =>
+              `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
+                isActive
+                  ? 'bg-brand-sidebar-active-bg text-brand-sidebar-active-text border border-brand-teal/40 shadow-xs'
+                  : 'text-brand-teal hover:bg-brand-surface-secondary hover:text-brand-teal/90'
+              }`
+            }
+          >
+            <div className="flex items-center gap-2.5">
+              <Compass className="w-4 h-4 shrink-0 text-brand-teal" />
+              <span className="truncate">Judge Demo Centre</span>
+            </div>
+            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-brand-teal/15 text-brand-teal border border-brand-teal/30">
+              EXPLORER
+            </span>
+          </NavLink>
+        </div>
       </div>
 
       {/* Footer Info */}

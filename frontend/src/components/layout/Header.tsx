@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell, Shield, LogOut, CheckCircle2, AlertTriangle, Layers,
-  Radio, RefreshCw, Send, ExternalLink, X
+  Radio, RefreshCw, Send, ExternalLink, X, Compass
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
@@ -169,6 +169,15 @@ export const Header: React.FC = () => {
 
           {/* Actions & Profile */}
           <div className="flex items-center gap-3">
+            {/* Judge Demo Centre & Live Workflow Explorer Link */}
+            <Link
+              to="/demo/explorer"
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#143633] text-[#39C6B4] border border-[#225650] hover:bg-[#1a4743] hover:text-[#52e0ce] text-xs font-bold transition-colors shadow-xs"
+              title="Open Judge Regulatory Demonstration Centre & Live Workflow Explorer"
+            >
+              <Compass className="w-3.5 h-3.5" /> Demo Centre
+            </Link>
+
             {/* Demo Persona Quick-Switch */}
             <div className="hidden md:flex items-center gap-1.5 bg-[#182C40] px-2.5 py-1 rounded-md border border-[#274059] text-xs">
               <span className="text-[var(--brand-header-muted)] flex items-center gap-1">

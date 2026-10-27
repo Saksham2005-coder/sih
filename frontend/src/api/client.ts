@@ -11,7 +11,8 @@ import {
   DocumentAnalysisData, DocumentAnalysisReviewRequest,
   StatutoryOrderData, StatutoryOrderPublicVerificationData, OrderArtifactVerifyUploadData,
   NotificationOutboxItem, NotificationOutboxSummary, NotificationChannelStatus, NotificationUnreadCount,
-  EVCExpert, COICheckResult, EVCPanelAssignment, EVCFieldEvidence
+  EVCExpert, COICheckResult, EVCPanelAssignment, EVCFieldEvidence,
+  DemoScenarioItem, WorkflowRouteDefinition, ExplainabilityResponse, DemoResetResponse, DemoTelemetryResponse
 } from '../types';
 
 const API_BASE = '/api';
@@ -469,6 +470,29 @@ export const api = {
     return request<{ ticket: string; expires_in_seconds: number }>('/notifications/stream-ticket', {
       method: 'POST',
     });
+  },
+
+  // Judge Demonstration Centre & Live Workflow Explorer
+  getDemoScenarios: () => {
+    return request<DemoScenarioItem[]>('/demo/scenarios');
+  },
+
+  getDemoRoutes: () => {
+    return request<Record<string, WorkflowRouteDefinition>>('/demo/routes');
+  },
+
+  getDemoExplainability: (applicationId: number) => {
+    return request<ExplainabilityResponse>(`/demo/explainability/${applicationId}`);
+  },
+
+  resetDemoScenario: (scenarioId: string) => {
+    return request<DemoResetResponse>(`/demo/reset/${scenarioId}`, {
+      method: 'POST',
+    });
+  },
+
+  getDemoTelemetry: () => {
+    return request<DemoTelemetryResponse>('/demo/telemetry');
   },
 };
 
