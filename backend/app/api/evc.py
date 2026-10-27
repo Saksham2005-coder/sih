@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
 from typing import List, Optional
 from datetime import datetime, timezone
 
@@ -130,24 +130,83 @@ def _serialize_inspection(insp: EVCInspection, current_user: Optional[User] = No
     )
 
 
-def _verify_inspection_access(inspection: EVCInspection, current_user: User):
+def _verify_inspection_access(
+    inspection: EVCInspection,
+    current_user: User,
+    require_mutation: bool = False,
+    is_report_submission: bool = False
+):
     user_roles = [r.role for r in current_user.roles]
-    is_officer = any(r in [
-        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
-        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
-    ] for r in user_roles)
     app = inspection.application
-    if not is_officer:
-        if not current_user.institution_id or not app or app.institution_id != current_user.institution_id:
+    if not app:
+        raise HTTPException(status_code=404, detail="Inspection application not found")
+    inst = app.institution
+    inst_region = (inst.region or "").strip() if inst else ""
+
+    # 1. Institution Users: view only their institution's permitted inspection records
+    if _is_institution_user(current_user):
+        if not current_user.institution_id or app.institution_id != current_user.institution_id:
             raise HTTPException(status_code=403, detail="Unauthorized: Access denied to inspection outside institution")
-    else:
-        # Regional Officer Scoping: fail closed if unassigned or cross-region
-        if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
-            if not current_user.region or not current_user.region.strip():
-                raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
-            inst_region = app.institution.region if (app and app.institution) else None
-            if inst_region and inst_region.strip().lower() != current_user.region.strip().lower():
-                raise HTTPException(status_code=403, detail=f"Unauthorized: Access denied to region '{inst_region}'. Outside your assigned region '{current_user.region}'.")
+        if require_mutation:
+            raise HTTPException(status_code=403, detail="Unauthorized: Institution users cannot perform inspection operations")
+        return
+
+    # 2. System Administrators: retain infrastructure and read-only visibility;
+    # NEVER automatic authority to submit inspection reports or issue statutory decisions.
+    if "SYSTEM_ADMIN" in user_roles and not any(r in ["COMMITTEE_MEMBER", "EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+        if is_report_submission or require_mutation:
+            raise HTTPException(
+                status_code=403,
+                detail="Access denied: System Administrators retain read-only infrastructure visibility and cannot submit inspection reports or mutate inspection evidence."
+            )
+        return
+
+    # 3. Regional Officers: fail closed without a valid assigned region; cannot access or mutate inspections outside jurisdiction.
+    if "REGIONAL_OFFICER" in user_roles and not any(r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+        if not current_user.region or not current_user.region.strip():
+            raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+        if inst_region and inst_region.lower() != current_user.region.strip().lower():
+            raise HTTPException(status_code=403, detail=f"Unauthorized: Access denied to region '{inst_region}'. Outside your assigned region '{current_user.region}'.")
+        return
+
+    # 4. Committee Members: may access only inspections assigned to them through the relevant EVC panel assignment
+    if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+        active_assignments = [
+            a for a in (inspection.panel_assignments or [])
+            if a.status in ["INVITED", "ACCEPTED", "COMPLETED"]
+        ]
+        if active_assignments:
+            is_assigned = any(
+                a.expert and (a.expert.user_id == current_user.id or a.expert.email == current_user.email)
+                for a in active_assignments
+            ) or (inspection.convener_user_id == current_user.id or inspection.expert_user_id == current_user.id)
+            if not is_assigned:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Access denied: Committee Member is not assigned to this inspection panel."
+                )
+        else:
+            if inspection.convener_user_id or inspection.expert_user_id:
+                if current_user.id not in [inspection.convener_user_id, inspection.expert_user_id]:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Access denied: Committee Member is not assigned to this inspection panel."
+                    )
+        return
+
+    # 5. EVC Coordinators: may access and manage only the inspection records permitted by their scheduling authority and jurisdiction
+    if "EVC_COORDINATOR" in user_roles and not any(r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+        if current_user.region and current_user.region.strip() and current_user.region.strip() != "ALL_INDIA":
+            if inst_region and inst_region.lower() != current_user.region.strip().lower():
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Access denied: Case is registered under '{inst_region}' Region, outside your scheduling jurisdiction '{current_user.region}'."
+                )
+        return
+
+    # 6. Bureau Officers and Competent Authority retain authorized national access
+    if any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+        return
 
 
 def _mask_expert_profile(expert: EVCExpert, current_user: User) -> dict:
@@ -228,22 +287,37 @@ def get_evc_queue(
     )
 
     user_roles = [r.role for r in current_user.roles]
-    is_officer = any(r in [
-        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
-        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
-    ] for r in user_roles)
 
-    if not is_officer:
+    if _is_institution_user(current_user):
         if not current_user.institution_id:
             return []
         query = query.filter(Application.institution_id == current_user.institution_id)
     else:
-        if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        # Committee Members: view inspections assigned to them through active panel assignments, or unassigned records
+        if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+            query = query.outerjoin(EVCInspection.panel_assignments).outerjoin(EVCPanelAssignment.expert).filter(
+                or_(
+                    and_(EVCExpert.user_id == current_user.id, EVCPanelAssignment.status.in_(["INVITED", "ACCEPTED", "COMPLETED", "PROPOSED"])),
+                    EVCInspection.convener_user_id == current_user.id,
+                    EVCInspection.expert_user_id == current_user.id,
+                    and_(EVCInspection.convener_user_id.is_(None), EVCInspection.expert_user_id.is_(None), ~EVCInspection.panel_assignments.any())
+                )
+            )
+        # Regional Officers: fail closed without assigned region; strictly scoped to assigned region
+        elif "REGIONAL_OFFICER" in user_roles and not any(r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
             if not current_user.region or not current_user.region.strip():
                 raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
             if region and region.strip().lower() != current_user.region.strip().lower():
                 raise HTTPException(status_code=403, detail=f"Access denied: Regional Officer assigned to '{current_user.region}' cannot query region '{region}'.")
             query = query.filter(Institution.region == current_user.region)
+        # EVC Coordinators: check jurisdiction if regionally assigned
+        elif "EVC_COORDINATOR" in user_roles and not any(r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+            if current_user.region and current_user.region.strip() and current_user.region.strip() != "ALL_INDIA":
+                if region and region.strip().lower() != current_user.region.strip().lower():
+                    raise HTTPException(status_code=403, detail=f"Access denied: Region '{region}' outside your scheduling jurisdiction '{current_user.region}'.")
+                query = query.filter(Institution.region == current_user.region)
+            elif region:
+                query = query.filter(Institution.region == region)
         elif region:
             query = query.filter(Institution.region == region)
 
@@ -278,6 +352,12 @@ def submit_evc_report(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
+    if not inspection:
+        raise HTTPException(status_code=404, detail="EVC inspection not found")
+
+    _verify_inspection_access(inspection, current_user, require_mutation=True, is_report_submission=True)
+
     inspection = EVCService.submit_report(
         db=db,
         inspection_id=id,
@@ -427,6 +507,12 @@ def propose_panel_assignment(
     Proposes an expert for an inspection panel. Automatically runs COI engine.
     If prohibited, requires authorized override with mandatory audit reason.
     """
+    inspection = db.query(EVCInspection).filter(EVCInspection.id == request.inspection_id).first()
+    if not inspection:
+        raise HTTPException(status_code=404, detail="EVC Inspection record not found")
+
+    _verify_inspection_access(inspection, current_user, require_mutation=True)
+
     assignment = EVCWorkflowService.propose_panel_assignment(
         db=db,
         inspection_id=request.inspection_id,
@@ -447,6 +533,13 @@ def invite_panel_expert(
     """
     Dispatches formal invitation notice to proposed expert via notification outbox.
     """
+    assignment = db.query(EVCPanelAssignment).filter(EVCPanelAssignment.id == id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Panel assignment not found")
+
+    if assignment.inspection:
+        _verify_inspection_access(assignment.inspection, current_user, require_mutation=True)
+
     assignment = EVCWorkflowService.invite_expert(
         db=db,
         assignment_id=id,
@@ -503,6 +596,13 @@ def reassign_panel_expert(
     """
     Reassigns a declined or conflicted member to a replacement expert.
     """
+    assignment = db.query(EVCPanelAssignment).filter(EVCPanelAssignment.id == id).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Original panel assignment not found")
+
+    if assignment.inspection:
+        _verify_inspection_access(assignment.inspection, current_user, require_mutation=True)
+
     new_assignment = EVCWorkflowService.reassign_panel_member(
         db=db,
         old_assignment_id=id,
@@ -528,6 +628,12 @@ def check_in_inspection(
     Records inspector field check-in with transparent location accuracy provenance.
     Coordinates are recorded without falsely claiming spoof-proof certainty.
     """
+    inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
+    if not inspection:
+        raise HTTPException(status_code=404, detail="EVC Inspection not found")
+
+    _verify_inspection_access(inspection, current_user, require_mutation=True)
+
     inspection = EVCWorkflowService.check_in_inspection(
         db=db,
         inspection_id=id,
@@ -551,6 +657,12 @@ def record_field_evidence(
     Records checklist item observation notes and attaches file evidence with SHA-256 integrity hash.
     Transparently notes location accuracy and permission granted status.
     """
+    inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
+    if not inspection:
+        raise HTTPException(status_code=404, detail="EVC Inspection not found")
+
+    _verify_inspection_access(inspection, current_user, require_mutation=True)
+
     evidence = EVCWorkflowService.record_field_evidence(
         db=db,
         inspection_id=id,
@@ -602,6 +714,12 @@ def finalize_inspection_report(
     Statutory Safeguard: Moves application to EVC_COMPLETED without granting statutory approval.
     Competent Authority exclusively retains final decision order authority.
     """
+    inspection = db.query(EVCInspection).filter(EVCInspection.id == id).first()
+    if not inspection:
+        raise HTTPException(status_code=404, detail="EVC Inspection not found")
+
+    _verify_inspection_access(inspection, current_user, require_mutation=True, is_report_submission=True)
+
     inspection = EVCWorkflowService.finalize_inspection_report(
         db=db,
         inspection_id=id,

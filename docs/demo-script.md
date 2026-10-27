@@ -112,5 +112,27 @@
    - Click the theme toggle icon in the navigation bar to switch between Light, Dark, and System modes.
    - Show that all 8 role dashboards, tables, dialogs, charts, and status badges preserve WCAG 2.1 AA contrast without page reload, form state loss, or wrong-theme flicker.
 
+#### Step 10: Judge Demonstration Centre & Guided Regulatory Explorer (`/demo/explorer`) (1:00)
+1. **Authoritative 4-Route Regulatory Architecture**:
+   - Navigate to `/demo/explorer` as an authorized officer or administrator.
+   - Interact with the 4 canonical workflow route switcher pills:
+     - `Only Scrutiny` (EoA Fast-Track)
+     - `Scrutiny + EVC` (New Institution Standard)
+     - `EVC + SAC/SHC` (Deficiency Hearing Loop)
+     - `Only EVC` (Direct Inspection Queue)
+   - Observe that the visual state machine graph renders real statutory stages, allowed transitions, and deficiency loops directly from the backend's shared `AUTHORITATIVE_ROUTES` registry.
+2. **Grounded Rule Provenance (Zero Fabricated Citations)**:
+   - Select Scenario 1 (`AICTE-2026-EOA-98124`).
+   - Inspect the **Explainable Decision & SLA Attribution** panel:
+     - Stage SLA is verified against active Rule Studio configuration (`RULE_DEFICIENCY_CURE`, `v1.0.0`).
+     - Real configured threshold (15 days) and calculation basis are explicitly cited with clear `[Illustrative Policy]` badges, distinguishing seed defaults from statutory text.
+   - Note explainable priority calculation breakdown and live immutable audit trail.
+3. **Transactional Scenario Reset & Revocation Handling**:
+   - Select Scenario 5 (`AICTE-2026-DEC-33019`) which has an approved statutory order.
+   - Click "Reset Scenario to Baseline" as an authorized demo operator (`sysadmin@aicte.gov.in`).
+   - Confirm that the previously issued statutory order is cleanly revoked (`status="REVOKED"`, `is_revoked=True`) with an immutable audit event, restoring the case safely to `AWAITING_COMPETENT_AUTHORITY`.
+   - Demonstrate that unauthorized roles (Institution Users, Compliance Officers) cannot trigger scenario resets (`HTTP 403 Forbidden`).
+
+
 
 

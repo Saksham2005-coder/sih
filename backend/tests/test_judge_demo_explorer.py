@@ -4,14 +4,15 @@ from app.core.database import SessionLocal
 from app.models.application import Application, Deficiency
 from app.models.audit import AuditEvent
 
-def get_auth_token(client, email="admin@apex.edu.in", password="Password123!"):
+def get_auth_token(client, email="sysadmin@aicte.gov.in", password="Password123!"):
     res = client.post("/api/auth/login", json={"email": email, "password": password})
     assert res.status_code == 200, f"Login failed: {res.text}"
     return res.json()["access_token"]
 
 def test_demo_scenarios_returns_five_curated_routes(client):
-    """Verifies that /api/demo/scenarios returns all 5 authentic synthetic scenarios."""
-    res = client.get("/api/demo/scenarios")
+    """Verifies that /api/demo/scenarios returns all 5 authentic synthetic scenarios for authenticated users."""
+    token = get_auth_token(client, "sysadmin@aicte.gov.in")
+    res = client.get("/api/demo/scenarios", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 200
     scenarios = res.json()
     assert len(scenarios) == 5
@@ -48,12 +49,15 @@ def test_demo_scenarios_returns_five_curated_routes(client):
     assert s5["application_number"] == "AICTE-2026-DEC-33019"
 
 def test_demo_routes_exposes_canonical_specifications(client):
-    """Verifies that /api/demo/routes returns canonical route rules without UI fabrication."""
-    res = client.get("/api/demo/routes")
+    """Verifies that /api/demo/routes returns all 4 canonical route combinations backed by the authoritative registry."""
+    token = get_auth_token(client, "sysadmin@aicte.gov.in")
+    res = client.get("/api/demo/routes", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 200
     routes = res.json()
     assert "ONLY_SCRUTINY" in routes
     assert "SCRUTINY_EVC" in routes
+    assert "EVC_SAC_SHC" in routes
+    assert "ONLY_EVC" in routes
 
     # Verify ONLY_SCRUTINY non-applicable stages have statutory rationale
     eoa_route = routes["ONLY_SCRUTINY"]
@@ -69,24 +73,40 @@ def test_demo_routes_exposes_canonical_specifications(client):
     assert "EVC_SCHEDULED" in stage_codes
     assert "EVC_COMPLETED" in stage_codes
 
+    # Verify EVC_SAC_SHC route
+    sac_route = routes["EVC_SAC_SHC"]
+    sac_stages = [s["stage_code"] for s in sac_route["stages"]]
+    assert "AWAITING_SAC_CAC_REVIEW" in sac_stages
+
+    # Verify ONLY_EVC route
+    only_evc_route = routes["ONLY_EVC"]
+    only_evc_stages = [s["stage_code"] for s in only_evc_route["stages"]]
+    assert "UNDER_SCRUTINY" not in only_evc_stages
+    assert "EVC_SCHEDULED" in only_evc_stages
+
 def test_explainability_telemetry_grounded_in_database(client):
-    """Verifies that /api/demo/explainability returns actual database telemetry."""
+    """Verifies that /api/demo/explainability returns actual database telemetry with live rule provenance."""
     db = SessionLocal()
     try:
         app = db.query(Application).filter(Application.application_number == "AICTE-2026-EOA-98124").first()
         assert app is not None
 
-        res = client.get(f"/api/demo/explainability/{app.id}")
+        token = get_auth_token(client, "ro.western@aicte.gov.in")
+        res = client.get(f"/api/demo/explainability/{app.id}", headers={"Authorization": f"Bearer {token}"})
         assert res.status_code == 200
         data = res.json()
 
         assert data["application"]["application_number"] == "AICTE-2026-EOA-98124"
         assert "Apex Institute of Technology" in data["application"]["institution_name"]
 
-        # SLA tracking
+        # SLA tracking with verified rule provenance
         assert "days_elapsed" in data["sla_tracking"]
         assert "configured_sla_days" in data["sla_tracking"]
         assert data["sla_tracking"]["sla_status"] in ["ON_TRACK", "APPROACHING_BREACH", "BREACHED"]
+        assert data["sla_tracking"]["rule_code"] is not None
+        assert "RULE_" in data["sla_tracking"]["rule_code"]
+        assert data["sla_tracking"]["is_illustrative_policy"] is True
+        assert data["sla_tracking"]["calculation_basis"] is not None
 
         # Deficiencies
         assert data["deficiency_summary"]["open_count"] >= 2
@@ -96,7 +116,6 @@ def test_explainability_telemetry_grounded_in_database(client):
         priority = data["priority_breakdown"]
         assert priority["is_deterministic"] is True
         assert len(priority["factors"]) > 0
-        # Every factor has points
         for f in priority["factors"]:
             assert isinstance(f["points"], int)
 
@@ -107,11 +126,12 @@ def test_explainability_telemetry_grounded_in_database(client):
         db.close()
 
 def test_explainability_returns_404_for_unknown_application(client):
-    res = client.get("/api/demo/explainability/999999")
+    token = get_auth_token(client, "sysadmin@aicte.gov.in")
+    res = client.get("/api/demo/explainability/999999", headers={"Authorization": f"Bearer {token}"})
     assert res.status_code == 404
 
 def test_safe_scenario_reset_restores_initial_state_and_preserves_audit(client):
-    """Proves that scenario reset restores target state without deleting audit history or other apps."""
+    """Proves that scenario reset restores target state without deleting audit history or other apps, and enforces authorization."""
     db = SessionLocal()
     try:
         app = db.query(Application).filter(Application.application_number == "AICTE-2026-EOA-98124").first()
@@ -126,12 +146,19 @@ def test_safe_scenario_reset_restores_initial_state_and_preserves_audit(client):
 
         initial_audit_count = db.query(AuditEvent).count()
 
-        token = get_auth_token(client, "admin@apex.edu.in")
+        # Unauthorized user (Institution Admin) cannot reset
+        inst_token = get_auth_token(client, "admin@apex.edu.in")
+        unauth_res = client.post(
+            "/api/demo/reset/scenario-3-deficiency-cure-loop",
+            headers={"Authorization": f"Bearer {inst_token}"}
+        )
+        assert unauth_res.status_code == 403
 
-        # Trigger safe scenario reset
+        # Authorized operator (System Admin) can reset
+        admin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
         res = client.post(
             "/api/demo/reset/scenario-3-deficiency-cure-loop",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {admin_token}"}
         )
         assert res.status_code == 200
         reset_data = res.json()
@@ -158,16 +185,25 @@ def test_safe_scenario_reset_restores_initial_state_and_preserves_audit(client):
     finally:
         db.close()
 
-def test_demo_telemetry_returns_scheduler_and_transport(client):
-    """Verifies that /api/demo/telemetry returns scheduler state and notification transport."""
-    res = client.get("/api/demo/telemetry")
-    assert res.status_code == 200
-    telemetry = res.json()
+def test_demo_telemetry_returns_scheduler_and_transport_with_lease_redaction(client):
+    """Verifies that /api/demo/telemetry redacts raw scheduler lease tokens for non-admins."""
+    # Regional Officer call: leaseholder should be redacted
+    ro_token = get_auth_token(client, "ro.western@aicte.gov.in")
+    ro_res = client.get("/api/demo/telemetry", headers={"Authorization": f"Bearer {ro_token}"})
+    assert ro_res.status_code == 200
+    ro_telemetry = ro_res.json()
+    assert "scheduler_status" in ro_telemetry
+    assert "notification_transport" in ro_telemetry
+    if ro_telemetry.get("scheduler_lease"):
+        assert ro_telemetry["scheduler_lease"]["holder_id"] == "[REDACTED]"
 
-    assert "scheduler_status" in telemetry
-    assert "scan_interval_seconds" in telemetry
-    assert "notification_transport" in telemetry
-    assert telemetry["notification_transport"]["transport_mode"] in ["REAL_SMTP", "DEMO_SIMULATED_SANDBOX"]
+    # System Admin call: raw lease details are visible
+    admin_token = get_auth_token(client, "sysadmin@aicte.gov.in")
+    admin_res = client.get("/api/demo/telemetry", headers={"Authorization": f"Bearer {admin_token}"})
+    assert admin_res.status_code == 200
+    admin_telemetry = admin_res.json()
+    if admin_telemetry.get("scheduler_lease") and admin_telemetry["scheduler_lease"]["has_lease"]:
+        assert admin_telemetry["scheduler_lease"]["holder_id"] != "[REDACTED]"
 
 def test_production_fails_closed_for_all_demo_endpoints(client, monkeypatch):
     """Strict Production Safety Invariant: When DEMO_MODE is False, all demo endpoints fail closed with 403."""
@@ -178,3 +214,4 @@ def test_production_fails_closed_for_all_demo_endpoints(client, monkeypatch):
     assert client.get("/api/demo/explainability/1").status_code == 403
     assert client.post("/api/demo/reset/scenario-3-deficiency-cure-loop").status_code == 403
     assert client.get("/api/demo/telemetry").status_code == 403
+

@@ -649,6 +649,36 @@ class EVCWorkflowService:
         if inspection.application and inspection.application.institution:
             check_regional_scope(actor, inspection.application.institution.region)
 
+        # Role-specific scoping & System Admin boundary
+        user_roles = [r.role for r in actor.roles]
+        if "SYSTEM_ADMIN" in user_roles and not any(r in ["COMMITTEE_MEMBER", "EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: System Administrators retain read-only infrastructure visibility and cannot perform field check-in."
+            )
+        if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+            active_assignments = [
+                a for a in (inspection.panel_assignments or [])
+                if a.status in ["INVITED", "ACCEPTED", "COMPLETED"]
+            ]
+            if active_assignments:
+                is_assigned = any(
+                    a.expert and (a.expert.user_id == actor.id or a.expert.email == actor.email)
+                    for a in active_assignments
+                ) or (inspection.convener_user_id == actor.id or inspection.expert_user_id == actor.id)
+                if not is_assigned:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied: Committee Member is not assigned to this inspection panel."
+                    )
+            else:
+                if inspection.convener_user_id or inspection.expert_user_id:
+                    if actor.id not in [inspection.convener_user_id, inspection.expert_user_id]:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: Committee Member is not assigned to this inspection panel."
+                        )
+
         # Coordinate bounds and accuracy validation
         if latitude is not None:
             if latitude < -90.0 or latitude > 90.0:
@@ -715,6 +745,36 @@ class EVCWorkflowService:
         # Regional scope check
         if inspection.application and inspection.application.institution:
             check_regional_scope(actor, inspection.application.institution.region)
+
+        # Role-specific scoping & System Admin boundary
+        user_roles = [r.role for r in actor.roles]
+        if "SYSTEM_ADMIN" in user_roles and not any(r in ["COMMITTEE_MEMBER", "EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: System Administrators retain read-only infrastructure visibility and cannot record field evidence."
+            )
+        if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+            active_assignments = [
+                a for a in (inspection.panel_assignments or [])
+                if a.status in ["INVITED", "ACCEPTED", "COMPLETED"]
+            ]
+            if active_assignments:
+                is_assigned = any(
+                    a.expert and (a.expert.user_id == actor.id or a.expert.email == actor.email)
+                    for a in active_assignments
+                ) or (inspection.convener_user_id == actor.id or inspection.expert_user_id == actor.id)
+                if not is_assigned:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied: Committee Member is not assigned to this inspection panel."
+                    )
+            else:
+                if inspection.convener_user_id or inspection.expert_user_id:
+                    if actor.id not in [inspection.convener_user_id, inspection.expert_user_id]:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: Committee Member is not assigned to this inspection panel."
+                        )
 
         # Validate that client-supplied file_url references registered, authorized platform storage
         if file_url:
@@ -808,6 +868,40 @@ class EVCWorkflowService:
 
         if not has_permission(actor, Permission.EVC_REPORT):
             raise HTTPException(status_code=403, detail="Unauthorized: User does not hold 'evc.report' permission")
+
+        # Regional scope check
+        if inspection.application and inspection.application.institution:
+            check_regional_scope(actor, inspection.application.institution.region)
+
+        # Role-specific scoping & System Admin boundary
+        user_roles = [r.role for r in actor.roles]
+        if "SYSTEM_ADMIN" in user_roles and not any(r in ["COMMITTEE_MEMBER", "EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: System Administrators retain read-only infrastructure visibility and cannot submit inspection reports."
+            )
+        if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+            active_assignments = [
+                a for a in (inspection.panel_assignments or [])
+                if a.status in ["INVITED", "ACCEPTED", "COMPLETED"]
+            ]
+            if active_assignments:
+                is_assigned = any(
+                    a.expert and (a.expert.user_id == actor.id or a.expert.email == actor.email)
+                    for a in active_assignments
+                ) or (inspection.convener_user_id == actor.id or inspection.expert_user_id == actor.id)
+                if not is_assigned:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied: Committee Member is not assigned to this inspection panel."
+                    )
+            else:
+                if inspection.convener_user_id or inspection.expert_user_id:
+                    if actor.id not in [inspection.convener_user_id, inspection.expert_user_id]:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: Committee Member is not assigned to this inspection panel."
+                        )
 
         valid_recs = {"RECOMMENDED_APPROVAL", "RECOMMENDED_REJECTION", "DEFICIENCY_NOTED"}
         if recommendation not in valid_recs:

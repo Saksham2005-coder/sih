@@ -144,6 +144,41 @@ class EVCService:
                 detail="Unauthorized: User does not hold 'evc.report' permission."
             )
 
+        user_roles = [r.role for r in actor.roles]
+        if "SYSTEM_ADMIN" in user_roles and not any(r in ["COMMITTEE_MEMBER", "EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: System Administrators retain read-only infrastructure visibility and cannot submit inspection reports."
+            )
+
+        # Scoping: Committee members must be assigned to this inspection panel
+        if "COMMITTEE_MEMBER" in user_roles and not any(r in ["BUREAU_OFFICER", "COMPETENT_AUTHORITY", "EVC_COORDINATOR", "REGIONAL_OFFICER"] for r in user_roles):
+            active_assignments = [
+                a for a in (inspection.panel_assignments or [])
+                if a.status in ["INVITED", "ACCEPTED", "COMPLETED"]
+            ]
+            if active_assignments:
+                is_assigned = any(
+                    a.expert and (a.expert.user_id == actor.id or a.expert.email == actor.email)
+                    for a in active_assignments
+                ) or (inspection.convener_user_id == actor.id or inspection.expert_user_id == actor.id)
+                if not is_assigned:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="Access denied: Committee Member is not assigned to this inspection panel."
+                    )
+            else:
+                if inspection.convener_user_id or inspection.expert_user_id:
+                    if actor.id not in [inspection.convener_user_id, inspection.expert_user_id]:
+                        raise HTTPException(
+                            status_code=status.HTTP_403_FORBIDDEN,
+                            detail="Access denied: Committee Member is not assigned to this inspection panel."
+                        )
+
+        # Regional scope check
+        if inspection.application and inspection.application.institution:
+            check_regional_scope(actor, inspection.application.institution.region)
+
         # 2. Recommendation validation
         if recommendation not in VALID_RECOMMENDATIONS:
             raise HTTPException(

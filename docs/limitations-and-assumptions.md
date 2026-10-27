@@ -96,5 +96,20 @@
   - Final inspection recommendations (`RECOMMENDED_APPROVAL`, `RECOMMENDED_REJECTION`, `DEFICIENCY_NOTED`) advance the application stage to `EVC_COMPLETED`.
   - **Statutory Safeguard**: Field inspection recommendations never grant final statutory approval or rejection. Competent Authority exclusively retains final decision order authority under AICTE statutory governance.
 
+#### 2.13 Judge Demonstration Explorer, Statutory Provenance & Scenario Reset Invariants
+- **Authentication & Production Gate**: The demonstration explorer (`/api/demo/*`) is strictly disabled in production environments (`ENVIRONMENT=production` or `DEMO_MODE=false`) with `HTTP 403 Forbidden`. In development, all endpoints require authenticated sessions; endpoints exposing case dossiers, operational telemetry, or scenarios enforce tenant and regional boundaries.
+- **Authoritative Shared Route Registry**: To eliminate discrepancy between visual diagrams and the statutory state machine, both backend engine validation and frontend graph rendering consume the unified `AUTHORITATIVE_ROUTES` registry (`ONLY_SCRUTINY`, `SCRUTINY_EVC`, `EVC_SAC_SHC`, `ONLY_EVC`).
+- **Grounded Rule Provenance vs. Fabricated Citations**: Explainability stage SLAs resolve directly against active `RuleStudio` `RuleDefinition` records (`RULE_SCRUTINY_SLA`, `RULE_DEFICIENCY_CURE`, `RULE_EVC_SCHEDULE`). Arbitrary fabricated citations (e.g., `AICTE APH 2026-27 Rule SLA-STG-*`) are strictly rejected. Seed defaults are clearly badged as `[Illustrative Policy]`, ensuring complete regulatory transparency.
+- **Role-Specific EVC Inspection Scoping**:
+  - Institution users access only their own permitted inspection records and institution-visible evidence.
+  - Regional Officers fail closed without an assigned region and access only inspections within their regional jurisdiction.
+  - Committee Members access only inspections where they have an active panel assignment (`INVITED`, `ACCEPTED`, `COMPLETED`), legacy user link, or unassigned queue status.
+  - System Administrators retain infrastructure telemetry and audit log visibility, but are strictly barred from conducting check-ins, recording field evidence, or submitting inspection reports.
+- **Transactional Scenario Reset & Revocation Invariants**:
+  - Scenario resets operate in atomic database transactions, rolling back all changes if any precondition or relationship fails.
+  - Resets affect only synthetic demonstration records within the synthetic allowlist.
+  - If a scenario has generated a statutory decision order (e.g., Scenario 5), reset marks the order as `REVOKED` (`is_revoked=True`), preserves historical audit logs, records an explicit reset audit entry, and restores the application to `AWAITING_COMPETENT_AUTHORITY`, preventing contradictory active statutory orders.
+
+
 
 

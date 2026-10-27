@@ -922,6 +922,10 @@ export interface SLATrackingDetail {
   sla_status: 'ON_TRACK' | 'APPROACHING_BREACH' | 'BREACHED';
   is_breached: boolean;
   rule_citation: string;
+  rule_code?: string | null;
+  rule_version?: string | null;
+  is_illustrative_policy?: boolean;
+  calculation_basis?: string | null;
 }
 
 export interface PriorityFactorItem {

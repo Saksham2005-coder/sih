@@ -57,6 +57,10 @@ class SLATrackingDetail(BaseModel):
     sla_status: str # "ON_TRACK", "APPROACHING_BREACH", "BREACHED"
     is_breached: bool
     rule_citation: str
+    rule_code: Optional[str] = None
+    rule_version: Optional[str] = None
+    is_illustrative_policy: bool = True
+    calculation_basis: Optional[str] = None
 
 class PriorityFactorItem(BaseModel):
     factor: str

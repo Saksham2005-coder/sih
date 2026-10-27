@@ -16,7 +16,9 @@ from app.core.rbac import (
     INSTITUTION_ADMIN,
     COMPLIANCE_OFFICER,
     COMMITTEE_MEMBER,
-    EVC_COORDINATOR
+    EVC_COORDINATOR,
+    Permission,
+    has_permission
 )
 from app.models.user import User
 from app.models.application import Application, Deficiency, ApplicationStage
@@ -25,9 +27,16 @@ from app.models.compliance import ComplianceUndertaking
 from app.models.document import DocumentRecord
 from app.models.alert import AlertEscalation, Notification, DeadlineEngineRun, SchedulerLease
 from app.models.audit import AuditEvent
+from app.models.statutory_order import StatutoryOrder
+from app.models.rule import RuleDefinition
 from app.services.priority_service import calculate_priority
 from app.services.audit_service import log_audit_event
 from app.services.scheduler import scheduler
+from app.services.workflow_routes import (
+    AUTHORITATIVE_ROUTES,
+    get_canonical_routes_registry,
+    get_route_for_workflow_code
+)
 from app.schemas.demo import (
     DemoScenarioItem,
     DemoPersonaInfo,
@@ -57,216 +66,36 @@ router = APIRouter(
     dependencies=[Depends(verify_demo_environment)]
 )
 
-# Canonical route configurations derived from backend regulatory state machine
-CANONICAL_ROUTES: Dict[str, WorkflowRouteDefinition] = {
-    "ONLY_SCRUTINY": WorkflowRouteDefinition(
-        route_code="ONLY_SCRUTINY",
-        route_name="Standard Scrutiny Route (Extension of Approval)",
-        description="Streamlined regulatory route for annual extension of approval (EOA) renewals. Evaluates infrastructure, faculty cadre, and regulatory undertakings through documentary scrutiny without physical EVC inspection.",
-        stages=[
-            WorkflowStageDefinition(
-                stage_code="DRAFT",
-                label="Filing & Draft Preparation",
-                description="Institution compiles compliance disclosures, financial audits, and mandatory affidavits.",
-                permitted_roles=[INSTITUTION_ADMIN, COMPLIANCE_OFFICER],
-                sla_days=10
-            ),
-            WorkflowStageDefinition(
-                stage_code="SUBMITTED",
-                label="Formal Submission Filed",
-                description="Application lodged with prescribed fees, awaiting initial verification and scrutiny queue entry.",
-                permitted_roles=[INSTITUTION_ADMIN],
-                sla_days=5
-            ),
-            WorkflowStageDefinition(
-                stage_code="UNDER_SCRUTINY",
-                label="Document Scrutiny in Progress",
-                description="Regional Officer verifies land title, faculty cadre ratios, building completion stamps, and NBA/NAAC accreditations.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER],
-                sla_days=15
-            ),
-            WorkflowStageDefinition(
-                stage_code="SCRUTINY_COMPLETED",
-                label="Scrutiny Signed-Off",
-                description="Documentary scrutiny concluded with zero unresolved open deficiencies.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER],
-                sla_days=5
-            ),
-            WorkflowStageDefinition(
-                stage_code="AWAITING_COMPETENT_AUTHORITY",
-                label="Statutory Decision Docket",
-                description="Referred to Member Secretary / Council for final statutory order review.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER, COMPETENT_AUTHORITY],
-                sla_days=10
-            ),
-            WorkflowStageDefinition(
-                stage_code="APPROVED",
-                label="Statutory Approval Granted",
-                description="Final statutory order issued with verifiable cryptographic watermark and public verification QR.",
-                permitted_roles=[COMPETENT_AUTHORITY],
-                is_terminal=True,
-                sla_days=0
-            ),
-            WorkflowStageDefinition(
-                stage_code="REJECTED",
-                label="Statutory Rejection Order",
-                description="Formal speaking order issued citing specific regulatory non-compliances.",
-                permitted_roles=[COMPETENT_AUTHORITY],
-                is_terminal=True,
-                sla_days=0
-            )
-        ],
-        transitions=[
-            WorkflowTransitionDefinition(from_stage="DRAFT", to_stage="SUBMITTED", permitted_roles=[INSTITUTION_ADMIN]),
-            WorkflowTransitionDefinition(from_stage="SUBMITTED", to_stage="UNDER_SCRUTINY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="UNDER_SCRUTINY", to_stage="DEFICIENCY_COMMUNICATED", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER], is_return_loop=True, description="Deficiency Return Loop: Issued when documentary defects are detected."),
-            WorkflowTransitionDefinition(from_stage="DEFICIENCY_COMMUNICATED", to_stage="RESUBMITTED", permitted_roles=[INSTITUTION_ADMIN, COMPLIANCE_OFFICER], is_return_loop=True, description="Institutional Cure Submission."),
-            WorkflowTransitionDefinition(from_stage="RESUBMITTED", to_stage="UNDER_SCRUTINY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER], is_return_loop=True, description="Scrutiny Verification of Cured Items."),
-            WorkflowTransitionDefinition(from_stage="UNDER_SCRUTINY", to_stage="SCRUTINY_COMPLETED", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="SCRUTINY_COMPLETED", to_stage="AWAITING_COMPETENT_AUTHORITY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="AWAITING_COMPETENT_AUTHORITY", to_stage="APPROVED", permitted_roles=[COMPETENT_AUTHORITY]),
-            WorkflowTransitionDefinition(from_stage="AWAITING_COMPETENT_AUTHORITY", to_stage="REJECTED", permitted_roles=[COMPETENT_AUTHORITY])
-        ],
-        non_applicable_stages=[
-            NonApplicableStageDefinition(
-                stage_code="AWAITING_EVC_SCHEDULE",
-                stage_label="EVC Inspection Scheduling",
-                statutory_reason="Statutory Exemption: Physical on-site Expert Visit Committee inspection is not applicable for standard annual Extension of Approval (EOA) applications under AICTE Approval Process Handbook (APH) Chapter II, Section 2.4.",
-                aph_rule_reference="AICTE APH 2026-27 Ch. II Sec. 2.4 (EOA Norms)"
-            ),
-            NonApplicableStageDefinition(
-                stage_code="EVC_SCHEDULED",
-                stage_label="EVC Inspection Scheduled",
-                statutory_reason="Bypassed: Physical on-site inspection is not prescribed for regular non-contested EOA renewal applications.",
-                aph_rule_reference="AICTE APH 2026-27 Ch. II Sec. 2.4"
-            ),
-            NonApplicableStageDefinition(
-                stage_code="EVC_COMPLETED",
-                stage_label="EVC Inspection Completed",
-                statutory_reason="Bypassed: Physical on-site inspection is not prescribed for regular non-contested EOA renewal applications.",
-                aph_rule_reference="AICTE APH 2026-27 Ch. II Sec. 2.4"
-            ),
-            NonApplicableStageDefinition(
-                stage_code="AWAITING_SAC_CAC_REVIEW",
-                stage_label="Standing Hearing Committee Review",
-                statutory_reason="Not Applicable: Standing Hearing Committee (SHC/SAC) review is only convened when an institution appeals a rejected deficiency cure or when major structural non-compliance is referred by the Bureau.",
-                aph_rule_reference="AICTE APH 2026-27 Ch. VIII Sec. 8.2 (Hearing Committee)"
-            )
-        ]
-    ),
-    "SCRUTINY_EVC": WorkflowRouteDefinition(
-        route_code="SCRUTINY_EVC",
-        route_name="Scrutiny + Expert Visit Committee (New Technical Institution)",
-        description="Comprehensive regulatory route for new technical institutions and significant program expansions. Enforces both rigorous documentary scrutiny and mandatory physical Expert Visit Committee (EVC) verification.",
-        stages=[
-            WorkflowStageDefinition(
-                stage_code="DRAFT",
-                label="Filing & DPR Compilation",
-                description="Institution prepares Detailed Project Report (DPR), land conversion deeds, master plan, and trust deed.",
-                permitted_roles=[INSTITUTION_ADMIN],
-                sla_days=10
-            ),
-            WorkflowStageDefinition(
-                stage_code="SUBMITTED",
-                label="Application Lodged",
-                description="Submitted to Regional Office with security deposit and technical fees.",
-                permitted_roles=[INSTITUTION_ADMIN],
-                sla_days=5
-            ),
-            WorkflowStageDefinition(
-                stage_code="UNDER_SCRUTINY",
-                label="Scrutiny of Land & Structural Norms",
-                description="Scrutiny committee verifies land contiguity, barrier-free access plans, structural safety, and financial viability.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER],
-                sla_days=15
-            ),
-            WorkflowStageDefinition(
-                stage_code="SCRUTINY_COMPLETED",
-                label="Scrutiny Recommendation Signed",
-                description="Scrutiny committee clears documentary criteria and refers application for physical inspection.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER],
-                sla_days=5
-            ),
-            WorkflowStageDefinition(
-                stage_code="AWAITING_EVC_SCHEDULE",
-                label="EVC Inspection Scheduling",
-                description="EVC Coordination Directorate selects verified subject experts with zero conflict of interest and schedules on-site visit.",
-                permitted_roles=[EVC_COORDINATOR, REGIONAL_OFFICER],
-                sla_days=10
-            ),
-            WorkflowStageDefinition(
-                stage_code="EVC_SCHEDULED",
-                label="EVC Panel Confirmed",
-                description="Inspection date fixed, panel members accepted invitations, institution alerted for physical verification.",
-                permitted_roles=[EVC_COORDINATOR],
-                sla_days=7
-            ),
-            WorkflowStageDefinition(
-                stage_code="EVC_COMPLETED",
-                label="Physical Inspection & Report Filed",
-                description="Experts verify physical laboratories, computing facilities, faculty presence, and upload geotagged mobile evidence.",
-                permitted_roles=[COMMITTEE_MEMBER, EVC_COORDINATOR],
-                sla_days=5
-            ),
-            WorkflowStageDefinition(
-                stage_code="AWAITING_COMPETENT_AUTHORITY",
-                label="Final Approval Docket",
-                description="Full inspection dossier and unanimous recommendation submitted to Member Secretary / Council.",
-                permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER, COMPETENT_AUTHORITY],
-                sla_days=10
-            ),
-            WorkflowStageDefinition(
-                stage_code="APPROVED",
-                label="Letter of Approval (LoA) Issued",
-                description="Statutory Letter of Approval granted with student intake quotas and program affiliations.",
-                permitted_roles=[COMPETENT_AUTHORITY],
-                is_terminal=True,
-                sla_days=0
-            ),
-            WorkflowStageDefinition(
-                stage_code="REJECTED",
-                label="Statutory Rejection Order",
-                description="Formal order issued stating specific deficiencies and appellate remedies.",
-                permitted_roles=[COMPETENT_AUTHORITY],
-                is_terminal=True,
-                sla_days=0
-            )
-        ],
-        transitions=[
-            WorkflowTransitionDefinition(from_stage="DRAFT", to_stage="SUBMITTED", permitted_roles=[INSTITUTION_ADMIN]),
-            WorkflowTransitionDefinition(from_stage="SUBMITTED", to_stage="UNDER_SCRUTINY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="UNDER_SCRUTINY", to_stage="DEFICIENCY_COMMUNICATED", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER], is_return_loop=True),
-            WorkflowTransitionDefinition(from_stage="DEFICIENCY_COMMUNICATED", to_stage="RESUBMITTED", permitted_roles=[INSTITUTION_ADMIN, COMPLIANCE_OFFICER], is_return_loop=True),
-            WorkflowTransitionDefinition(from_stage="RESUBMITTED", to_stage="UNDER_SCRUTINY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER], is_return_loop=True),
-            WorkflowTransitionDefinition(from_stage="UNDER_SCRUTINY", to_stage="SCRUTINY_COMPLETED", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="SCRUTINY_COMPLETED", to_stage="AWAITING_EVC_SCHEDULE", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="AWAITING_EVC_SCHEDULE", to_stage="EVC_SCHEDULED", permitted_roles=[EVC_COORDINATOR, REGIONAL_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="EVC_SCHEDULED", to_stage="EVC_COMPLETED", permitted_roles=[EVC_COORDINATOR, COMMITTEE_MEMBER]),
-            WorkflowTransitionDefinition(from_stage="EVC_COMPLETED", to_stage="AWAITING_COMPETENT_AUTHORITY", permitted_roles=[REGIONAL_OFFICER, BUREAU_OFFICER]),
-            WorkflowTransitionDefinition(from_stage="AWAITING_COMPETENT_AUTHORITY", to_stage="APPROVED", permitted_roles=[COMPETENT_AUTHORITY]),
-            WorkflowTransitionDefinition(from_stage="AWAITING_COMPETENT_AUTHORITY", to_stage="REJECTED", permitted_roles=[COMPETENT_AUTHORITY])
-        ],
-        non_applicable_stages=[
-            NonApplicableStageDefinition(
-                stage_code="AWAITING_SAC_CAC_REVIEW",
-                stage_label="Standing Hearing Committee Review",
-                statutory_reason="Not Applicable: Clear unanimous EVC approval recommendation advances directly to the Competent Authority without requiring a hearing review.",
-                aph_rule_reference="AICTE APH 2026-27 Ch. I Sec. 1.7 (Approval Procedure)"
-            )
-        ]
-    )
+CANONICAL_ROUTES = AUTHORITATIVE_ROUTES
+
+# Strict Allowlist of Authorized Synthetic Demonstration Application Numbers
+SYNTHETIC_DEMO_APPLICATION_NUMBERS = {
+    "AICTE-2026-EOA-98124",
+    "AICTE-2026-NEW-44102",
+    "AICTE-2026-EOA-55910",
+    "AICTE-2026-INT-11209",
+    "AICTE-2026-REV-77192",
+    "AICTE-2026-DEC-33019"
 }
 
-# Alias mapping for application types
-CANONICAL_ROUTES["NEW_INSTITUTION"] = CANONICAL_ROUTES["SCRUTINY_EVC"]
-CANONICAL_ROUTES["EOA_ANNUAL"] = CANONICAL_ROUTES["ONLY_SCRUTINY"]
-CANONICAL_ROUTES["INTAKE_VARIATION"] = CANONICAL_ROUTES["SCRUTINY_EVC"]
+def _is_institution_user(user: Optional[User]) -> bool:
+    if not user:
+        return False
+    user_roles = [r.role for r in user.roles]
+    is_officer = any(r in [
+        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
+        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
+    ] for r in user_roles)
+    return not is_officer
 
 @router.get("/scenarios", response_model=List[DemoScenarioItem])
-def get_demo_scenarios(db: Session = Depends(get_db)):
+def get_demo_scenarios(
+    db: Session = Depends(get_db),
+    actor: User = Depends(get_current_user)
+):
     """
     Returns curated, authentic demonstration scenarios grounded in seeded backend records.
-    Visibly labeled as synthetic demonstration data.
+    Requires authentication. Visibly labeled as synthetic demonstration data.
     """
     verify_demo_environment()
 
@@ -404,22 +233,30 @@ def get_demo_scenarios(db: Session = Depends(get_db)):
     return scenarios
 
 @router.get("/routes", response_model=Dict[str, WorkflowRouteDefinition])
-def get_canonical_routes():
+def get_canonical_routes(
+    actor: User = Depends(get_current_user)
+):
     """
-    Exposes canonical route structures directly from backend rules for read-only visualization.
-    Guarantees the frontend workflow map never duplicates or invents statutory rules.
+    Exposes canonical route structures directly from the authoritative backend state machine.
+    Requires authentication. Supports all 4 required combinations:
+    1. ONLY_SCRUTINY (Standard Scrutiny)
+    2. SCRUTINY_EVC (Scrutiny + EVC)
+    3. EVC_SAC_SHC (EVC + SAC/SHC Hearing)
+    4. ONLY_EVC (Direct EVC)
     """
     verify_demo_environment()
-    return {
-        "ONLY_SCRUTINY": CANONICAL_ROUTES["ONLY_SCRUTINY"],
-        "SCRUTINY_EVC": CANONICAL_ROUTES["SCRUTINY_EVC"]
-    }
+    return get_canonical_routes_registry()
 
 @router.get("/explainability/{application_id}", response_model=ExplainabilityResponse)
-def get_application_explainability(application_id: int, db: Session = Depends(get_db)):
+def get_application_explainability(
+    application_id: int,
+    db: Session = Depends(get_db),
+    actor: User = Depends(get_current_user)
+):
     """
     Fetches deep explainability telemetry grounded strictly in authentic stored database records.
-    Never fabricates or hallucinates AI explanations.
+    Requires authentication, restricts queries to the synthetic demo allowlist,
+    and enforces institutional and regional scoping.
     """
     verify_demo_environment()
 
@@ -430,21 +267,125 @@ def get_application_explainability(application_id: int, db: Session = Depends(ge
             detail=f"Application with ID {application_id} not found."
         )
 
+    # 1. Allowlist Boundary Check: Prevent querying arbitrary applications via explainability
+    if app.application_number not in SYNTHETIC_DEMO_APPLICATION_NUMBERS:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Application '{app.application_number}' is not an authorized demonstration record. Explainability is restricted to synthetic demonstration records."
+        )
+
+    user_roles = [r.role for r in actor.roles]
+
+    # 2. Institutional Scoping
+    if _is_institution_user(actor):
+        if not actor.institution_id or actor.institution_id != app.institution_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Unauthorized: Access denied to demonstration record outside your institution."
+            )
+
+    # 3. Regional Officer Scoping (Fail-closed on unassigned or cross-region)
+    if "REGIONAL_OFFICER" in user_roles and not any(r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"] for r in user_roles):
+        if not actor.region or not actor.region.strip():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed)."
+            )
+        inst_region = app.institution.region if app.institution else ""
+        if inst_region and inst_region.strip().lower() != actor.region.strip().lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Unauthorized: Access denied to region '{inst_region}'. Outside your assigned regional jurisdiction '{actor.region}'."
+            )
+
     now = datetime.now(timezone.utc)
     app_updated_at = app.updated_at
     if app_updated_at.tzinfo is None:
         app_updated_at = app_updated_at.replace(tzinfo=timezone.utc)
     days_in_stage = max(0, (now - app_updated_at).days)
 
-    # Configured SLA norm for this stage
+    # 4. Authentic SLA Calculation Grounded in Active Rule Studio Configuration
+    rule_code: Optional[str] = None
+    rule_version = "1.0.0"
     stage_sla_days = 15
-    if app.current_stage in ["DRAFT", "AWAITING_COMPETENT_AUTHORITY", "AWAITING_EVC_SCHEDULE"]:
+    rule_citation = "AICTE Operational Guideline (Demonstration Default)"
+    calc_basis = "Default illustrative SLA threshold"
+
+    if app.current_stage == "UNDER_SCRUTINY":
+        rule_code = "RULE_SCRUTINY_SLA"
+        rule = db.query(RuleDefinition).filter(
+            RuleDefinition.rule_code == rule_code,
+            RuleDefinition.is_active == True
+        ).first()
+        if rule:
+            try:
+                cfg = json.loads(rule.config_json)
+                stage_sla_days = int(cfg.get("sla_days", 7))
+                rule_version = rule.version
+                rule_citation = f"AICTE Rule Studio [{rule_code} v{rule_version}]"
+                calc_basis = f"Scrutiny SLA window ({stage_sla_days} days) configured in Rule Studio ({rule_code})"
+            except Exception:
+                stage_sla_days = 7
+        else:
+            stage_sla_days = 7
+            rule_citation = "AICTE Rule Studio [RULE_SCRUTINY_SLA (Illustrative Seed)]"
+            calc_basis = "Default scrutiny SLA (7 days)"
+
+    elif app.current_stage == "DEFICIENCY_COMMUNICATED":
+        rule_code = "RULE_DEFICIENCY_CURE"
+        rule = db.query(RuleDefinition).filter(
+            RuleDefinition.rule_code == rule_code,
+            RuleDefinition.is_active == True
+        ).first()
+        if rule:
+            try:
+                cfg = json.loads(rule.config_json)
+                stage_sla_days = int(cfg.get("cure_window_days", 15))
+                rule_version = rule.version
+                rule_citation = f"AICTE Rule Studio [{rule_code} v{rule_version}]"
+                calc_basis = f"Deficiency cure window ({stage_sla_days} days) configured in Rule Studio ({rule_code})"
+            except Exception:
+                stage_sla_days = 15
+        else:
+            stage_sla_days = 15
+            rule_citation = "AICTE Rule Studio [RULE_DEFICIENCY_CURE (Illustrative Seed)]"
+            calc_basis = "Default deficiency cure window (15 days)"
+
+    elif app.current_stage in ["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED"]:
+        rule_code = "RULE_EVC_SCHEDULE"
+        rule = db.query(RuleDefinition).filter(
+            RuleDefinition.rule_code == rule_code,
+            RuleDefinition.is_active == True
+        ).first()
+        if rule:
+            try:
+                cfg = json.loads(rule.config_json)
+                stage_sla_days = int(cfg.get("max_scheduling_days", 10))
+                rule_version = rule.version
+                rule_citation = f"AICTE Rule Studio [{rule_code} v{rule_version}]"
+                calc_basis = f"EVC scheduling window ({stage_sla_days} days) configured in Rule Studio ({rule_code})"
+            except Exception:
+                stage_sla_days = 10
+        else:
+            stage_sla_days = 10
+            rule_citation = "AICTE Rule Studio [RULE_EVC_SCHEDULE (Illustrative Seed)]"
+            calc_basis = "Default EVC scheduling window (10 days)"
+
+    elif app.current_stage in ["DRAFT", "AWAITING_COMPETENT_AUTHORITY", "AWAITING_SAC_CAC_REVIEW"]:
         stage_sla_days = 10
+        rule_citation = "AICTE Operational Guideline (Illustrative Default)"
+        calc_basis = f"Configured illustrative operational norm ({stage_sla_days} days) for stage {app.current_stage}"
     elif app.current_stage in ["SUBMITTED", "SCRUTINY_COMPLETED", "EVC_COMPLETED"]:
         stage_sla_days = 5
+        rule_citation = "AICTE Operational Guideline (Illustrative Default)"
+        calc_basis = f"Configured illustrative operational norm ({stage_sla_days} days) for stage {app.current_stage}"
+    else:
+        stage_sla_days = 0
+        rule_citation = "Terminal Stage (Zero Pending SLA)"
+        calc_basis = "Terminal stage; no ongoing SLA tracking."
 
-    is_breached = days_in_stage > stage_sla_days
-    sla_status = "BREACHED" if is_breached else "APPROACHING_BREACH" if days_in_stage >= (stage_sla_days - 3) else "ON_TRACK"
+    is_breached = days_in_stage >= stage_sla_days if stage_sla_days > 0 else False
+    sla_status = "BREACHED" if is_breached else "APPROACHING_BREACH" if (stage_sla_days > 0 and days_in_stage >= max(1, stage_sla_days - 3)) else "ON_TRACK"
 
     # Deficiencies
     defs = db.query(Deficiency).filter(Deficiency.application_id == app.id).all()
@@ -455,7 +396,7 @@ def get_application_explainability(application_id: int, db: Session = Depends(ge
     # EVC prerequisites
     evc_insp = db.query(EVCInspection).filter(EVCInspection.application_id == app.id).first()
     evc_info = {
-        "evc_required": app.evc_required or app.workflow_template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC"],
+        "evc_required": app.evc_required or app.workflow_template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"],
         "has_inspection": evc_insp is not None,
         "inspection_id": evc_insp.id if evc_insp else None,
         "inspection_status": evc_insp.status if evc_insp else "NOT_SCHEDULED",
@@ -541,7 +482,7 @@ def get_application_explainability(application_id: int, db: Session = Depends(ge
                 "recipient_role": n.recipient_role or "USER",
                 "is_acknowledged": n.is_read,
                 "created_at": n.created_at.isoformat() if n.created_at else None,
-                "idempotency_key": n.idempotency_key or f"NOTIF:{n.id}"
+                "idempotency_key": getattr(n, "idempotency_key", None) or f"NOTIF:{n.id}"
             })
 
     # Recent immutable audit trail
@@ -611,7 +552,11 @@ def get_application_explainability(application_id: int, db: Session = Depends(ge
             configured_sla_days=stage_sla_days,
             sla_status=sla_status,
             is_breached=is_breached,
-            rule_citation=f"AICTE APH 2026-27 Rule SLA-STG-{app.current_stage[:8]}"
+            rule_citation=rule_citation,
+            rule_code=rule_code,
+            rule_version=rule_version,
+            is_illustrative_policy=True,
+            calculation_basis=calc_basis
         ),
         deficiency_summary={
             "total_count": len(defs),
@@ -644,148 +589,200 @@ def reset_demo_scenario(
     actor: User = Depends(get_current_user)
 ):
     """
-    Safely resets a single synthetic scenario to its initial demonstration state.
-    Strict Invariant: Never deletes audit trail logs, unrelated institutional records,
-    or other scenario applications.
+    Safely and transactionally resets a single synthetic scenario to its initial demonstration state.
+    Strict Invariant:
+    1. Restricted to authorized demo administrators and operators (SYSTEM_ADMIN, COMPETENT_AUTHORITY, or RULE_MANAGE).
+    2. Atomically executed within a database transaction; partial failures roll back.
+    3. Revokes any active statutory orders generated in demo mode to prevent contradictory states.
+    4. Never deletes audit trail logs, unrelated institutional records, or other applications.
     """
     verify_demo_environment()
 
+    # Authorization Boundary: Restrict to authorized demo operators/admins
+    user_roles = [r.role for r in actor.roles]
+    is_authorized = (
+        any(r in ["SYSTEM_ADMIN", "COMPETENT_AUTHORITY"] for r in user_roles)
+        or has_permission(actor, Permission.RULES_MANAGE)
+        or has_permission(actor, Permission.USERS_MANAGE)
+    )
+    if not is_authorized:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unauthorized: Demonstration scenario reset is strictly restricted to authorized demo administrators."
+        )
+
     now = datetime.now(timezone.utc)
 
-    if scenario_id == "scenario-3-deficiency-cure-loop":
-        # Target: AICTE-2026-EOA-98124
-        app = db.query(Application).filter(Application.application_number == "AICTE-2026-EOA-98124").first()
-        if not app:
-            raise HTTPException(status_code=404, detail="Application AICTE-2026-EOA-98124 not found.")
+    try:
+        if scenario_id == "scenario-3-deficiency-cure-loop":
+            # Target: AICTE-2026-EOA-98124
+            app = db.query(Application).filter(Application.application_number == "AICTE-2026-EOA-98124").first()
+            if not app:
+                raise HTTPException(status_code=404, detail="Application AICTE-2026-EOA-98124 not found.")
 
-        app.current_stage = "DEFICIENCY_COMMUNICATED"
-        app.priority_score = 75
-        app.updated_at = now - timedelta(days=4)
-        app.version += 1
+            app.current_stage = "DEFICIENCY_COMMUNICATED"
+            app.priority_score = 75
+            app.updated_at = now - timedelta(days=4)
+            app.version += 1
 
-        # Reset deficiencies back to OPEN with cleared cure
-        defs = db.query(Deficiency).filter(Deficiency.application_id == app.id).all()
-        for d in defs:
-            d.status = "OPEN"
-            d.cure_remarks = None
-            d.cure_document_url = None
-            d.cured_at = None
+            # Reset deficiencies back to OPEN with cleared cure
+            defs = db.query(Deficiency).filter(Deficiency.application_id == app.id).all()
+            for d in defs:
+                d.status = "OPEN"
+                d.cure_remarks = None
+                d.cure_document_url = None
+                d.cured_at = None
 
-        log_audit_event(
-            db=db,
-            action="DEMO_SCENARIO_RESET",
-            entity_type="APPLICATION",
-            entity_id=app.id,
-            actor_id=actor.id,
-            actor_name=actor.full_name,
-            actor_role=actor.roles[0].role if actor.roles else "USER",
-            details={
-                "scenario_id": scenario_id,
-                "application_number": app.application_number,
-                "reset_stage": "DEFICIENCY_COMMUNICATED",
-                "reason": "Evaluator requested scenario reset for deficiency cure demonstration."
-            }
-        )
-        db.commit()
+            log_audit_event(
+                db=db,
+                action="DEMO_SCENARIO_RESET",
+                entity_type="APPLICATION",
+                entity_id=app.id,
+                actor_id=actor.id,
+                actor_name=actor.full_name,
+                actor_role=actor.roles[0].role if actor.roles else "SYSTEM_ADMIN",
+                details={
+                    "scenario_id": scenario_id,
+                    "application_number": app.application_number,
+                    "reset_stage": "DEFICIENCY_COMMUNICATED",
+                    "reason": "Evaluator requested scenario reset for deficiency cure demonstration."
+                }
+            )
+            db.commit()
 
-        return DemoResetResponse(
-            scenario_id=scenario_id,
-            application_number=app.application_number,
-            reset_stage="DEFICIENCY_COMMUNICATED",
-            message="Scenario 3 reset successfully to initial DEFICIENCY_COMMUNICATED state with 2 open deficiencies. Audit history preserved.",
-            timestamp=now.isoformat()
-        )
+            return DemoResetResponse(
+                scenario_id=scenario_id,
+                application_number=app.application_number,
+                reset_stage="DEFICIENCY_COMMUNICATED",
+                message="Scenario 3 reset successfully to initial DEFICIENCY_COMMUNICATED state with 2 open deficiencies. Audit history preserved.",
+                timestamp=now.isoformat()
+            )
 
-    elif scenario_id == "scenario-1-new-inst-evc":
-        # Target: AICTE-2026-NEW-44102
-        app = db.query(Application).filter(Application.application_number == "AICTE-2026-NEW-44102").first()
-        if not app:
-            raise HTTPException(status_code=404, detail="Application AICTE-2026-NEW-44102 not found.")
+        elif scenario_id == "scenario-1-new-inst-evc":
+            # Target: AICTE-2026-NEW-44102
+            app = db.query(Application).filter(Application.application_number == "AICTE-2026-NEW-44102").first()
+            if not app:
+                raise HTTPException(status_code=404, detail="Application AICTE-2026-NEW-44102 not found.")
 
-        app.current_stage = "AWAITING_EVC_SCHEDULE"
-        app.evc_required = True
-        app.priority_score = 60
-        app.updated_at = now - timedelta(days=2)
-        app.version += 1
+            app.current_stage = "AWAITING_EVC_SCHEDULE"
+            app.evc_required = True
+            app.priority_score = 60
+            app.updated_at = now - timedelta(days=2)
+            app.version += 1
 
-        log_audit_event(
-            db=db,
-            action="DEMO_SCENARIO_RESET",
-            entity_type="APPLICATION",
-            entity_id=app.id,
-            actor_id=actor.id,
-            actor_name=actor.full_name,
-            actor_role=actor.roles[0].role if actor.roles else "USER",
-            details={
-                "scenario_id": scenario_id,
-                "application_number": app.application_number,
-                "reset_stage": "AWAITING_EVC_SCHEDULE",
-                "reason": "Evaluator requested scenario reset for EVC scheduling demonstration."
-            }
-        )
-        db.commit()
+            # Ensure EVC inspection state is consistent
+            insp = db.query(EVCInspection).filter(EVCInspection.application_id == app.id).first()
+            if insp:
+                insp.status = "SCHEDULED"
+                insp.recommendation = None
+                insp.completed_at = None
 
-        return DemoResetResponse(
-            scenario_id=scenario_id,
-            application_number=app.application_number,
-            reset_stage="AWAITING_EVC_SCHEDULE",
-            message="Scenario 1 reset successfully to AWAITING_EVC_SCHEDULE state. Audit history preserved.",
-            timestamp=now.isoformat()
-        )
+            log_audit_event(
+                db=db,
+                action="DEMO_SCENARIO_RESET",
+                entity_type="APPLICATION",
+                entity_id=app.id,
+                actor_id=actor.id,
+                actor_name=actor.full_name,
+                actor_role=actor.roles[0].role if actor.roles else "SYSTEM_ADMIN",
+                details={
+                    "scenario_id": scenario_id,
+                    "application_number": app.application_number,
+                    "reset_stage": "AWAITING_EVC_SCHEDULE",
+                    "reason": "Evaluator requested scenario reset for EVC scheduling demonstration."
+                }
+            )
+            db.commit()
 
-    elif scenario_id == "scenario-5-evc-ca-decision":
-        # Target: AICTE-2026-DEC-33019
-        app = db.query(Application).filter(Application.application_number == "AICTE-2026-DEC-33019").first()
-        if not app:
-            raise HTTPException(status_code=404, detail="Application AICTE-2026-DEC-33019 not found.")
+            return DemoResetResponse(
+                scenario_id=scenario_id,
+                application_number=app.application_number,
+                reset_stage="AWAITING_EVC_SCHEDULE",
+                message="Scenario 1 reset successfully to AWAITING_EVC_SCHEDULE state. Audit history preserved.",
+                timestamp=now.isoformat()
+            )
 
-        app.current_stage = "AWAITING_COMPETENT_AUTHORITY"
-        app.priority_score = 90
-        app.approved_at = None
-        app.rejected_at = None
-        app.updated_at = now - timedelta(days=1)
-        app.version += 1
+        elif scenario_id == "scenario-5-evc-ca-decision":
+            # Target: AICTE-2026-DEC-33019
+            app = db.query(Application).filter(Application.application_number == "AICTE-2026-DEC-33019").first()
+            if not app:
+                raise HTTPException(status_code=404, detail="Application AICTE-2026-DEC-33019 not found.")
 
-        log_audit_event(
-            db=db,
-            action="DEMO_SCENARIO_RESET",
-            entity_type="APPLICATION",
-            entity_id=app.id,
-            actor_id=actor.id,
-            actor_name=actor.full_name,
-            actor_role=actor.roles[0].role if actor.roles else "USER",
-            details={
-                "scenario_id": scenario_id,
-                "application_number": app.application_number,
-                "reset_stage": "AWAITING_COMPETENT_AUTHORITY",
-                "reason": "Evaluator requested scenario reset for Competent Authority decision order demonstration."
-            }
-        )
-        db.commit()
+            app.current_stage = "AWAITING_COMPETENT_AUTHORITY"
+            app.priority_score = 90
+            app.approved_at = None
+            app.rejected_at = None
+            app.updated_at = now - timedelta(days=1)
+            app.version += 1
 
-        return DemoResetResponse(
-            scenario_id=scenario_id,
-            application_number=app.application_number,
-            reset_stage="AWAITING_COMPETENT_AUTHORITY",
-            message="Scenario 5 reset successfully to AWAITING_COMPETENT_AUTHORITY decision docket. Audit history preserved.",
-            timestamp=now.isoformat()
-        )
+            # Revoke any active statutory orders generated during scenario testing
+            active_orders = db.query(StatutoryOrder).filter(
+                StatutoryOrder.application_id == app.id,
+                StatutoryOrder.status == "ACTIVE"
+            ).all()
 
-    else:
-        # Default scenario acknowledgment
-        return DemoResetResponse(
-            scenario_id=scenario_id,
-            application_number="N/A",
-            reset_stage="PRESERVED",
-            message=f"Scenario '{scenario_id}' verified in valid initial state. Zero database mutations necessary.",
-            timestamp=now.isoformat()
+            for order in active_orders:
+                order.status = "REVOKED"
+                order.is_revoked = True
+                order.revoked_at = now
+                order.revoked_by_id = actor.id
+                order.revocation_reason = "Demo scenario reset: Active statutory order revoked to restore pre-decision docket state."
+                order.updated_at = now
+
+            log_audit_event(
+                db=db,
+                action="DEMO_SCENARIO_RESET",
+                entity_type="APPLICATION",
+                entity_id=app.id,
+                actor_id=actor.id,
+                actor_name=actor.full_name,
+                actor_role=actor.roles[0].role if actor.roles else "COMPETENT_AUTHORITY",
+                details={
+                    "scenario_id": scenario_id,
+                    "application_number": app.application_number,
+                    "reset_stage": "AWAITING_COMPETENT_AUTHORITY",
+                    "revoked_orders_count": len(active_orders),
+                    "reason": "Evaluator requested scenario reset for Competent Authority decision order demonstration."
+                }
+            )
+            db.commit()
+
+            return DemoResetResponse(
+                scenario_id=scenario_id,
+                application_number=app.application_number,
+                reset_stage="AWAITING_COMPETENT_AUTHORITY",
+                message="Scenario 5 reset successfully to AWAITING_COMPETENT_AUTHORITY decision docket. Active statutory orders revoked cleanly. Audit history preserved.",
+                timestamp=now.isoformat()
+            )
+
+        else:
+            # Default scenario acknowledgment
+            return DemoResetResponse(
+                scenario_id=scenario_id,
+                application_number="N/A",
+                reset_stage="PRESERVED",
+                message=f"Scenario '{scenario_id}' verified in valid initial state. Zero database mutations necessary.",
+                timestamp=now.isoformat()
+            )
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Transactional scenario reset failed: {str(exc)}"
         )
 
 @router.get("/telemetry", response_model=DemoTelemetryResponse)
-def get_demo_telemetry(db: Session = Depends(get_db)):
+def get_demo_telemetry(
+    db: Session = Depends(get_db),
+    actor: User = Depends(get_current_user)
+):
     """
-    Returns live scheduler, deadline scanning, and notification transport telemetry
-    for judges to verify background distributed system operations.
+    Returns live scheduler, deadline scanning, and notification transport telemetry.
+    Requires authentication. Redacts private leaseholder UUIDs for non-administrators.
     """
     verify_demo_environment()
 
@@ -793,13 +790,18 @@ def get_demo_telemetry(db: Session = Depends(get_db)):
     last_run = db.query(DeadlineEngineRun).order_by(DeadlineEngineRun.created_at.desc()).first()
     active_lease = db.query(SchedulerLease).filter(SchedulerLease.lease_name == "deadline_engine_scan").first()
 
+    actor_roles = [r.role for r in actor.roles]
+    is_sys_admin = "SYSTEM_ADMIN" in actor_roles
+
     lease_info = None
     if active_lease:
         exp = active_lease.expires_at
         if exp.tzinfo is None:
             exp = exp.replace(tzinfo=timezone.utc)
+        # Redact raw worker lease tokens for non-system-admin users
+        holder = active_lease.holder_id if is_sys_admin else "ACTIVE_WORKER_LEASE"
         lease_info = {
-            "holder_id": active_lease.holder_id,
+            "holder_id": holder,
             "acquired_at": active_lease.acquired_at.isoformat() if active_lease.acquired_at else None,
             "expires_at": exp.isoformat(),
             "is_active": exp > now

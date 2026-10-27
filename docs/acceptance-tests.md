@@ -287,5 +287,39 @@
 10. `test_seed_database_prohibited_in_production_runtime`:
     - Proves that calling `seed_database()` in production mode raises `RuntimeError("Production safety violation: Automatic seeding of shared demo identities and synthetic data is prohibited in production mode.")`, preventing accidental demo seed execution.
 
+---
+
+### 10. Judge Explorer Authorization, Regulatory Provenance & EVC Scope Hardening Test Coverage Summary (14 New Tests, Total 250 Tests)
+
+`tests/test_judge_explorer_authorization_and_provenance.py` (14 comprehensive authorization, rule provenance, and scoping tests):
+1. `test_judge_explorer_endpoints_require_authentication`:
+   - Validates that unauthenticated requests to `/api/demo/scenarios`, `/api/demo/routes`, `/api/demo/explainability/{app_id}`, `/api/demo/telemetry`, and `/api/demo/reset-scenario/{scenario_id}` fail closed with `HTTP 401 Unauthorized`.
+2. `test_judge_explorer_production_gate_fail_closed`:
+   - Validates that when `DEMO_MODE=false` or `ENVIRONMENT=production`, all judge explorer endpoints return `HTTP 403 Forbidden` with `"Demonstration explorer is strictly disabled in production mode"`.
+3. `test_explainability_rejects_arbitrary_or_unseeded_application_ids`:
+   - Validates that passing unseeded or arbitrary application IDs (e.g. `999999`) returns `HTTP 404 Not Found`, restricting explainability queries strictly to the synthetic demo allowlist.
+4. `test_explainability_enforces_tenant_and_regional_scoping`:
+   - Validates that institution users querying another institution's application receive `HTTP 403 Forbidden`, Regional Officers querying outside their region receive `HTTP 403 Forbidden`, and unassigned Regional Officers fail closed with `HTTP 403 Forbidden`.
+5. `test_scenario_reset_strictly_restricted_to_authorized_administrators`:
+   - Validates that ordinary institution users, compliance officers, regional officers, and committee members attempting to reset demonstration scenarios receive `HTTP 403 Forbidden`.
+6. `test_scenario_reset_permitted_for_authorized_demo_operator`:
+   - Validates that System Administrators or users with administrative rule management permissions successfully reset synthetic scenarios with an atomic transaction and recorded reset audit event.
+7. `test_scenario_5_reset_revokes_statutory_orders`:
+   - Validates that resetting Scenario 5 (Competent Authority Decision & Statutory Order Generation) revokes previously issued statutory orders (`is_revoked=True`, `status="REVOKED"`) and cleanly restores the application to `AWAITING_COMPETENT_AUTHORITY`.
+8. `test_demo_telemetry_leaseholder_token_redacted_for_non_admins`:
+   - Validates that distributed scheduler leaseholder worker tokens are redacted (`holder_id="[REDACTED]"`) for non-administrative roles to protect infrastructure secrets.
+9. `test_canonical_routes_registry_matches_workflow_engine_allowed_transitions`:
+   - Proves complete parity between the authoritative route registry (`AUTHORITATIVE_ROUTES`) and the workflow engine's statutory state machine (`ALLOWED_TRANSITIONS`) across all 4 canonical routes (`ONLY_SCRUTINY`, `SCRUTINY_EVC`, `EVC_SAC_SHC`, `ONLY_EVC`).
+10. `test_explainability_sla_grounded_in_rule_definitions`:
+    - Validates that stage SLAs returned by `/api/demo/explainability/{app_id}` are grounded in active Rule Studio `RuleDefinition` records (`RULE_SCRUTINY_SLA`, `RULE_DEFICIENCY_CURE`, `RULE_EVC_SCHEDULE`), displaying rule version, calculation basis, and explicit illustrative policy flags without fabricated statutory citations.
+11. `test_evc_inspection_access_scoping_per_role`:
+    - Validates role-specific EVC scoping across Institution users (own institution only), Regional Officers (assigned region only), Committee Members (assigned panel inspections only), and EVC Coordinators (scheduling jurisdiction only).
+12. `test_committee_member_unassigned_inspection_access_blocked`:
+    - Validates that a Committee Member attempting to access an inspection with an active panel assignment belonging to another expert is denied with `HTTP 403 Forbidden`.
+13. `test_system_admin_blocked_from_submitting_evc_report`:
+    - Validates that System Administrators retain infrastructure monitoring permissions but are strictly prohibited from submitting EVC inspection reports (`HTTP 403 Forbidden`).
+14. `test_system_admin_blocked_from_mobile_field_mutations`:
+    - Validates that System Administrators are strictly prohibited from performing mobile field check-ins and recording field evidence (`HTTP 403 Forbidden`).
+
 
 

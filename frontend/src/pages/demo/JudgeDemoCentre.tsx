@@ -31,6 +31,7 @@ export const JudgeDemoCentre: React.FC = () => {
   const [resetMessage, setResetMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'stepper' | 'workflow_map' | 'explainability'>('stepper');
   const [selectedNodeCode, setSelectedNodeCode] = useState<string | null>(null);
+  const [selectedRouteCode, setSelectedRouteCode] = useState<string | null>(null);
 
   // Load initial demo scenarios, routes, and telemetry
   useEffect(() => {
@@ -67,6 +68,7 @@ export const JudgeDemoCentre: React.FC = () => {
   const handleSelectScenario = async (scenario: DemoScenarioItem) => {
     setSelectedScenarioId(scenario.scenario_id);
     setSelectedNodeCode(null);
+    setSelectedRouteCode(null);
     setResetMessage(null);
     try {
       const exp = await api.getDemoExplainability(scenario.application_id);
@@ -100,7 +102,8 @@ export const JudgeDemoCentre: React.FC = () => {
   };
 
   const activeScenario = scenarios.find(s => s.scenario_id === selectedScenarioId) || scenarios[0];
-  const activeRoute = activeScenario ? (routes[activeScenario.route_code] || routes['ONLY_SCRUTINY'] || routes['SCRUTINY_EVC']) : null;
+  const currentRouteCode = selectedRouteCode || (activeScenario ? activeScenario.route_code : 'ONLY_SCRUTINY');
+  const activeRoute = routes[currentRouteCode] || routes['ONLY_SCRUTINY'] || routes['SCRUTINY_EVC'];
 
   // Canonical full regulatory lifecycle milestones for the stepper
   const CANONICAL_MILESTONES = [
@@ -565,10 +568,10 @@ export const JudgeDemoCentre: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-bold text-brand-text-primary">
-                Canonical Workflow Map: {activeRoute?.route_name || activeScenario?.route_code}
+                Canonical Workflow Map: {activeRoute?.route_name || currentRouteCode}
               </h2>
               <p className="text-xs text-brand-text-muted mt-0.5">
-                Exposes authoritative state graph directly from backend rules. Click any node to inspect SLA limits and permitted actor roles.
+                Exposes authoritative state graph directly from backend state machine. Click any node to inspect SLA limits and permitted actor roles.
               </p>
             </div>
             <div className="flex items-center gap-2 text-xs">
@@ -582,6 +585,28 @@ export const JudgeDemoCentre: React.FC = () => {
                 <span className="w-2.5 h-2.5 rounded-full bg-slate-400" /> Pending
               </span>
             </div>
+          </div>
+
+          {/* Interactive Route Switcher: All 4 Canonical Combinations */}
+          <div className="flex flex-wrap gap-2 pb-1 border-b border-brand-border/60">
+            {[
+              { code: 'ONLY_SCRUTINY', label: '1. Only Scrutiny' },
+              { code: 'SCRUTINY_EVC', label: '2. Scrutiny + EVC' },
+              { code: 'EVC_SAC_SHC', label: '3. EVC + SAC/SHC' },
+              { code: 'ONLY_EVC', label: '4. Only EVC' },
+            ].map(r => (
+              <button
+                key={r.code}
+                onClick={() => { setSelectedRouteCode(r.code); setSelectedNodeCode(null); }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  currentRouteCode === r.code
+                    ? 'bg-brand-teal text-white shadow-xs'
+                    : 'bg-brand-surface-secondary text-brand-text-muted hover:text-brand-text-primary border border-brand-border'
+                }`}
+              >
+                {r.label}
+              </button>
+            ))}
           </div>
 
           {/* Interactive Visual Graph representation */}
@@ -639,7 +664,7 @@ export const JudgeDemoCentre: React.FC = () => {
                 </span>
               </div>
               <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                APH Ch. II Sec. 2.7
+                Rule Studio: RULE_DEFICIENCY_CURE
               </span>
             </div>
           </div>
@@ -731,9 +756,22 @@ export const JudgeDemoCentre: React.FC = () => {
                   />
                 </div>
 
-                <p className="text-[10px] text-brand-text-muted font-mono pt-1">
-                  Citation: {explainability.sla_tracking.rule_citation}
-                </p>
+                <div className="pt-2 border-t border-brand-border/60 space-y-1 text-[10px]">
+                  <div className="flex justify-between items-center">
+                    <span className="text-brand-text-muted">Rule Provenance:</span>
+                    <span className="font-mono font-bold text-brand-teal truncate max-w-[180px]">{explainability.sla_tracking.rule_citation}</span>
+                  </div>
+                  {explainability.sla_tracking.calculation_basis && (
+                    <div className="text-brand-text-muted text-[10px]">
+                      Basis: {explainability.sla_tracking.calculation_basis}
+                    </div>
+                  )}
+                  {explainability.sla_tracking.is_illustrative_policy && (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      Illustrative Rule Studio Baseline
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
