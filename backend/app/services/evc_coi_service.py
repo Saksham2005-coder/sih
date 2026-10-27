@@ -44,8 +44,44 @@ class EVCConflictService:
         4. Prior inspection cooling-off period (illustrative 3-year demonstration norm).
         5. Expert availability and active status.
         """
-        inst = application.institution
+        now = datetime.now(timezone.utc)
         rules_checked = []
+
+        # Source Data Verification: Distinguish true no-conflict from incomplete source data
+        incompleteness_reasons = []
+        if not application:
+            incompleteness_reasons.append("Application record is missing.")
+        elif not application.institution:
+            incompleteness_reasons.append("Applicant institution record is unlinked or missing.")
+        elif not (application.institution.name or "").strip():
+            incompleteness_reasons.append("Applicant institution name is unrecorded.")
+
+        if not expert:
+            incompleteness_reasons.append("Expert registry profile is missing.")
+        elif not (expert.current_institution or "").strip():
+            incompleteness_reasons.append("Expert institutional affiliation is missing.")
+
+        if incompleteness_reasons:
+            return {
+                "expert_id": expert.id if expert else 0,
+                "expert_name": expert.name if expert else "Unknown",
+                "current_institution": expert.current_institution if expert else "",
+                "is_prohibited": True,  # Fail closed when source data is missing
+                "can_override": False,
+                "summary": f"Conflict-of-Interest assessment could not be completed because source data is missing: {'; '.join(incompleteness_reasons)}",
+                "rules_checked": [
+                    {
+                        "rule_code": "DATA_COMPLETENESS",
+                        "rule_name": "Applicant & Expert Affiliation Data Completeness",
+                        "status": "FAILED",
+                        "details": f"Missing regulatory source data: {'; '.join(incompleteness_reasons)}"
+                    }
+                ],
+                "assessed_at": now.isoformat(),
+                "data_completeness": "INCOMPLETE"
+            }
+
+        inst = application.institution
         is_prohibited = False
 
         inst_name = (inst.name if inst else "").strip().lower()
@@ -205,7 +241,8 @@ class EVCConflictService:
             "can_override": is_prohibited,  # Overrides permissible with authorized role and mandatory audit reason
             "summary": summary_msg,
             "rules_checked": rules_checked,
-            "assessed_at": now.isoformat()
+            "assessed_at": now.isoformat(),
+            "data_completeness": "COMPLETE"
         }
 
 
@@ -245,17 +282,29 @@ class EVCWorkflowService:
 
         override_applied = False
         if coi_assessment["is_prohibited"]:
-            if not override_reason or not override_reason.strip():
+            # Strict permission boundary: EVC_SCHEDULE does not imply EVC_COI_OVERRIDE
+            if not has_permission(actor, Permission.EVC_COI_OVERRIDE):
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
+                    status_code=status.HTTP_403_FORBIDDEN,
                     detail={
-                        "message": "Proposed assignment blocked by Conflict-of-Interest policy.",
+                        "message": "Proposed assignment blocked by Conflict-of-Interest policy. Actor does not hold 'evc.coi_override' permission.",
                         "coi_assessment": coi_assessment,
                         "override_required": True
                     }
                 )
-            # Override applied
+            if not override_reason or len(override_reason.strip()) < 15:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail={
+                        "message": "Proposed assignment blocked by Conflict-of-Interest policy. Substantive written justification (minimum 15 characters) is required to override regulatory conflict-of-interest findings.",
+                        "coi_assessment": coi_assessment,
+                        "override_required": True
+                    }
+                )
+            # Override applied with verified authorization and substantive justification
             override_applied = True
+            failed_rules = [r["rule_code"] for r in coi_assessment.get("rules_checked", []) if r.get("status") == "FAILED"]
+            now_override = datetime.now(timezone.utc)
             log_audit_event(
                 db=db,
                 action="EVC_COI_OVERRIDE_APPLIED",
@@ -265,10 +314,13 @@ class EVCWorkflowService:
                 actor_name=actor.full_name,
                 actor_role=actor.roles[0].role if actor.roles else "EVC_COORDINATOR",
                 details={
+                    "expert_id": expert.id,
                     "expert_name": expert.name,
                     "panel_role": panel_role,
+                    "overridden_rules": failed_rules,
                     "override_reason": override_reason.strip(),
-                    "coi_assessment": coi_assessment
+                    "coi_assessment": coi_assessment,
+                    "timestamp": now_override.isoformat()
                 }
             )
 
@@ -361,13 +413,37 @@ class EVCWorkflowService:
         if not assignment:
             raise HTTPException(status_code=404, detail="Panel assignment not found")
 
+        # 1. State check: Must be in status "INVITED"
+        if assignment.status != "INVITED":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Assignment #{assignment_id} is in status '{assignment.status}'. Only assignments in 'INVITED' status can be accepted."
+            )
+
+        expert = assignment.expert
+        if not expert:
+            raise HTTPException(status_code=404, detail="Assigned expert record not found")
+
+        # 2. Account link check: Expert must be linked to an authenticated user account
+        if expert.user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Expert #{expert.id} ({expert.name}) is not linked to an active user account. Unlinked experts cannot accept invitations via API; an authorized coordinator must reassign or link the account."
+            )
+
+        # 3. User identity binding: Actor must be the explicitly linked expert user
+        if expert.user_id != actor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Only the invited expert linked to this assignment can accept this invitation. Responding on behalf of another expert is strictly prohibited."
+            )
+
         now = datetime.now(timezone.utc)
         assignment.status = "ACCEPTED"
         assignment.responded_at = now
         assignment.updated_at = now
 
         inspection = assignment.inspection
-        expert = assignment.expert
 
         # Sync inspection legacy convener/expert columns for backward compatibility
         if assignment.panel_role == "CONVENER":
@@ -387,6 +463,24 @@ class EVCWorkflowService:
             if inspection.status == "PENDING_ASSIGNMENT":
                 inspection.status = "SCHEDULED"
 
+        actor_role = actor.roles[0].role if actor.roles else "COMMITTEE_MEMBER"
+        log_audit_event(
+            db=db,
+            action="EVC_INVITATION_ACCEPTED",
+            entity_type="EVC",
+            entity_id=inspection.id,
+            actor_id=actor.id,
+            actor_name=actor.full_name,
+            actor_role=actor_role,
+            details={
+                "assignment_id": assignment.id,
+                "expert_id": expert.id,
+                "expert_name": expert.name,
+                "panel_role": assignment.panel_role,
+                "panel_status": inspection.panel_status
+            }
+        )
+
         db.commit()
         db.refresh(assignment)
         return assignment
@@ -403,10 +497,43 @@ class EVCWorkflowService:
         if not assignment:
             raise HTTPException(status_code=404, detail="Panel assignment not found")
 
+        # 1. State check: Must be in status "INVITED"
+        if assignment.status != "INVITED":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Assignment #{assignment_id} is in status '{assignment.status}'. Only assignments in 'INVITED' status can be declined."
+            )
+
+        expert = assignment.expert
+        if not expert:
+            raise HTTPException(status_code=404, detail="Assigned expert record not found")
+
+        # 2. Account link check
+        if expert.user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Expert #{expert.id} ({expert.name}) is not linked to an active user account. Unlinked experts cannot decline invitations via API; an authorized coordinator must reassign or link the account."
+            )
+
+        # 3. User identity binding
+        if expert.user_id != actor.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Only the invited expert linked to this assignment can decline this invitation. Responding on behalf of another expert is strictly prohibited."
+            )
+
+        # 4. Mandatory substantive reason check (minimum 5 chars)
+        clean_reason = (reason or "").strip()
+        if len(clean_reason) < 5:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Decline reason is mandatory and must be substantive (at least 5 characters)."
+            )
+
         now = datetime.now(timezone.utc)
         assignment.status = "DECLINED"
         assignment.responded_at = now
-        assignment.decline_reason = reason.strip() if reason else "Schedule conflict / Unavailable"
+        assignment.decline_reason = clean_reason
         assignment.updated_at = now
 
         # Invariant: A declined invitation must return to the authorized coordinator for reassignment.
@@ -422,15 +549,18 @@ class EVCWorkflowService:
             inspection.expert_member_name = None
             inspection.expert_user_id = None
 
+        actor_role = actor.roles[0].role if actor.roles else "COMMITTEE_MEMBER"
         log_audit_event(
             db=db,
             action="EVC_INVITATION_DECLINED",
             entity_type="EVC",
             entity_id=inspection.id,
-            actor_id=actor.id if actor else None,
-            actor_name=getattr(actor, "full_name", assignment.expert.name),
-            actor_role="COMMITTEE_MEMBER",
+            actor_id=actor.id,
+            actor_name=actor.full_name,
+            actor_role=actor_role,
             details={
+                "assignment_id": assignment.id,
+                "expert_id": assignment.expert.id,
                 "expert_name": assignment.expert.name,
                 "panel_role": assignment.panel_role,
                 "decline_reason": assignment.decline_reason,
@@ -455,10 +585,12 @@ class EVCWorkflowService:
         if not old_assignment:
             raise HTTPException(status_code=404, detail="Original panel assignment not found")
 
-        old_assignment.status = "REASSIGNED"
-        old_assignment.updated_at = datetime.now(timezone.utc)
+        # Regional scope check on inspection
+        inspection = old_assignment.inspection
+        if inspection and inspection.application and inspection.application.institution:
+            check_regional_scope(actor, inspection.application.institution.region)
 
-        # Propose replacement expert
+        # Propose replacement expert FIRST to preserve consistency on failure
         new_assignment = cls.propose_panel_assignment(
             db=db,
             inspection_id=old_assignment.inspection_id,
@@ -468,6 +600,11 @@ class EVCWorkflowService:
             override_reason=override_reason
         )
 
+        # Only mutate old assignment after new proposal succeeds
+        old_assignment.status = "REASSIGNED"
+        old_assignment.updated_at = datetime.now(timezone.utc)
+
+        actor_role = actor.roles[0].role if actor.roles else "EVC_COORDINATOR"
         log_audit_event(
             db=db,
             action="EVC_PANEL_MEMBER_REASSIGNED",
@@ -475,15 +612,18 @@ class EVCWorkflowService:
             entity_id=old_assignment.inspection_id,
             actor_id=actor.id,
             actor_name=actor.full_name,
-            actor_role=actor.roles[0].role if actor.roles else "EVC_COORDINATOR",
+            actor_role=actor_role,
             details={
                 "previous_assignment_id": old_assignment.id,
                 "previous_expert_id": old_assignment.expert_id,
                 "new_expert_id": new_expert_id,
+                "new_assignment_id": new_assignment.id,
                 "panel_role": old_assignment.panel_role
             }
         )
 
+        db.commit()
+        db.refresh(old_assignment)
         return new_assignment
 
     @classmethod
@@ -505,6 +645,19 @@ class EVCWorkflowService:
         if not inspection:
             raise HTTPException(status_code=404, detail="EVC Inspection not found")
 
+        # Regional scope check
+        if inspection.application and inspection.application.institution:
+            check_regional_scope(actor, inspection.application.institution.region)
+
+        # Coordinate bounds and accuracy validation
+        if latitude is not None:
+            if latitude < -90.0 or latitude > 90.0:
+                raise HTTPException(status_code=400, detail="Invalid GPS latitude. Must be between -90 and 90 degrees.")
+            if longitude is not None and (longitude < -180.0 or longitude > 180.0):
+                raise HTTPException(status_code=400, detail="Invalid GPS longitude. Must be between -180 and 180 degrees.")
+            if accuracy is not None and accuracy < 0:
+                raise HTTPException(status_code=400, detail="Invalid GPS accuracy. Must be non-negative.")
+
         now = datetime.now(timezone.utc)
         inspection.check_in_at = now
         inspection.check_in_lat = latitude
@@ -513,6 +666,7 @@ class EVCWorkflowService:
         inspection.check_in_source = source or ("BROWSER_GEOLOCATION" if latitude else "MANUAL_OFFICER_OVERRIDE")
         inspection.status = "IN_PROGRESS"
 
+        actor_role = actor.roles[0].role if actor.roles else "COMMITTEE_MEMBER"
         log_audit_event(
             db=db,
             action="EVC_INSPECTION_CHECKED_IN",
@@ -520,7 +674,7 @@ class EVCWorkflowService:
             entity_id=inspection.id,
             actor_id=actor.id,
             actor_name=actor.full_name,
-            actor_role=actor.roles[0].role if actor.roles else "COMMITTEE_MEMBER",
+            actor_role=actor_role,
             details={
                 "check_in_time": now.isoformat(),
                 "latitude": latitude,
@@ -557,6 +711,19 @@ class EVCWorkflowService:
         inspection = db.query(EVCInspection).filter(EVCInspection.id == inspection_id).first()
         if not inspection:
             raise HTTPException(status_code=404, detail="EVC Inspection not found")
+
+        # Regional scope check
+        if inspection.application and inspection.application.institution:
+            check_regional_scope(actor, inspection.application.institution.region)
+
+        # Validate that client-supplied file_url references registered, authorized platform storage
+        if file_url:
+            ALLOWED_STORAGE_PREFIXES = ("/storage/", "/api/documents/download/", "https://storage.aicte.gov.in/", "/uploads/")
+            if not any(file_url.startswith(prefix) for prefix in ALLOWED_STORAGE_PREFIXES):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid evidence file_url: Evidence must point to a registered, authorized platform storage endpoint."
+                )
 
         # Compute SHA-256 hash
         file_hash = None
@@ -595,6 +762,7 @@ class EVCWorkflowService:
         )
         db.add(evidence)
 
+        actor_role = actor.roles[0].role if actor.roles else "COMMITTEE_MEMBER"
         log_audit_event(
             db=db,
             action="EVC_FIELD_EVIDENCE_RECORDED",

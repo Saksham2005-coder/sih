@@ -65,6 +65,7 @@ class COICheckResponse(BaseModel):
     summary: str
     rules_checked: List[COIRuleResult]
     assessed_at: str
+    data_completeness: Optional[str] = "COMPLETE"
 
 
 class EVCPanelProposeRequest(BaseModel):

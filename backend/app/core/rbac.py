@@ -32,6 +32,7 @@ class Permission(str, Enum):
     EVC_VIEW = "evc.view"
     EVC_SCHEDULE = "evc.schedule"
     EVC_REPORT = "evc.report"
+    EVC_COI_OVERRIDE = "evc.coi_override"
 
     # Alerts & Deadlines permissions
     ALERTS_VIEW = "alerts.view"
@@ -142,6 +143,7 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         Permission.EVC_VIEW,
         Permission.EVC_SCHEDULE,
         Permission.EVC_REPORT,
+        Permission.EVC_COI_OVERRIDE,
         Permission.ALERTS_VIEW,
         Permission.RULES_VIEW,
     },
@@ -151,6 +153,7 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         Permission.APPLICATION_CLOSE,
         Permission.DOCUMENT_DOWNLOAD,
         Permission.EVC_VIEW,
+        Permission.EVC_COI_OVERRIDE,
         Permission.ALERTS_VIEW,
         Permission.ALERTS_ACKNOWLEDGE,
         Permission.RULES_VIEW,
@@ -162,6 +165,7 @@ ROLE_PERMISSIONS: Dict[str, Set[str]] = {
         Permission.APPLICATION_CLOSE,
         Permission.DOCUMENT_DOWNLOAD,
         Permission.EVC_VIEW,
+        Permission.EVC_COI_OVERRIDE,
         Permission.ALERTS_VIEW,
         Permission.ALERTS_SCAN,
         Permission.ALERTS_ACKNOWLEDGE,
@@ -212,15 +216,32 @@ def check_regional_scope(user: User, target_region: Optional[str]):
     Enforces regional boundary scoping.
     Regional Officers and EVC Coordinators can only mutate cases within their assigned region.
     National roles (Bureau Officer, Competent Authority, System Admin) bypass regional scope.
+    Regional Officers with unassigned regions FAIL CLOSED immediately.
     """
     user_roles = [r.role for r in user.roles]
-    
-    # If the user is a Regional Officer or EVC Coordinator without higher national operational roles
-    if any(r in [REGIONAL_OFFICER, EVC_COORDINATOR] for r in user_roles) and not any(r in [BUREAU_OFFICER, COMPETENT_AUTHORITY, SYSTEM_ADMIN] for r in user_roles):
-        if user.region and target_region and user.region.lower() != target_region.lower():
+    is_national = any(r in [BUREAU_OFFICER, COMPETENT_AUTHORITY, SYSTEM_ADMIN] for r in user_roles)
+    if is_national:
+        return
+
+    # Regional Officer scoping: Fail-closed if region unassigned
+    if REGIONAL_OFFICER in user_roles:
+        if not user.region or not user.region.strip():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed)."
+            )
+        if target_region and user.region.strip().lower() != target_region.strip().lower():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Access denied: Case is registered under '{target_region}' Region, which is outside your assigned region '{user.region}'."
+            )
+
+    # EVC Coordinator scoping if region is assigned
+    elif EVC_COORDINATOR in user_roles and user.region and target_region:
+        if user.region.strip().lower() != target_region.strip().lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: Target region '{target_region}' is outside your assigned region '{user.region}'."
             )
 
 def check_case_assignment(user: User, assigned_user_id: Optional[int], assigned_role: Optional[str] = None):

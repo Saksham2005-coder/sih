@@ -33,29 +33,42 @@ from app.core.rbac import check_regional_scope, has_permission, Permission
 router = APIRouter(prefix="/evc", tags=["EVC Management"])
 
 
-def _serialize_panel_assignment(a: EVCPanelAssignment) -> EVCPanelAssignmentResponse:
+def _is_institution_user(user: Optional[User]) -> bool:
+    if not user:
+        return False
+    user_roles = [r.role for r in user.roles]
+    is_officer = any(r in [
+        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
+        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
+    ] for r in user_roles)
+    return not is_officer
+
+
+def _serialize_panel_assignment(a: EVCPanelAssignment, current_user: Optional[User] = None) -> EVCPanelAssignmentResponse:
     expert = a.expert
+    is_inst = _is_institution_user(current_user)
     return EVCPanelAssignmentResponse(
         id=a.id,
         inspection_id=a.inspection_id,
         expert_id=a.expert_id,
         expert_name=expert.name if expert else None,
-        expert_email=expert.email if expert else None,
+        expert_email=None if is_inst else (expert.email if expert else None),
         expert_institution=expert.current_institution if expert else None,
         panel_role=a.panel_role,
         status=a.status,
         invited_at=a.invited_at,
         responded_at=a.responded_at,
-        decline_reason=a.decline_reason,
-        coi_check_result=a.coi_check_result,
+        decline_reason=None if is_inst else a.decline_reason,
+        coi_check_result=None if is_inst else a.coi_check_result,
         override_applied=a.override_applied,
-        override_reason=a.override_reason,
+        override_reason=None if is_inst else a.override_reason,
         created_at=a.created_at,
         updated_at=a.updated_at
     )
 
 
-def _serialize_evidence(e: EVCFieldEvidence) -> EVCFieldEvidenceResponse:
+def _serialize_evidence(e: EVCFieldEvidence, current_user: Optional[User] = None) -> EVCFieldEvidenceResponse:
+    is_inst = _is_institution_user(current_user)
     return EVCFieldEvidenceResponse(
         id=e.id,
         inspection_id=e.inspection_id,
@@ -64,25 +77,26 @@ def _serialize_evidence(e: EVCFieldEvidence) -> EVCFieldEvidenceResponse:
         observation_notes=e.observation_notes,
         status=e.status,
         file_url=e.file_url,
-        file_hash=e.file_hash,
+        file_hash=None if is_inst else e.file_hash,
         file_name=e.file_name,
         file_size_bytes=e.file_size_bytes,
         evidence_type=e.evidence_type,
         captured_by_id=e.captured_by_id,
         captured_at=e.captured_at,
-        latitude=e.latitude,
-        longitude=e.longitude,
-        location_accuracy_meters=e.location_accuracy_meters,
-        location_capture_source=e.location_capture_source,
+        latitude=None if is_inst else e.latitude,
+        longitude=None if is_inst else e.longitude,
+        location_accuracy_meters=None if is_inst else e.location_accuracy_meters,
+        location_capture_source=None if is_inst else e.location_capture_source,
         location_permission_granted=e.location_permission_granted,
         created_at=e.created_at,
         updated_at=e.updated_at
     )
 
 
-def _serialize_inspection(insp: EVCInspection) -> EVCInspectionResponse:
+def _serialize_inspection(insp: EVCInspection, current_user: Optional[User] = None) -> EVCInspectionResponse:
     app = insp.application
     inst = app.institution if app else None
+    is_inst = _is_institution_user(current_user)
     return EVCInspectionResponse(
         id=insp.id,
         application_id=insp.application_id,
@@ -98,12 +112,12 @@ def _serialize_inspection(insp: EVCInspection) -> EVCInspectionResponse:
         status=insp.status,
         panel_status=insp.panel_status or "PENDING_PANEL",
         check_in_at=insp.check_in_at,
-        check_in_lat=insp.check_in_lat,
-        check_in_lon=insp.check_in_lon,
-        check_in_accuracy=insp.check_in_accuracy,
-        check_in_source=insp.check_in_source,
-        virtual_meeting_url=insp.virtual_meeting_url,
-        virtual_recording_url=insp.virtual_recording_url,
+        check_in_lat=None if is_inst else insp.check_in_lat,
+        check_in_lon=None if is_inst else insp.check_in_lon,
+        check_in_accuracy=None if is_inst else insp.check_in_accuracy,
+        check_in_source=None if is_inst else insp.check_in_source,
+        virtual_meeting_url=None if is_inst else insp.virtual_meeting_url,
+        virtual_recording_url=None if is_inst else insp.virtual_recording_url,
         report_url=insp.report_url,
         report_notes=insp.report_notes,
         recommendation=insp.recommendation,
@@ -111,8 +125,8 @@ def _serialize_inspection(insp: EVCInspection) -> EVCInspectionResponse:
         completed_by_id=insp.completed_by_id,
         created_at=insp.created_at,
         updated_at=insp.updated_at,
-        panel_assignments=[_serialize_panel_assignment(a) for a in (insp.panel_assignments or [])],
-        field_evidence=[_serialize_evidence(e) for e in (insp.field_evidence or [])]
+        panel_assignments=[_serialize_panel_assignment(a, current_user) for a in (insp.panel_assignments or [])],
+        field_evidence=[_serialize_evidence(e, current_user) for e in (insp.field_evidence or [])]
     )
 
 
@@ -126,9 +140,75 @@ def _verify_inspection_access(inspection: EVCInspection, current_user: User):
     if not is_officer:
         if not current_user.institution_id or not app or app.institution_id != current_user.institution_id:
             raise HTTPException(status_code=403, detail="Unauthorized: Access denied to inspection outside institution")
-    elif "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
-        if app and app.institution and app.institution.region != current_user.region:
-            raise HTTPException(status_code=403, detail=f"Unauthorized: Access denied to region '{app.institution.region}'")
+    else:
+        # Regional Officer Scoping: fail closed if unassigned or cross-region
+        if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+            if not current_user.region or not current_user.region.strip():
+                raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+            inst_region = app.institution.region if (app and app.institution) else None
+            if inst_region and inst_region.strip().lower() != current_user.region.strip().lower():
+                raise HTTPException(status_code=403, detail=f"Unauthorized: Access denied to region '{inst_region}'. Outside your assigned region '{current_user.region}'.")
+
+
+def _mask_expert_profile(expert: EVCExpert, current_user: User) -> dict:
+    user_roles = [r.role for r in current_user.roles]
+    is_privileged = any(r in ["SYSTEM_ADMIN", "EVC_COORDINATOR"] for r in user_roles)
+
+    email = expert.email
+    phone = expert.phone
+    declared_conflicts = expert.declared_conflicts or []
+
+    if not is_privileged:
+        # Mask email: e.g. "amitav.roy@iitb.ac.in" -> "a***y@iitb.ac.in"
+        if email and "@" in email:
+            parts = email.split("@")
+            user_part = parts[0]
+            domain_part = parts[1]
+            if len(user_part) > 2:
+                masked_user = f"{user_part[0]}***{user_part[-1]}"
+            else:
+                masked_user = f"{user_part[0]}***"
+            email = f"{masked_user}@{domain_part}"
+        elif email:
+            email = "e***@masked.in"
+
+        # Mask phone
+        if phone:
+            digits = "".join(c for c in phone if c.isdigit())
+            last4 = digits[-4:] if len(digits) >= 4 else "0000"
+            phone = f"+91-XXXXX-{last4}"
+
+        # Sanitize declared conflict reasons
+        sanitized_conflicts = []
+        for dc in declared_conflicts:
+            sanitized_conflicts.append({
+                "institution_id": dc.get("institution_id"),
+                "institution_name": dc.get("institution_name"),
+                "reason": "Declared personal / institutional conflict (confidential officer record)"
+            })
+        declared_conflicts = sanitized_conflicts
+
+    return {
+        "id": expert.id,
+        "user_id": expert.user_id,
+        "name": expert.name,
+        "email": email,
+        "phone": phone,
+        "designation": expert.designation,
+        "expertise_categories": expert.expertise_categories or [],
+        "specializations": expert.specializations or [],
+        "current_institution": expert.current_institution,
+        "institution_id": expert.institution_id,
+        "parent_organization": expert.parent_organization,
+        "district": expert.district,
+        "region": expert.region,
+        "is_active": expert.is_active,
+        "availability_status": expert.availability_status,
+        "declared_conflicts": declared_conflicts,
+        "prior_inspections": expert.prior_inspections or [],
+        "created_at": expert.created_at,
+        "updated_at": expert.updated_at
+    }
 
 
 # ==========================================
@@ -137,6 +217,7 @@ def _verify_inspection_access(inspection: EVCInspection, current_user: User):
 
 @router.get("/queue", response_model=List[EVCInspectionResponse])
 def get_evc_queue(
+    region: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -156,11 +237,18 @@ def get_evc_queue(
         if not current_user.institution_id:
             return []
         query = query.filter(Application.institution_id == current_user.institution_id)
-    elif "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
-        query = query.filter(Institution.region == current_user.region)
+    else:
+        if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+            if not current_user.region or not current_user.region.strip():
+                raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+            if region and region.strip().lower() != current_user.region.strip().lower():
+                raise HTTPException(status_code=403, detail=f"Access denied: Regional Officer assigned to '{current_user.region}' cannot query region '{region}'.")
+            query = query.filter(Institution.region == current_user.region)
+        elif region:
+            query = query.filter(Institution.region == region)
 
     inspections = query.order_by(EVCInspection.scheduled_date.asc().nullslast()).all()
-    return [_serialize_inspection(insp) for insp in inspections]
+    return [_serialize_inspection(insp, current_user) for insp in inspections]
 
 
 @router.post("/schedule", response_model=EVCInspectionResponse)
@@ -179,7 +267,7 @@ def schedule_evc_inspection(
         expert_member_name=request.expert_member_name,
         actor=current_user
     )
-    return _serialize_inspection(inspection)
+    return _serialize_inspection(inspection, current_user)
 
 
 @router.post("/{id}/submit-report", response_model=EVCInspectionResponse)
@@ -205,7 +293,7 @@ def submit_evc_report(
         db.commit()
         db.refresh(inspection)
 
-    return _serialize_inspection(inspection)
+    return _serialize_inspection(inspection, current_user)
 
 
 # ==========================================
@@ -222,23 +310,25 @@ def get_evc_experts(
 ):
     """
     Returns AICTE EVC expert registry with qualifications, specializations, and conflict history.
-    Restricted to authorized officers.
+    Restricted to authorized officers. Regional Officers fail closed if region missing or foreign region requested.
     """
     user_roles = [r.role for r in current_user.roles]
-    is_officer = any(r in [
-        "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMMITTEE_MEMBER",
-        "EVC_COORDINATOR", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"
-    ] for r in user_roles)
-    if not is_officer:
-        raise HTTPException(status_code=403, detail="Unauthorized: Expert registry view restricted to officers")
+    allowed_roles = {"EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"}
+    if not any(r in allowed_roles for r in user_roles):
+        raise HTTPException(status_code=403, detail="Unauthorized: Expert registry view restricted to authorized officers")
 
     query = db.query(EVCExpert)
 
-    # Scoping: Regional officer sees experts relevant to their region by default or all if unconstrained
-    if region:
-        query = query.filter(EVCExpert.region == region)
-    elif "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+    # Scoping: Regional officer scoping
+    if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if not current_user.region or not current_user.region.strip():
+            raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+        # Regional Officer must NEVER broaden their region through query parameter
+        if region and region.strip().lower() != current_user.region.strip().lower():
+            raise HTTPException(status_code=403, detail=f"Access denied: Regional Officers cannot query expert profiles outside their assigned region '{current_user.region}'.")
         query = query.filter(or_(EVCExpert.region == current_user.region, EVCExpert.region == "ALL_INDIA"))
+    elif region:
+        query = query.filter(EVCExpert.region == region)
 
     if availability_status:
         query = query.filter(EVCExpert.availability_status == availability_status)
@@ -254,7 +344,7 @@ def get_evc_experts(
         )
 
     experts = query.order_by(EVCExpert.name.asc()).all()
-    return experts
+    return [_mask_expert_profile(exp, current_user) for exp in experts]
 
 
 @router.get("/experts/{id}", response_model=EVCExpertResponse)
@@ -263,10 +353,23 @@ def get_evc_expert_detail(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
+    user_roles = [r.role for r in current_user.roles]
+    allowed_roles = {"EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"}
+    if not any(r in allowed_roles for r in user_roles):
+        raise HTTPException(status_code=403, detail="Unauthorized: Expert profile view restricted to authorized officers")
+
     expert = db.query(EVCExpert).filter(EVCExpert.id == id).first()
     if not expert:
         raise HTTPException(status_code=404, detail="Expert profile not found")
-    return expert
+
+    # Scoping for Regional Officer
+    if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if not current_user.region or not current_user.region.strip():
+            raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+        if expert.region and expert.region != "ALL_INDIA" and expert.region.strip().lower() != current_user.region.strip().lower():
+            raise HTTPException(status_code=403, detail=f"Access denied: Expert #{id} belongs to '{expert.region}' region outside your jurisdiction '{current_user.region}'.")
+
+    return _mask_expert_profile(expert, current_user)
 
 
 @router.post("/coi-check", response_model=COICheckResponse)
@@ -277,8 +380,13 @@ def check_conflict_of_interest(
 ):
     """
     Executes explainable conflict-of-interest check against the specified institution application.
-    Returns clear rule-by-rule statuses without committing assignments.
+    Enforces server-side role and regional permission boundaries.
     """
+    user_roles = [r.role for r in current_user.roles]
+    allowed_roles = {"EVC_COORDINATOR", "REGIONAL_OFFICER", "BUREAU_OFFICER", "COMPETENT_AUTHORITY", "SYSTEM_ADMIN"}
+    if not any(r in allowed_roles for r in user_roles):
+        raise HTTPException(status_code=403, detail="Unauthorized: Conflict-of-interest evaluation restricted to authorized officers")
+
     expert = db.query(EVCExpert).filter(EVCExpert.id == request.expert_id).first()
     if not expert:
         raise HTTPException(status_code=404, detail=f"Expert #{request.expert_id} not found")
@@ -286,6 +394,16 @@ def check_conflict_of_interest(
     application = db.query(Application).filter(Application.id == request.application_id).first()
     if not application:
         raise HTTPException(status_code=404, detail=f"Application #{request.application_id} not found")
+
+    # Regional Officer Scoping
+    if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
+        if not current_user.region or not current_user.region.strip():
+            raise HTTPException(status_code=403, detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed).")
+        inst_region = application.institution.region if (application and application.institution) else None
+        if inst_region and inst_region.strip().lower() != current_user.region.strip().lower():
+            raise HTTPException(status_code=403, detail=f"Access denied: Case is registered under '{inst_region}' Region, which is outside your assigned region '{current_user.region}'.")
+        if expert.region and expert.region != "ALL_INDIA" and expert.region.strip().lower() != current_user.region.strip().lower():
+            raise HTTPException(status_code=403, detail=f"Access denied: Expert belongs to '{expert.region}' region, which is outside your assigned region '{current_user.region}'.")
 
     assessment = EVCConflictService.evaluate_coi(
         expert=expert,
@@ -317,7 +435,7 @@ def propose_panel_assignment(
         actor=current_user,
         override_reason=request.override_reason
     )
-    return _serialize_panel_assignment(assignment)
+    return _serialize_panel_assignment(assignment, current_user)
 
 
 @router.post("/assignments/{id}/invite", response_model=EVCPanelAssignmentResponse)
@@ -334,7 +452,7 @@ def invite_panel_expert(
         assignment_id=id,
         actor=current_user
     )
-    return _serialize_panel_assignment(assignment)
+    return _serialize_panel_assignment(assignment, current_user)
 
 
 @router.post("/assignments/{id}/accept", response_model=EVCPanelAssignmentResponse)
@@ -345,13 +463,14 @@ def accept_panel_invitation(
 ):
     """
     Marks invitation ACCEPTED. When both Convener and Expert Member accept, transitions inspection to SCHEDULED.
+    Only the invited expert linked to this assignment can accept.
     """
     assignment = EVCWorkflowService.accept_invitation(
         db=db,
         assignment_id=id,
         actor=current_user
     )
-    return _serialize_panel_assignment(assignment)
+    return _serialize_panel_assignment(assignment, current_user)
 
 
 @router.post("/assignments/{id}/decline", response_model=EVCPanelAssignmentResponse)
@@ -363,6 +482,7 @@ def decline_panel_invitation(
 ):
     """
     Declines invitation with reason. Transitions inspection to REASSIGNMENT_REQUIRED.
+    Only the invited expert linked to this assignment can decline.
     """
     assignment = EVCWorkflowService.decline_invitation(
         db=db,
@@ -370,7 +490,7 @@ def decline_panel_invitation(
         reason=request.reason,
         actor=current_user
     )
-    return _serialize_panel_assignment(assignment)
+    return _serialize_panel_assignment(assignment, current_user)
 
 
 @router.post("/assignments/{id}/reassign", response_model=EVCPanelAssignmentResponse)
@@ -390,7 +510,7 @@ def reassign_panel_expert(
         actor=current_user,
         override_reason=request.override_reason
     )
-    return _serialize_panel_assignment(new_assignment)
+    return _serialize_panel_assignment(new_assignment, current_user)
 
 
 # ==========================================
@@ -417,7 +537,7 @@ def check_in_inspection(
         source=request.source,
         actor=current_user
     )
-    return _serialize_inspection(inspection)
+    return _serialize_inspection(inspection, current_user)
 
 
 @router.post("/inspections/{id}/evidence", response_model=EVCFieldEvidenceResponse)
@@ -449,7 +569,7 @@ def record_field_evidence(
         permission_granted=request.permission_granted,
         actor=current_user
     )
-    return _serialize_evidence(evidence)
+    return _serialize_evidence(evidence, current_user)
 
 
 @router.get("/inspections/{id}/evidence", response_model=List[EVCFieldEvidenceResponse])
@@ -467,7 +587,7 @@ def get_inspection_evidence(
         EVCFieldEvidence.inspection_id == id
     ).order_by(EVCFieldEvidence.created_at.asc()).all()
 
-    return [_serialize_evidence(e) for e in evidence_list]
+    return [_serialize_evidence(e, current_user) for e in evidence_list]
 
 
 @router.post("/inspections/{id}/finalize", response_model=EVCInspectionResponse)
@@ -492,7 +612,7 @@ def finalize_inspection_report(
         virtual_recording_url=request.virtual_recording_url,
         actor=current_user
     )
-    return _serialize_inspection(inspection)
+    return _serialize_inspection(inspection, current_user)
 
 
 @router.get("/inspections/{id}", response_model=EVCInspectionResponse)
@@ -511,4 +631,4 @@ def get_evc_dossier(
         raise HTTPException(status_code=404, detail="EVC Inspection not found")
 
     _verify_inspection_access(inspection, current_user)
-    return _serialize_inspection(inspection)
+    return _serialize_inspection(inspection, current_user)

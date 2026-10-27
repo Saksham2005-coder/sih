@@ -204,13 +204,15 @@ def test_expert_invitation_lifecycle_accept_flow(client: TestClient):
         assert inv_m.status_code == 200
         assert inv_m.json()["status"] == "INVITED"
 
-        # 4. Accept Convener
-        acc_c = client.post(f"/api/evc/assignments/{c_id}/accept", headers=headers)
+        # 4. Accept Convener (authenticated as exp1's linked account)
+        headers_c = get_auth_headers(client, "committee.member@aicte.gov.in")
+        acc_c = client.post(f"/api/evc/assignments/{c_id}/accept", headers=headers_c)
         assert acc_c.status_code == 200
         assert acc_c.json()["status"] == "ACCEPTED"
 
-        # 5. Accept Expert Member
-        acc_m = client.post(f"/api/evc/assignments/{m_id}/accept", headers=headers)
+        # 5. Accept Expert Member (authenticated as exp5's linked account)
+        headers_m = get_auth_headers(client, "george.thomas@spit.ac.in")
+        acc_m = client.post(f"/api/evc/assignments/{m_id}/accept", headers=headers_m)
         assert acc_m.status_code == 200
         assert acc_m.json()["status"] == "ACCEPTED"
 
@@ -258,10 +260,11 @@ def test_expert_invitation_decline_and_reassignment(client: TestClient):
 
         client.post(f"/api/evc/assignments/{prop['id']}/invite", headers=headers)
 
-        # Exp5 declines
+        # Exp5 declines (authenticated as exp5's linked account)
+        headers_exp5 = get_auth_headers(client, "george.thomas@spit.ac.in")
         decline_res = client.post(f"/api/evc/assignments/{prop['id']}/decline", json={
             "reason": "Prior teaching commitment and international symposium on the scheduled visit date."
-        }, headers=headers)
+        }, headers=headers_exp5)
         assert decline_res.status_code == 200
         declined_data = decline_res.json()
         assert declined_data["status"] == "DECLINED"

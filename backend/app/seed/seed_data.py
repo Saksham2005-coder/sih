@@ -896,10 +896,25 @@ def seed_evc_experts(db: Session):
     db.add_all([exp1, exp2, exp3, exp4, exp5])
     db.commit()
 
-    # Link committee member user if available
+    # Link committee member users to expert profiles for authentic identity binding
     if cm_user_id:
         exp1.user_id = cm_user_id
-        db.commit()
+
+    exp5_user = db.query(User).filter(User.email == "george.thomas@spit.ac.in").first()
+    if not exp5_user:
+        exp5_user = User(
+            email="george.thomas@spit.ac.in",
+            hashed_password=get_password_hash("Password123!"),
+            full_name="Prof. George Thomas",
+            institution_id=None,
+            region="Western",
+            is_active=True
+        )
+        db.add(exp5_user)
+        db.flush()
+        db.add(UserRole(user_id=exp5_user.id, role="COMMITTEE_MEMBER"))
+    exp5.user_id = exp5_user.id
+    db.commit()
 
     print("Seeded 5 structured EVC synthetic expert profiles with explicit conflict scenarios.")
 
