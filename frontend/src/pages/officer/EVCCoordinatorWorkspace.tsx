@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import {
   Compass, Calendar, Users, CheckCircle2,
   AlertTriangle, RefreshCw, ArrowRight, PlusCircle,
-  FileText, Clock, Building
+  FileText, Clock, Building, Camera, Shield, Check, X, Info
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
-import { Application, EVCInspection, EvcAnalyticsData } from '../../types';
+import { Application, EVCInspection, EvcAnalyticsData, EVCExpert, COICheckResult } from '../../types';
 import { StatCard } from '../../components/common/StatCard';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { Modal } from '../../components/common/Modal';
@@ -17,6 +17,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [inspections, setInspections] = useState<EVCInspection[]>([]);
   const [analytics, setAnalytics] = useState<EvcAnalyticsData | null>(null);
+  const [experts, setExperts] = useState<EVCExpert[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Scheduling modal state
@@ -25,19 +26,29 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
   const [scheduledDate, setScheduledDate] = useState('');
   const [convenerName, setConvenerName] = useState('');
   const [expertName, setExpertName] = useState('');
+  const [selectedConvenerExpertId, setSelectedConvenerExpertId] = useState<string>('');
+  const [selectedMemberExpertId, setSelectedMemberExpertId] = useState<string>('');
   const [scheduling, setScheduling] = useState(false);
+
+  // Explainable COI Assessment modal / state
+  const [coiModalOpen, setCoiModalOpen] = useState(false);
+  const [coiAssessment, setCoiAssessment] = useState<COICheckResult | null>(null);
+  const [checkingCoi, setCheckingCoi] = useState(false);
+  const [overrideReason, setOverrideReason] = useState('');
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [apps, queue, evcStats] = await Promise.all([
+      const [apps, queue, evcStats, expertList] = await Promise.all([
         api.getApplications(),
         api.getEVCQueue(),
         api.getEvcAnalytics(),
+        api.getEVCExperts().catch(() => [] as EVCExpert[])
       ]);
       setApplications(apps);
       setInspections(queue);
       setAnalytics(evcStats);
+      setExperts(expertList);
     } catch (err) {
       console.error('Failed to load EVC coordinator data', err);
     } finally {
@@ -48,6 +59,41 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // When convener dropdown changes
+  const handleConvenerSelect = (expertIdStr: string) => {
+    setSelectedConvenerExpertId(expertIdStr);
+    if (!expertIdStr) return;
+    const found = experts.find(e => e.id.toString() === expertIdStr);
+    if (found) {
+      setConvenerName(`${found.name} (${found.current_institution})`);
+    }
+  };
+
+  // When expert dropdown changes
+  const handleMemberSelect = (expertIdStr: string) => {
+    setSelectedMemberExpertId(expertIdStr);
+    if (!expertIdStr) return;
+    const found = experts.find(e => e.id.toString() === expertIdStr);
+    if (found) {
+      setExpertName(`${found.name} (${found.current_institution})`);
+    }
+  };
+
+  // Evaluate COI for selected expert against current application
+  const handleEvaluateCOI = async (expertIdStr: string) => {
+    if (!expertIdStr || !schedulingApp) return;
+    setCheckingCoi(true);
+    try {
+      const assessment = await api.checkEVCCOI(parseInt(expertIdStr, 10), schedulingApp.id);
+      setCoiAssessment(assessment);
+      setCoiModalOpen(true);
+    } catch (err: any) {
+      alert(err.message || 'COI evaluation failed');
+    } finally {
+      setCheckingCoi(false);
+    }
+  };
 
   const handleScheduleInspection = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +110,8 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
       setSchedulingApp(null);
       setConvenerName('');
       setExpertName('');
+      setSelectedConvenerExpertId('');
+      setSelectedMemberExpertId('');
       setScheduledDate('');
       await loadData();
     } catch (err: any) {
@@ -99,7 +147,7 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
             Expert Visit Committee (EVC) Scheduling & Panel Command
           </h1>
           <p className="text-xs text-brand-muted mt-0.5">
-            Active Coordinator: <span className="font-semibold text-brand-teal">{user?.full_name}</span> (EVC COORDINATOR) • Panel Roster, Schedule SLAs & Inspection Reports
+            Active Coordinator: <span className="font-semibold text-brand-teal">{user?.full_name}</span> (EVC COORDINATOR) • Panel Roster, Explainable COI Checks & Mobile Field Evidence
           </p>
         </div>
 
@@ -141,105 +189,91 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
         />
       </div>
 
-      {/* Primary Section: Eligible Applications Awaiting EVC Schedule */}
-      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      {/* Section 1: Cases Awaiting Panel Assignment */}
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-brand-ink">Applications Awaiting EVC Panel Assignment</h3>
-            <p className="text-xs text-brand-muted">Cases that have successfully satisfied initial scrutiny and require physical or virtual on-site verification</p>
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-brand-teal" />
+            <h2 className="text-sm font-bold text-brand-ink">
+              Action Queue: Applications Awaiting Committee Appointment ({awaitingScheduleApps.length})
+            </h2>
           </div>
-          <span className="text-xs font-bold text-brand-teal bg-teal-50 dark:bg-teal-950/80 px-2.5 py-1 rounded-full border border-teal-200 dark:border-teal-700/80">
-            {awaitingScheduleApps.length} Ready to Schedule
-          </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
-              <tr>
-                <th className="px-6 py-3.5">Application Number</th>
-                <th className="px-6 py-3.5">Institution & Region</th>
-                <th className="px-6 py-3.5">Application Type</th>
-                <th className="px-6 py-3.5">Current Stage</th>
-                <th className="px-6 py-3.5 text-right">Coordination Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
-              {awaitingScheduleApps.length === 0 ? (
+        {awaitingScheduleApps.length === 0 ? (
+          <div className="p-8 text-center text-brand-muted text-xs">
+            No applications currently pending EVC scheduling in your regional jurisdiction.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-gray-50/75 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] tracking-wider font-semibold border-b border-brand-border">
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-brand-muted">
-                    Zero applications currently awaiting EVC scheduling.
-                  </td>
+                  <th className="px-6 py-3.5">Application Number</th>
+                  <th className="px-6 py-3.5">Applicant Institution</th>
+                  <th className="px-6 py-3.5">Type</th>
+                  <th className="px-6 py-3.5">Regional Office</th>
+                  <th className="px-6 py-3.5 text-right">Action</th>
                 </tr>
-              ) : (
-                awaitingScheduleApps.map((app) => (
+              </thead>
+              <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
+                {awaitingScheduleApps.map((app) => (
                   <tr key={app.id} className="hover:bg-gray-50/80 dark:hover:bg-brand-surface-elevated transition-colors duration-150">
                     <td className="px-6 py-4 font-mono font-bold text-brand-ink">
-                      <Link to={`/officer/applications/${app.id}`} className="hover:text-brand-teal transition-colors">
-                        {app.application_number}
-                      </Link>
+                      {app.application_number}
                     </td>
                     <td className="px-6 py-4">
                       <p className="font-semibold text-brand-ink">{app.institution_name}</p>
-                      <span className="text-[10px] text-brand-muted">{app.region} Region</span>
-                    </td>
-                    <td className="px-6 py-4 font-medium text-brand-ink">
-                      {app.application_type.replace(/_/g, ' ')}
                     </td>
                     <td className="px-6 py-4">
-                      <StatusBadge status={app.current_stage} />
+                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 dark:bg-brand-surface-secondary text-brand-ink border border-gray-200 dark:border-brand-border">
+                        {app.application_type.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-brand-muted">
+                      {app.region} Region
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => {
                           setSchedulingApp(app);
-                          // Default date 7 days in future
-                          const d = new Date();
-                          d.setDate(d.getDate() + 7);
-                          d.setHours(10, 0, 0, 0);
-                          setScheduledDate(d.toISOString().slice(0, 16));
-                          setConvenerName('Prof. Rajesh Sharma (IIT Bombay)');
-                          setExpertName('Dr. Ananya Sen (VJTI)');
+                          setScheduledDate('2026-11-05T10:00');
                         }}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-teal text-white hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold text-xs shadow-sm transition-colors duration-150"
                       >
-                        <Calendar className="w-3.5 h-3.5" /> Schedule Panel Visit
+                        <PlusCircle className="w-3.5 h-3.5" /> Appoint Panel & Schedule
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Secondary Section: Active EVC Inspection Roster */}
-      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
+      {/* Section 2: Comprehensive EVC Inspections & Field Workspace Roster */}
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden transition-colors">
         <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-brand-ink">Active Scheduled Visits & Inspection Reports</h3>
-            <p className="text-xs text-brand-muted">Scheduled inspection dates, panel convener assignments, and submitted evaluation dossiers</p>
+          <div className="flex items-center gap-2">
+            <Compass className="w-4 h-4 text-brand-teal" />
+            <h2 className="text-sm font-bold text-brand-ink">
+              EVC Inspection Roster & Field Evidence Workspace ({inspections.length})
+            </h2>
           </div>
-          <Link
-            to="/officer/evc"
-            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1"
-          >
-            EVC Registry <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
+            <thead className="bg-gray-50/75 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] tracking-wider font-semibold border-b border-brand-border">
               <tr>
-                <th className="px-6 py-3.5">Application</th>
+                <th className="px-6 py-3.5">App Number</th>
                 <th className="px-6 py-3.5">Institution</th>
-                <th className="px-6 py-3.5">Inspection Type</th>
+                <th className="px-6 py-3.5">Mode</th>
                 <th className="px-6 py-3.5">Scheduled Date</th>
                 <th className="px-6 py-3.5">Convener & Expert</th>
-                <th className="px-6 py-3.5">Inspection Status</th>
-                <th className="px-6 py-3.5 text-right">Recommendation</th>
+                <th className="px-6 py-3.5">Status & Panel</th>
+                <th className="px-6 py-3.5 text-right">Field Workspace</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-brand-border">
@@ -261,20 +295,34 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
                     {insp.scheduled_date ? new Date(insp.scheduled_date).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Unscheduled'}
                   </td>
                   <td className="px-6 py-4">
-                    <p className="font-semibold text-brand-ink">{insp.convener_name || 'Pending Assignment'}</p>
-                    <p className="text-[10px] text-brand-muted">{insp.expert_member_name}</p>
+                    <p className="font-semibold text-brand-ink">{insp.convener_name || 'Convener Pending'}</p>
+                    <p className="text-[10px] text-brand-muted">{insp.expert_member_name || 'Expert Member Pending'}</p>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 space-y-1">
                     <StatusBadge status={insp.status} />
+                    {insp.panel_status && (
+                      <div>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                            insp.panel_status === 'PANEL_CONFIRMED'
+                              ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                              : insp.panel_status === 'REASSIGNMENT_REQUIRED'
+                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300'
+                              : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                          }`}
+                        >
+                          {insp.panel_status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {insp.recommendation ? (
-                      <span className="text-xs font-bold text-brand-teal">
-                        {insp.recommendation.replace(/_/g, ' ')}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-brand-muted">Visit Pending</span>
-                    )}
+                    <Link
+                      to={`/officer/evc/field/${insp.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--brand-teal)]/10 text-[var(--brand-teal)] hover:bg-[var(--brand-teal)] hover:text-white border border-[var(--brand-teal)]/20 font-bold text-xs shadow-sm transition-all"
+                    >
+                      <Camera className="w-3.5 h-3.5" /> Field App
+                    </Link>
                   </td>
                 </tr>
               ))}
@@ -283,12 +331,12 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal: Schedule EVC Inspection */}
+      {/* Modal: Schedule EVC Inspection with Structured COI Engine */}
       {schedulingApp && (
         <Modal
           isOpen={true}
           onClose={() => setSchedulingApp(null)}
-          title={`Schedule EVC Inspection: ${schedulingApp.application_number}`}
+          title={`Form EVC Committee & Schedule: ${schedulingApp.application_number}`}
         >
           <form onSubmit={handleScheduleInspection} className="space-y-4 text-xs">
             <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border space-y-1">
@@ -320,49 +368,185 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
               />
             </div>
 
-            <div>
-              <label className="block font-bold text-brand-ink mb-1">Panel Convener Name & Affiliation</label>
+            {/* Convener Selection & COI */}
+            <div className="p-3 bg-[var(--brand-canvas)] rounded-lg border border-[var(--brand-border)] space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-brand-ink">Panel Convener (Senior Academician)</label>
+                {selectedConvenerExpertId && (
+                  <button
+                    type="button"
+                    onClick={() => handleEvaluateCOI(selectedConvenerExpertId)}
+                    disabled={checkingCoi}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--brand-teal)] hover:underline"
+                  >
+                    <Shield className="w-3 h-3" /> Check COI Norms
+                  </button>
+                )}
+              </div>
+
+              {experts.length > 0 && (
+                <select
+                  value={selectedConvenerExpertId}
+                  onChange={(e) => handleConvenerSelect(e.target.value)}
+                  className="w-full px-3 py-2 border border-brand-border rounded-lg bg-white dark:bg-brand-surface-secondary text-brand-ink text-xs mb-1.5"
+                >
+                  <option value="">-- Choose from Expert Registry --</option>
+                  {experts.map(exp => (
+                    <option key={exp.id} value={exp.id.toString()}>
+                      {exp.name} • {exp.designation} ({exp.current_institution})
+                    </option>
+                  ))}
+                </select>
+              )}
+
               <input
                 type="text"
                 required
                 value={convenerName}
                 onChange={(e) => setConvenerName(e.target.value)}
-                placeholder="e.g. Prof. Rajesh Sharma (IIT Bombay)"
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
+                placeholder="Or enter custom Convener name & affiliation"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg bg-white dark:bg-brand-surface-secondary text-brand-ink text-xs"
               />
             </div>
 
-            <div>
-              <label className="block font-bold text-brand-ink mb-1">Subject Expert Member Name & Affiliation</label>
+            {/* Expert Member Selection & COI */}
+            <div className="p-3 bg-[var(--brand-canvas)] rounded-lg border border-[var(--brand-border)] space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-brand-ink">Subject / Technical Expert Member</label>
+                {selectedMemberExpertId && (
+                  <button
+                    type="button"
+                    onClick={() => handleEvaluateCOI(selectedMemberExpertId)}
+                    disabled={checkingCoi}
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--brand-teal)] hover:underline"
+                  >
+                    <Shield className="w-3 h-3" /> Check COI Norms
+                  </button>
+                )}
+              </div>
+
+              {experts.length > 0 && (
+                <select
+                  value={selectedMemberExpertId}
+                  onChange={(e) => handleMemberSelect(e.target.value)}
+                  className="w-full px-3 py-2 border border-brand-border rounded-lg bg-white dark:bg-brand-surface-secondary text-brand-ink text-xs mb-1.5"
+                >
+                  <option value="">-- Choose from Expert Registry --</option>
+                  {experts.map(exp => (
+                    <option key={exp.id} value={exp.id.toString()}>
+                      {exp.name} • {exp.designation} ({exp.current_institution})
+                    </option>
+                  ))}
+                </select>
+              )}
+
               <input
                 type="text"
                 required
                 value={expertName}
                 onChange={(e) => setExpertName(e.target.value)}
-                placeholder="e.g. Dr. Ananya Sen (VJTI Mumbai)"
-                className="w-full px-3 py-2 border border-brand-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-teal bg-white dark:bg-brand-surface-secondary text-brand-ink"
+                placeholder="Or enter custom Expert Member name & affiliation"
+                className="w-full px-3 py-2 border border-brand-border rounded-lg bg-white dark:bg-brand-surface-secondary text-brand-ink text-xs"
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[var(--brand-border)]">
               <button
                 type="button"
                 onClick={() => setSchedulingApp(null)}
-                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 dark:hover:bg-brand-surface-elevated font-semibold transition-colors duration-150"
+                className="px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-100 font-semibold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={scheduling}
-                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm transition-colors duration-150"
+                className="px-4 py-2 rounded-lg bg-brand-teal text-white hover:bg-brand-teal-dark font-semibold shadow-sm"
               >
-                {scheduling ? 'Scheduling...' : 'Confirm & Dispatch Panel Roster'}
+                {scheduling ? 'Dispatching...' : 'Confirm & Dispatch Panel Roster'}
               </button>
             </div>
           </form>
         </Modal>
       )}
+
+      {/* Modal: Explainable Conflict-of-Interest (COI) Rule Assessment */}
+      <Modal
+        isOpen={coiModalOpen}
+        onClose={() => setCoiModalOpen(false)}
+        title="Explainable Conflict-of-Interest (COI) Assessment"
+      >
+        {coiAssessment && (
+          <div className="space-y-3.5 text-xs">
+            <div className="p-3 bg-[var(--brand-canvas)] rounded-lg border border-[var(--brand-border)]">
+              <p className="font-bold text-[var(--brand-ink)]">{coiAssessment.expert_name}</p>
+              <p className="text-[var(--brand-muted)]">{coiAssessment.current_institution}</p>
+            </div>
+
+            {/* Verdict Badge */}
+            <div
+              className={`p-3 rounded-lg border ${
+                coiAssessment.is_prohibited
+                  ? 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-900'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-200 dark:border-emerald-900'
+              }`}
+            >
+              <div className="font-bold flex items-center gap-1.5 mb-1">
+                {coiAssessment.is_prohibited ? <AlertTriangle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                {coiAssessment.is_prohibited ? 'Conflict of Interest Detected' : 'All Regulatory Norms Satisfied'}
+              </div>
+              <p className="text-[11px] leading-relaxed">{coiAssessment.summary}</p>
+            </div>
+
+            {/* Rule-by-Rule Breakdown */}
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--brand-muted)] block">
+                Auditable Rule Verifications (APH Norms)
+              </span>
+              {coiAssessment.rules_checked.map((rule) => {
+                const passed = rule.status === 'PASSED';
+                return (
+                  <div
+                    key={rule.rule_code}
+                    className="p-2.5 rounded-lg border border-[var(--brand-border)] bg-[var(--brand-surface)] flex items-start gap-2"
+                  >
+                    {passed ? (
+                      <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
+                    ) : (
+                      <X className="w-4 h-4 text-rose-600 dark:text-rose-400 mt-0.5 shrink-0" />
+                    )}
+                    <div className="space-y-0.5 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[var(--brand-ink)] text-[11px]">
+                          {rule.rule_name}
+                        </span>
+                        <span
+                          className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                            passed ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                          }`}
+                        >
+                          {rule.status}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-[var(--brand-muted)]">{rule.details}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                type="button"
+                onClick={() => setCoiModalOpen(false)}
+                className="px-4 py-2 bg-[var(--brand-teal)] text-white rounded-lg font-semibold text-xs"
+              >
+                Close Assessment
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

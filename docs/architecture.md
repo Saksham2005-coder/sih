@@ -303,11 +303,47 @@ ReguFlow 360 integrates an explainable, local, and auditable Document Intelligen
    - **Administrative Recovery**: Authorized officers can inspect failed outbox items and trigger manual retries via `POST /api/notifications/outbox/{id}/retry`.
 
 3. **Real-Time Server-Sent Events (SSE) Pub/Sub Broker**:
-   - Connection endpoint: `GET /api/notifications/stream?token={jwt}` with token validation.
+   - Connection endpoint: `GET /api/notifications/stream?ticket={single_use_ticket}` with single-use, 45-second stream ticket validation (reusable Bearer tokens strictly forbidden in query parameters).
    - Bounded queues: 50 items per subscriber with automatic pruning on disconnect.
    - Heartbeat: 15-second `: ping` comments preserve proxy and firewall keep-alive.
    - Scoped broadcasting: Events are sanitized (summary metadata only; zero document binary leaks) and filtered by user ID, institution ID, role, and regional jurisdiction.
    - Robust polling fallback: Header components query `/api/notifications/unread-count` every 25 seconds if SSE connections disconnect or are blocked by intermediate enterprise proxies.
+
+---
+
+### 11. EVC Expert Integrity, Conflict-of-Interest (COI) Engine & Mobile Field Evidence Architecture
+
+ReguFlow 360 extends the Expert Visit Committee (EVC) workflow into an integrated, auditable, and mobile-ready inspection subsystem:
+
+1. **Structured Expert Profile Registry (`evc_experts`)**:
+   - Models verified academic and technical experts with disciplines, specializations, designations, current institutional affiliations, parent governing organizations, district, region, and operational availability status.
+   - Maintains auditable conflict histories: voluntary declared conflicts registry and historic inspection records with institutional IDs and dates.
+
+2. **Explainable Conflict-of-Interest (COI) Engine (`EVCConflictService`)**:
+   - Evaluates auditable expert profile attributes against applicant institutions with zero black-box inferences:
+     1. `SAME_INSTITUTION_AFFILIATION`: Disallows appointing an expert affiliated with the applicant institution.
+     2. `PARENT_TRUST_AFFILIATION`: Detects and flags shared parent governing trusts, societies, or university boards.
+     3. `DECLARED_CONFLICTS`: Verifies voluntary personal declarations of conflict.
+     4. `COOLING_OFF_PERIOD`: Enforces a configurable 3-year cooling-off demonstration norm preventing repeat visits to the same institution.
+     5. `EXPERT_AVAILABILITY`: Verifies active status and operational availability in the expert registry.
+   - **Audit Override Protocol**: When an appointment violates conflict policy, it fails closed with HTTP 400. An authorized officer (`EVC_COORDINATOR`, `REGIONAL_OFFICER`, `SYSTEM_ADMIN`) can execute an override only by recording an explicit written justification logged to the immutable regulatory audit ledger.
+
+3. **Multi-Phase Invitation Lifecycle & Reassignment Invariants (`evc_panel_assignments`)**:
+   - State Machine: `PROPOSED` &rarr; `INVITED` &rarr; `ACCEPTED` | `DECLINED` | `CONFLICTED` | `REASSIGNED`.
+   - Outbox Integration: Formal invitation notices are queued through the transactional outbox (`EVC_EXPERT_INVITATION`) to assigned expert email addresses.
+   - **Reassignment Safety Invariant**: If an invited expert declines, the assignment transitions to `DECLINED` with reason, clearing legacy panel columns and transitioning the inspection to `panel_status="REASSIGNMENT_REQUIRED"`. Unconfirmed panels are strictly prevented from conducting visits.
+   - Automatic Synchronization: When both Convener and Expert Member accept, the inspection status advances to `SCHEDULED` with `panel_status="PANEL_CONFIRMED"`.
+
+4. **Mobile Field Inspection Workspace (~390px Viewport Optimization)**:
+   - Dedicated mobile-first interface (`/officer/evc/field/:id`) for inspectors on tablets and smartphones during physical site visits.
+   - **Advisory Location Provenance**: Visit check-in invokes browser `navigator.geolocation` to capture latitude, longitude, and accuracy radius (`accuracy_meters`). Coordinates are provenance-stamped (`BROWSER_GEOLOCATION` vs `MANUAL_OFFICER_OVERRIDE`). The platform does not make false mathematical claims of cryptographic spoof-proof GPS certainty in client browsers. When location is denied, an authorized officer records a transparent manual check-in.
+   - **APH Compliance Checklist**: 5 canonical compliance areas (Land & Carpet Area, Computing & AI Labs, Central Library & Bandwidth, Barrier-Free Access, Municipal Fire NOC).
+   - **SHA-256 Evidence Hashing**: Every uploaded photo, PDF artifact, or recorded observation automatically computes a SHA-256 integrity hash stored in `evc_field_evidence.file_hash`.
+
+5. **Virtual Inspection Panel & Statutory Approval Exclusivity**:
+   - Supports hybrid and remote inspections with dedicated fields for Webex/NIC VC meeting URLs and cloud recording archive URLs.
+   - **Statutory Safeguard**: Finalizing an inspection report with recommendation (`RECOMMENDED_APPROVAL`, `RECOMMENDED_REJECTION`, `DEFICIENCY_NOTED`) transitions application stage strictly to `EVC_COMPLETED`. Field inspectors cannot grant final statutory approvals or rejections; the Competent Authority exclusively retains final decision order authority under AICTE statutory governance.
+
 
 
 

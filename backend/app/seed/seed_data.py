@@ -8,7 +8,7 @@ from app.models.user import User, UserRole
 from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.document import DocumentRecord, DocumentVersion
-from app.models.evc import EVCInspection
+from app.models.evc import EVCInspection, EVCExpert, EVCPanelAssignment, EVCFieldEvidence
 from app.models.alert import Notification, AlertEscalation
 from app.models.audit import AuditEvent
 from app.models.rule import RuleDefinition
@@ -30,7 +30,9 @@ def seed_database():
             app5_exists = db.query(Application).filter(Application.application_number == "AICTE-2026-REV-77192").first()
             if not app5_exists:
                 seed_supplementary_cases(db)
-            print("Database already seeded. Supplementary cases verified.")
+            if db.query(EVCExpert).count() == 0:
+                seed_evc_experts(db)
+            print("Database already seeded. Supplementary cases and EVC expert registry verified.")
             return
 
         print("Seeding ReguFlow 360 database with synthetic regulatory records...")
@@ -759,6 +761,148 @@ def seed_supplementary_cases(db: Session):
 
     db.commit()
     print("Supplementary demo applications AICTE-2026-REV-77192 and AICTE-2026-DEC-33019 successfully seeded.")
+    seed_evc_experts(db)
+
+
+def seed_evc_experts(db: Session):
+    """
+    Seeds 5 structured synthetic expert profiles representing canonical COI scenarios:
+    1. Eligible, available expert (clean bill of health).
+    2. Expert with a declared voluntary conflict.
+    3. Expert with an institutional affiliation conflict.
+    4. Expert within the 3-year cooling-off period.
+    5. Expert who declines an invitation (demonstrating reassignment workflow).
+    """
+    if db.query(EVCExpert).count() > 0:
+        return
+
+    now = datetime.now(timezone.utc)
+    inst1 = db.query(Institution).filter(Institution.code == "1-3324901").first()
+    inst1_id = inst1.id if inst1 else 1
+
+    cm_user = db.query(User).filter(User.email == "committee.member@aicte.gov.in").first()
+    cm_user_id = cm_user.id if cm_user else None
+
+    # 1. Eligible, available expert
+    exp1 = EVCExpert(
+        name="Prof. Amitav Roy",
+        email="amitav.roy@iitb.ac.in",
+        phone="+91-9820112233",
+        designation="Senior Professor & Head of Department",
+        expertise_categories=["Computer Science & Engineering", "Artificial Intelligence", "Information Technology"],
+        specializations=["Cadre Ratio Assessment", "AI/ML Compute Clusters", "Research Infrastructure"],
+        current_institution="Indian Institute of Technology Bombay",
+        institution_id=None,
+        parent_organization="IIT Council",
+        district="Mumbai Suburban",
+        region="Western",
+        is_active=True,
+        availability_status="AVAILABLE",
+        declared_conflicts=[],
+        prior_inspections=[
+            {"institution_name": "Government College of Engineering Karad", "inspection_date": "2022-11-20", "role": "CONVENER"}
+        ]
+    )
+
+    # 2. Expert with a declared conflict
+    exp2 = EVCExpert(
+        name="Prof. Sunita Deshpande",
+        email="sunita.deshpande@vjti.ac.in",
+        phone="+91-9820223344",
+        designation="Professor of Mechanical Engineering",
+        expertise_categories=["Mechanical Engineering", "Automation & Robotics"],
+        specializations=["Workshop Infrastructure", "CAD/CAM Laboratories", "Safety Compliance"],
+        current_institution="Veermata Jijabai Technological Institute (VJTI) Mumbai",
+        institution_id=None,
+        parent_organization="Directorate of Technical Education Maharashtra",
+        district="Mumbai City",
+        region="Western",
+        is_active=True,
+        availability_status="AVAILABLE",
+        declared_conflicts=[
+            {
+                "institution_id": inst1_id,
+                "institution_name": "Apex Institute of Technology & Management",
+                "reason": "Immediate family member is serving as Assistant Professor in Computer Engineering Department."
+            }
+        ],
+        prior_inspections=[]
+    )
+
+    # 3. Expert with an affiliation conflict (Affiliated with applicant institution)
+    exp3 = EVCExpert(
+        name="Dr. Nilesh Joshi",
+        email="nilesh.joshi@apex.edu.in",
+        phone="+91-9820334455",
+        designation="Professor of Electronics & Telecommunication",
+        expertise_categories=["Electronics & Telecommunication", "VLSI Design"],
+        specializations=["Signal Processing Lab", "Semiconductor Cleanrooms", "Faculty Norms"],
+        current_institution="Apex Institute of Technology & Management",
+        institution_id=inst1_id,
+        parent_organization="Apex Education Trust",
+        district="Mumbai Suburban",
+        region="Western",
+        is_active=True,
+        availability_status="AVAILABLE",
+        declared_conflicts=[],
+        prior_inspections=[]
+    )
+
+    # 4. Expert within the configured cooling-off period (Inspected Apex on 2025-02-10, within 3 years)
+    exp4 = EVCExpert(
+        name="Dr. Radhika Kulkarni",
+        email="radhika.kulkarni@coep.ac.in",
+        phone="+91-9820445566",
+        designation="Professor of Civil Engineering",
+        expertise_categories=["Civil Engineering", "Structural & Fire Safety"],
+        specializations=["Built-up Carpet Area Verification", "Barrier-Free Access Norms", "Fire Safety Compliance"],
+        current_institution="College of Engineering Pune (COEP) Technological University",
+        institution_id=None,
+        parent_organization="COEP Technological University",
+        district="Pune",
+        region="Western",
+        is_active=True,
+        availability_status="AVAILABLE",
+        declared_conflicts=[],
+        prior_inspections=[
+            {
+                "institution_id": inst1_id,
+                "institution_name": "Apex Institute of Technology & Management",
+                "inspection_date": "2025-02-10",
+                "role": "CONVENER"
+            }
+        ]
+    )
+
+    # 5. Expert who declines an invitation (For lifecycle testing)
+    exp5 = EVCExpert(
+        name="Prof. George Thomas",
+        email="george.thomas@spit.ac.in",
+        phone="+91-9820556677",
+        designation="Professor of Information Technology",
+        expertise_categories=["Information Technology", "Cybersecurity & Cloud Computing"],
+        specializations=["Server Rooms & Networking", "Digital Library Norms", "Bandwidth Verification"],
+        current_institution="Sardar Patel Institute of Technology (SPIT) Mumbai",
+        institution_id=None,
+        parent_organization="Bharatiya Vidya Bhavan",
+        district="Mumbai Suburban",
+        region="Western",
+        is_active=True,
+        availability_status="AVAILABLE",
+        declared_conflicts=[],
+        prior_inspections=[]
+    )
+
+    db.add_all([exp1, exp2, exp3, exp4, exp5])
+    db.commit()
+
+    # Link committee member user if available
+    if cm_user_id:
+        exp1.user_id = cm_user_id
+        db.commit()
+
+    print("Seeded 5 structured EVC synthetic expert profiles with explicit conflict scenarios.")
+
 
 if __name__ == "__main__":
     seed_database()

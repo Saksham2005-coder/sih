@@ -155,6 +155,97 @@ export interface DocumentRecord {
   versions: DocumentVersion[];
 }
 
+export interface EVCExpert {
+  id: number;
+  user_id?: number | null;
+  name: string;
+  email: string;
+  phone?: string | null;
+  designation: string;
+  expertise_categories: string[];
+  specializations: string[];
+  current_institution: string;
+  institution_id?: number | null;
+  parent_organization?: string | null;
+  district?: string | null;
+  region: string;
+  is_active: boolean;
+  availability_status: 'AVAILABLE' | 'ENGAGED' | 'UNAVAILABLE' | 'ON_LEAVE' | string;
+  declared_conflicts?: Array<{
+    institution_id?: number;
+    institution_name?: string;
+    reason: string;
+  }>;
+  prior_inspections?: Array<{
+    institution_id?: number;
+    institution_name?: string;
+    inspection_date: string;
+    role?: string;
+  }>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface COIRuleResult {
+  rule_code: string;
+  rule_name: string;
+  status: 'PASSED' | 'FAILED';
+  details: string;
+}
+
+export interface COICheckResult {
+  expert_id: number;
+  expert_name: string;
+  current_institution: string;
+  is_prohibited: boolean;
+  can_override: boolean;
+  summary: string;
+  rules_checked: COIRuleResult[];
+  assessed_at: string;
+}
+
+export interface EVCPanelAssignment {
+  id: number;
+  inspection_id: number;
+  expert_id: number;
+  expert_name?: string | null;
+  expert_email?: string | null;
+  expert_institution?: string | null;
+  panel_role: 'CONVENER' | 'EXPERT_MEMBER' | string;
+  status: 'PROPOSED' | 'INVITED' | 'ACCEPTED' | 'DECLINED' | 'CONFLICTED' | 'REASSIGNED' | string;
+  invited_at?: string | null;
+  responded_at?: string | null;
+  decline_reason?: string | null;
+  coi_check_result?: Record<string, any> | null;
+  override_applied: boolean;
+  override_reason?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EVCFieldEvidence {
+  id: number;
+  inspection_id: number;
+  checklist_item_code: string;
+  requirement_title: string;
+  observation_notes: string;
+  status: 'COMPLIANT' | 'DEFICIENT' | 'NOT_APPLICABLE' | 'PENDING_REVIEW' | string;
+  file_url?: string | null;
+  file_hash?: string | null;
+  file_name?: string | null;
+  file_size_bytes?: number | null;
+  evidence_type: 'PHOTO' | 'DOCUMENT' | 'GEO_TAG' | 'VIDEO' | string;
+  captured_by_id?: number | null;
+  captured_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_accuracy_meters?: number | null;
+  location_capture_source?: string | null;
+  location_permission_granted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface EVCInspection {
   id: number;
   application_id: number;
@@ -172,11 +263,21 @@ export interface EVCInspection {
   completed_at?: string | null;
   completed_by_id?: number | null;
   status: string;
+  panel_status?: 'PENDING_PANEL' | 'INVITATIONS_DISPATCHED' | 'PANEL_CONFIRMED' | 'REASSIGNMENT_REQUIRED' | string;
+  check_in_at?: string | null;
+  check_in_lat?: number | null;
+  check_in_lon?: number | null;
+  check_in_accuracy?: number | null;
+  check_in_source?: string | null;
+  virtual_meeting_url?: string | null;
+  virtual_recording_url?: string | null;
   report_url?: string | null;
   report_notes?: string | null;
   recommendation?: string | null;
   created_at: string;
   updated_at: string;
+  panel_assignments?: EVCPanelAssignment[];
+  field_evidence?: EVCFieldEvidence[];
 }
 
 export interface NotificationItem {

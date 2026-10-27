@@ -10,7 +10,8 @@ import {
   RegionalPerformanceData, ApplicationLifecycleData,
   DocumentAnalysisData, DocumentAnalysisReviewRequest,
   StatutoryOrderData, StatutoryOrderPublicVerificationData, OrderArtifactVerifyUploadData,
-  NotificationOutboxItem, NotificationOutboxSummary, NotificationChannelStatus, NotificationUnreadCount
+  NotificationOutboxItem, NotificationOutboxSummary, NotificationChannelStatus, NotificationUnreadCount,
+  EVCExpert, COICheckResult, EVCPanelAssignment, EVCFieldEvidence
 } from '../types';
 
 const API_BASE = '/api';
@@ -188,6 +189,89 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
+
+  // EVC Extended: Registry, COI Engine, Assignment Lifecycle, Mobile Field Evidence & Dossier
+  getEVCExperts: (params?: { region?: string; availability_status?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.region) query.set('region', params.region);
+    if (params?.availability_status) query.set('availability_status', params.availability_status);
+    if (params?.search) query.set('search', params.search);
+    return request<EVCExpert[]>(`/evc/experts?${query.toString()}`);
+  },
+  getEVCExpert: (id: number) => request<EVCExpert>(`/evc/experts/${id}`),
+  checkEVCCOI: (expertId: number, applicationId: number, coolingOffYears?: number) =>
+    request<COICheckResult>('/evc/coi-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expert_id: expertId, application_id: applicationId, cooling_off_years: coolingOffYears }),
+    }),
+  proposeEVCAssignment: (payload: { inspection_id: number; expert_id: number; panel_role: string; override_reason?: string }) =>
+    request<EVCPanelAssignment>('/evc/assignments/propose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  inviteEVCAssignment: (assignmentId: number) =>
+    request<EVCPanelAssignment>(`/evc/assignments/${assignmentId}/invite`, {
+      method: 'POST',
+    }),
+  acceptEVCAssignment: (assignmentId: number) =>
+    request<EVCPanelAssignment>(`/evc/assignments/${assignmentId}/accept`, {
+      method: 'POST',
+    }),
+  declineEVCAssignment: (assignmentId: number, reason: string) =>
+    request<EVCPanelAssignment>(`/evc/assignments/${assignmentId}/decline`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    }),
+  reassignEVCAssignment: (assignmentId: number, newExpertId: number, overrideReason?: string) =>
+    request<EVCPanelAssignment>(`/evc/assignments/${assignmentId}/reassign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_expert_id: newExpertId, override_reason: overrideReason }),
+    }),
+  checkInEVC: (inspectionId: number, payload: { latitude?: number | null; longitude?: number | null; accuracy?: number | null; source?: string }) =>
+    request<EVCInspection>(`/evc/inspections/${inspectionId}/check-in`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  recordEVCFieldEvidence: (inspectionId: number, payload: {
+    checklist_item_code: string;
+    requirement_title: string;
+    observation_notes: string;
+    status?: string;
+    file_url?: string;
+    file_name?: string;
+    evidence_type?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracy?: number | null;
+    source?: string;
+    permission_granted?: boolean;
+  }) =>
+    request<EVCFieldEvidence>(`/evc/inspections/${inspectionId}/evidence`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  getEVCFieldEvidence: (inspectionId: number) =>
+    request<EVCFieldEvidence[]>(`/evc/inspections/${inspectionId}/evidence`),
+  finalizeEVCReport: (inspectionId: number, payload: {
+    report_url: string;
+    report_notes: string;
+    recommendation: string;
+    virtual_meeting_url?: string;
+    virtual_recording_url?: string;
+  }) =>
+    request<EVCInspection>(`/evc/inspections/${inspectionId}/finalize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }),
+  getEVCDossier: (inspectionId: number) =>
+    request<EVCInspection>(`/evc/inspections/${inspectionId}/dossier`),
 
   // Alerts & Deadlines
   getNotifications: (params?: { unread_only?: boolean; level?: string; entity_type?: string }) => {

@@ -77,5 +77,24 @@
 - **Integration Boundary for Authorized Signing Providers**: Under Section 10 of the AICTE Act and the Information Technology Act, 2000, official legally binding statutory orders require signing via a licensed Certifying Authority (CCA) e-Sign provider (e.g., eMudhra, CDAC, NSDL) or Class-3 Hardware Security Module (HSM) tokens. An abstract `DigitalSignatureProvider` interface defines this boundary (`sign_document`, `verify_signature`). The system transitions from `UNSIGNED_PROTOTYPE` to `SIGNED_BY_CONFIGURED_PROVIDER` only when real credentials and active signing gateways are provisioned.
 - **Cryptographic Provenance vs. Legal Signature**: Embedded QR codes point to a public-safe verification endpoint (`/api/orders/verify/{token}`) that confirms artifact provenance against the registered SHA-256 database digest. The QR code serves as an instant reference integrity check and does not substitute for a statutory digital signature.
 
+#### 2.12 EVC Expert Integrity, COI Policy & Mobile Field Evidence Boundaries
+- **Structured Expert Registry & Explainable COI Engine**:
+  - The EVC expert registry captures structured profiles including institutional affiliation, parent governing trust/society, declared voluntary conflicts, operational availability, and prior inspection history.
+  - The 3-year cooling-off period is an illustrative policy demonstration norm (configurable in `RuleStudio` / `RuleDefinition`).
+  - Prohibitions are evaluated deterministically with explainable rule-by-rule statuses (`SAME_INSTITUTION_AFFILIATION`, `PARENT_TRUST_AFFILIATION`, `DECLARED_CONFLICTS`, `COOLING_OFF_PERIOD`, `EXPERT_AVAILABILITY`).
+  - Emergency or specialist appointments overriding a detected conflict require an authorized role (`EVC_COORDINATOR`, `REGIONAL_OFFICER`, `SYSTEM_ADMIN`) and a mandatory written audit justification recorded to the immutable ledger.
+- **Formal Invitation Lifecycle & Reassignment Invariants**:
+  - Panel assignments follow an explicit state machine (`PROPOSED` → `INVITED` → `ACCEPTED` | `DECLINED` | `CONFLICTED` | `REASSIGNED`).
+  - A declined invitation immediately transitions the inspection's `panel_status` to `REASSIGNMENT_REQUIRED` and clears the member's accepted status, ensuring no unconfirmed panel proceeds to inspection.
+- **Browser Geolocation & Accuracy Provenance**:
+  - Browser `navigator.geolocation` captures reported coordinates and accuracy radius in meters (`accuracy_meters`) from client device sensors.
+  - Coordinates are advisory and provenance-stamped (`BROWSER_GEOLOCATION` vs `MANUAL_OFFICER_OVERRIDE`). The platform does not make false mathematical claims of cryptographic, spoof-proof GPS certainty in client web browsers.
+  - When location permissions are denied, an authorized officer can record a manual field check-in override without fabricating false coordinates.
+- **Field Evidence Hashing & Virtual Inspection Boundaries**:
+  - Evidence photos, documents, and observation records are hashed via SHA-256 upon submission to guarantee bit-level tamper-evidence.
+  - Virtual and hybrid inspections provide dedicated meeting link and cloud recording archive URL fields for administrative auditing.
+  - Final inspection recommendations (`RECOMMENDED_APPROVAL`, `RECOMMENDED_REJECTION`, `DEFICIENCY_NOTED`) advance the application stage to `EVC_COMPLETED`.
+  - **Statutory Safeguard**: Field inspection recommendations never grant final statutory approval or rejection. Competent Authority exclusively retains final decision order authority under AICTE statutory governance.
+
 
 

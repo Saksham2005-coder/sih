@@ -36,6 +36,7 @@ import { AuditTrailPage } from './pages/officer/AuditTrailPage';
 import { RuleStudioPage } from './pages/officer/RuleStudioPage';
 import { AdminPage } from './pages/officer/AdminPage';
 import { NotificationOutboxPage } from './pages/officer/NotificationOutboxPage';
+import { MobileFieldInspectionPage } from './pages/officer/MobileFieldInspectionPage';
 
 import { PublicOrderVerification } from './pages/PublicOrderVerification';
 
@@ -100,6 +101,8 @@ export const App: React.FC = () => {
               <Route path="/officer/applications" element={<ApplicationRegistry />} />
               <Route path="/officer/applications/:id" element={<OfficerApplicationDetail />} />
               <Route path="/officer/evc" element={<EVCQueue />} />
+              <Route path="/officer/evc/field/:id" element={<MobileFieldInspectionPage />} />
+              <Route path="/officer/evc/inspections/:id" element={<MobileFieldInspectionPage />} />
               <Route path="/officer/compliance" element={<ComplianceMonitoring />} />
               <Route path="/officer/escalations" element={<EscalationsPage />} />
               <Route path="/officer/reports" element={<ReportsPage />} />

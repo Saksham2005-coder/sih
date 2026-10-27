@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Compass, Calendar, UserCheck, FileCheck, Upload, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Compass, Calendar, UserCheck, FileCheck, Upload, AlertCircle, Camera, Shield } from 'lucide-react';
 import { api } from '../../api/client';
 import { EVCInspection } from '../../types';
 import { StatusBadge } from '../../components/common/StatusBadge';
@@ -153,6 +154,13 @@ export const EVCQueue: React.FC = () => {
 
               {/* Action Buttons */}
               <div className="flex md:flex-col justify-end items-end gap-2 shrink-0">
+                <Link
+                  to={`/officer/evc/field/${insp.id}`}
+                  className="px-3 py-1.5 rounded-lg bg-[var(--brand-teal)]/10 text-[var(--brand-teal)] hover:bg-[var(--brand-teal)] hover:text-white border border-[var(--brand-teal)]/20 text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Camera className="w-3.5 h-3.5" /> Field App
+                </Link>
+
                 {insp.status === 'PENDING_ASSIGNMENT' && (
                   <button
                     onClick={() => handleOpenSchedule(insp)}

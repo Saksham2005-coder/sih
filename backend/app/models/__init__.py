@@ -5,7 +5,7 @@ from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.compliance import ComplianceUndertaking, ComplianceEvidence
 from app.models.document import DocumentRecord, DocumentVersion
 from app.models.document_analysis import DocumentAnalysis
-from app.models.evc import EVCInspection
+from app.models.evc import EVCInspection, EVCExpert, EVCPanelAssignment, EVCFieldEvidence
 from app.models.alert import Notification, AlertEscalation, DeadlineEngineRun, SchedulerLease
 from app.models.notification_outbox import NotificationOutbox
 from app.models.audit import AuditEvent
@@ -27,6 +27,9 @@ __all__ = [
     "DocumentVersion",
     "DocumentAnalysis",
     "EVCInspection",
+    "EVCExpert",
+    "EVCPanelAssignment",
+    "EVCFieldEvidence",
     "Notification",
     "NotificationOutbox",
     "AlertEscalation",
