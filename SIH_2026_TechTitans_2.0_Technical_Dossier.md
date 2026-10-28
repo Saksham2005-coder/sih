@@ -23,13 +23,13 @@
 | **Team Members** | 1. **Ayush Soni** (Team Leader)<br>2. **Saksham Gupta**<br>3. **Ankit Kumar**<br>4. **Pranjali Sehrawat**<br>5. **Diya Kataria**<br>6. **Diksha Verma** |
 | **Project Repository** | [https://github.com/Saksham2005-coder/sih](https://github.com/Saksham2005-coder/sih) |
 | **Live Web Portal (Vercel)** | [https://avedansetu.vercel.app](https://avedansetu.vercel.app) |
-| **Production API & OpenAPI Docs** | [AvedanSetu API Documentation (Swagger)](https://reguflow-backend.onrender.com/docs) |
+| **Production API & OpenAPI Docs** | [AvedanSetu API Documentation (Swagger UI)](https://reguflow-backend.onrender.com/docs) |
 | **Live Telemetry & Diagnostics Probe** | [Live System Health Probe](https://reguflow-backend.onrender.com/api/health) |
 | **Demonstration Video** | [https://github.com/Saksham2005-coder/sih#demonstration-video](https://github.com/Saksham2005-coder/sih#demonstration-video) |
-| **Document Version** | **Version 1.0 (Final SIH Technical Dossier)** |
-| **Submission Date** | **27 October 2026** |
+| **Document Version** | **Version 2.0 (Expanded SIH Master Technical Dossier)** |
+| **Submission Date** | **29 October 2026** |
 
-> **Prototype & Statutory Disclosure:** **आवेदनसेतु (AvedanSetu)** is an advanced, hardened technical prototype developed by Team TechTitans 2.0 for the Smart India Hackathon (SIH 2026). It demonstrates a fully working, explainable, and multi-tenant operational layer. Demo data, simulated institutional profiles, and statutory SLA thresholds are illustrative and configurable. Formal statutory authority remains exclusively with authorized AICTE officials, and generated decision orders carry verifiable cryptographic provenance marked as prototype demonstration records.
+> **Prototype & Statutory Disclosure:** **आवेदनसेतु (AvedanSetu)** is an advanced, hardened technical platform developed by Team TechTitans 2.0 for the Smart India Hackathon (SIH 2026). It demonstrates a fully working, explainable, and multi-tenant operational layer. Demo data, simulated institutional profiles, and statutory SLA thresholds are illustrative and configurable. Formal statutory authority remains exclusively with authorized AICTE officials, and generated decision orders carry verifiable cryptographic provenance marked as prototype demonstration records.
 
 ---
 
@@ -102,20 +102,19 @@ AvedanSetu solves these systemic challenges by introducing a unified, rule-drive
 
 # 02 Project Snapshot
 
-| System Attribute | Technical Implementation Details |
+| System Dimension | Current Implementation Details |
 |---|---|
 | **Product Name** | आवेदनसेतु (AvedanSetu) |
-| **Target Problem Statement** | SIH 2026 Problem Statement 26262 |
-| **Team Name & ID** | TechTitans 2.0 • Team ID: 197859 |
-| **Institution** | KIET Deemed to be University, Ghaziabad, Uttar Pradesh |
-| **Core Architecture** | Decoupled Client-Server Micro-Modular Architecture with State Machine Guards |
+| **Problem Statement** | SIH 2026 Problem Statement 26262 — Integrated AICTE Approval Workflow Automation, Compliance Monitoring and Alert Management System |
+| **Team Information** | Team TechTitans 2.0 • Team ID: 197859 • KIET Deemed to be University, Ghaziabad |
+| **Core Architecture** | Decoupled Client-Server Architecture with State Machine Integrity and Relational Persistence |
 | **Backend Framework** | Python 3.12+, FastAPI, SQLAlchemy 2.0 (Async/Sync), Pydantic v2 |
 | **Frontend Framework** | React 18.3+, TypeScript (strict mode), Vite 5.4+, Tailwind CSS |
 | **Database & Migrations** | PostgreSQL 16 (production) / SQLite with WAL (local testing), Alembic |
-| **UI Design System** | Civic Precision (Midnight Ink `#152536`, Meridian Teal `#0E746B`, Cool Porcelain `#F4F6F8`) |
-| **Testing & Quality Evidence** | **236 Backend Tests (Pytest)**, **42 Frontend Tests (Vitest)**, 100% build & typecheck clean |
-| **Deployment Targets** | Web: Vercel ([avedansetu.vercel.app](https://avedansetu.vercel.app)) • API: Render Cloud ([AvedanSetu Backend API](https://reguflow-backend.onrender.com)) |
-| **Production Defense** | Loopback-bound database, non-root containers, zero unversioned overwrites, fail-closed production boots |
+| **Design Language** | Civic Precision (Midnight Ink `#152536`, Meridian Teal `#0E746B`, Cool Porcelain `#F4F6F8`) |
+| **Verified Test Coverage** | **236 Backend Tests (Pytest)** across 15 test modules, **42 Frontend Tests (Vitest)**, 100% build & typecheck clean |
+| **Live Deployments** | Web Portal: Vercel ([https://avedansetu.vercel.app](https://avedansetu.vercel.app)) • API: Render Cloud ([AvedanSetu Backend API](https://reguflow-backend.onrender.com)) |
+| **Security Controls** | Loopback-bound database, non-root execution, zero unversioned overwrites, fail-closed production startup |
 
 ---
 
@@ -124,15 +123,14 @@ AvedanSetu solves these systemic challenges by introducing a unified, rule-drive
 Approval processing in technical education is an intricate, multi-actor administrative journey governed by the **AICTE Approval Process Handbook (APH)**. Each annual cycle entails thousands of institutional applications across multiple regulatory categories:
 1. Setting up new technical institutions.
 2. Annual Extension of Approval (EOA).
-3. Increase/decrease in student intake or closure of courses.
+3. Increase/decrease in student intake or course additions/closures.
 4. Introduction of supernumerary seats (OCI, FN, PMSSS).
 5. Conversion of existing institutions into Co-ed or specialized universities.
 
-### The Operational Challenge
-In traditional, partially fragmented operations, administrative friction manifests in five core vulnerabilities:
+### Five Root Operational Vulnerabilities
 1. **Opaque Stage Pendency & Sliced Communication**: When deficiencies are found during scrutiny, communicating them via ad-hoc emails or postal mail creates friction. Institutions lose visibility into cure windows, while Regional Officers struggle to track whether resubmitted evidence actually addresses the deficiency.
 2. **Delayed EVC Scheduling & COI Vulnerabilities**: Identifying cases needing on-site verification, finding qualified senior academicians without conflicts of interest (such as alumni affiliations or joint trusts), and tracking field visits leads to significant scheduling bottlenecks.
-3. **The "Post-Approval Compliance Blindspot"**: Approvals are frequently granted subject to conditions (e.g., establishing disabled-accessible tactile paths, setting up specialized AI laboratories within 6 months, or renewing a expiring municipal Fire NOC). Once an approval order is issued, tracking these time-bound covenants historically falls through administrative cracks.
+3. **The "Post-Approval Compliance Blindspot"**: Approvals are frequently granted subject to conditions (e.g., establishing disabled-accessible tactile paths, setting up specialized AI laboratories within 6 months, or renewing an expiring municipal Fire NOC). Once an approval order is issued, tracking these time-bound covenants historically falls through administrative cracks.
 4. **Document Validity & Multi-Year Expiry Risks**: Mandatory regulatory records—notably 33-year land lease deeds, municipal occupancy certificates, and annual fire safety NOCs—carry independent, asynchronous validity timelines completely disconnected from the annual academic approval window.
 5. **Alert Fatigue & Unreliable Follow-ups**: Generic blast reminders often produce alert fatigue, while unmonitored deadline breaches fail to escalate systematically to Regional and Bureau directors.
 
@@ -142,28 +140,16 @@ AvedanSetu directly resolves these challenges by modeling the entire operational
 
 # 04 Problem Statement: Requirement Decomposition
 
-The requirements specified in SIH Problem Statement 26262 decompose into six foundational pillars:
+The requirements specified in SIH Problem Statement 26262 decompose into six foundational functional pillars:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│              SIH 2026 PROBLEM STATEMENT 26262 — FUNCTIONAL PILLARS              │
-├─────────────────────┬─────────────────────┬─────────────────────────────────────┤
-│ PILLAR A            │ PILLAR B            │ PILLAR C                            │
-│ End-to-End Workflow │ Pendency, Ageing    │ EVC Coordination &                  │
-│ Automation          │ & Workload Monitor  │ Conflict-of-Interest Checks         │
-├─────────────────────┼─────────────────────┼─────────────────────────────────────┤
-│ PILLAR D            │ PILLAR E            │ PILLAR F                            │
-│ Continuous Compli-  │ Document Validity   │ Transactional Alerts,               │
-│ ance Passport       │ & Multi-Year Vault  │ Multi-Tier Escalations & Reporting  │
-└─────────────────────┴─────────────────────┴─────────────────────────────────────┘
-```
-
-1. **Pillar A: End-to-End Workflow Automation**: Automated routing of applications through configurable pathways (`ONLY_SCRUTINY`, `SCRUTINY_EVC`, `EVC_SAC_SHC`, `ONLY_EVC`). Guarded state transitions, mandatory recorded remarks, deficiency cure loops, and irrevocable Competent Authority determinations.
-2. **Pillar B: Pendency, Ageing & Workload Monitoring**: Real-time queues showing stage ageing, regional distribution, bottleneck indicators, and deterministic operational priority triage scores.
-3. **Pillar C: EVC Panel Scheduling & Field Integrity**: Eligibility queues, automated Conflict-of-Interest checks, invitation acceptance lifecycles, mobile-first field inspection with browser geotagging, checklist scoring, and recommendation logging.
-4. **Pillar D: Continuous Compliance Passport**: Post-approval tracking of time-bound undertakings, versioned digital proof submission, Regional Officer verification desks, and deficiency remediation.
-5. **Pillar E: Document Validity & Expiry Engine**: Multi-year validity tracking for 33-year lease deeds, fire safety NOCs, and building certificates with local digital PDF text intelligence, SHA-256 tamper-sealing, and renewal queues.
-6. **Pillar F: Alerts, Multi-Tier Escalations & Executive Reporting**: Deduplicated background scans, transactional outbox dispatch, progressive multi-tier escalations (`REMINDER_L1` to `ESCALATION_L3_MEMBER_SEC`), SSE real-time updates, sanitized CSV exports, and formal decision order generation with dynamic QR verification.
+| Pillar | Requirement Intent | AvedanSetu Architectural Response |
+|---|---|---|
+| **Pillar A: Workflow Automation** | Route applications through prescribed processing combinations; handle deficiency memos and routine stage movement. | Guarded state machine, versioned transitions, mandatory remarks, deficiency cure loop, optimistic concurrency locking, and explicit final authority. |
+| **Pillar B: Pendency Monitoring** | View queues, ageing, workload, bottlenecks, and configured timelines. | Role-specific command workspaces, SLA metrics, deterministic priority attribution, and regional workload analytics. |
+| **Pillar C: EVC Coordination** | Identify cases needing inspection, form panels, schedule visits, and track completion. | Route-aware eligibility queue, panel scheduling, invitation state, 4-way expert conflict checks, mobile field evidence, and report recommendations. |
+| **Pillar D: Undertakings** | Track approval conditions, due dates, online evidence, verification, and overdue items. | Compliance Passport, versioned digital evidence, correction loop, Regional Officer verification desk, and deadline alerts. |
+| **Pillar E: Document Validity** | Monitor leases/certificates, renewal documents, verification, and expiry. | Document Vault, version history, expiry engine, and local PDF document-intelligence cross-checks. |
+| **Pillar F: Alerts & Reports** | Notify responsible parties, escalate overdue cases, and report operational status. | Transactional outbox, delivery state, SMTP adapter, SMS boundary, SSE/polling, CSV exports, dynamic QR verification, and immutable audit ledger. |
 
 ---
 
@@ -189,29 +175,16 @@ The requirements specified in SIH Problem Statement 26262 decompose into six fou
 
 To prevent the common pitfall of collapsing all administrative users into a single generic dashboard, AvedanSetu provides eight dedicated, role-tailored operational workspaces:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      AVEDANSETU ROLE WORKSPACE TAXONOMY                       │
-├──────────────────────────┬──────────────────────────────────────────────────────┤
-│ 1. INSTITUTION_ADMIN     │ Application filing, deficiency cure desk, order vault│
-│ 2. COMPLIANCE_OFFICER    │ Compliance undertakings, document validity renewals  │
-│ 3. REGIONAL_OFFICER (RO) │ Regional scrutiny, deficiency memos, cure sign-off   │
-│ 4. BUREAU_OFFICER (BO)   │ National workload oversight, cross-regional SLA desk │
-│ 5. COMMITTEE_MEMBER      │ SAC/SHC hearing dockets, EVC panel review findings   │
-│ 6. EVC_COORDINATOR       │ Panel appointment, COI evaluations, field roster     │
-│ 7. COMPETENT_AUTHORITY   │ Final statutory determination (Approved / Rejected)  │
-│ 8. SYSTEM_ADMIN          │ Rule Studio, distributed scheduler telemetry, audit  │
-└──────────────────────────┴──────────────────────────────────────────────────────┘
-```
-
-1. **Institution Admin**: Scoped strictly to the applicant institution. Manages new filings, views real-time application tracking, responds to itemized deficiency memos with explanatory remarks and document uploads, and accesses formal statutory approval orders.
-2. **Compliance Officer**: Scoped to institutional post-approval compliance. Monitors the **Compliance Passport**, tracks time-bound undertakings, reviews expiring land leases and municipal certificates, and submits renewal evidence.
-3. **Regional Officer (RO)**: Scoped strictly to their designated geographic region (e.g., Western Region). Conducts formal scrutiny of applications, issues itemized deficiency notices, verifies institutional cures, signs off on scrutiny completion, and inspects local escalations.
-4. **Bureau Officer (BO)**: Operates at the AICTE Apex Headquarters. Supervises cross-regional pendency, tracks regional SLA compliance, reviews Tier-2 escalations, and coordinates national regulatory balancing.
-5. **Committee Member (SAC/CAC/SHC)**: Accesses assigned hearing dockets, reviews scrutiny records, evaluates EVC panel reports, and records formal committee recommendations.
-6. **EVC Coordinator**: Regional Directorate role responsible for identifying inspection-eligible applications, forming expert visiting panels, running automated conflict-of-interest assessments, issuing digital invitations, and supervising mobile field inspection progress.
-7. **Competent Authority (CA)**: The exclusive statutory decision-maker (Chairman / Member Secretary / Designated Bureau Head). Reviews the complete, consolidated evidence docket—scrutiny sign-off, EVC panel recommendations, and committee findings—and executes the irrevocable final statutory order (`APPROVED` or `REJECTED`).
-8. **System Administrator**: Non-statutory operational controller. Manages user provisioning, configures regulatory rule templates in **Rule Studio**, monitors distributed scheduler leases, inspects the transactional notification outbox, and exports sanitized immutable audit trails.
+| Role Identifier | Operational Scope & Target Persona | Key Modules & Primary Responsibilities | Statutory & Access Boundaries |
+|---|---|---|---|
+| **`INSTITUTION_ADMIN`** | Institutional Leadership (e.g., Principal, Dean, Registrar) | Application filing, Action Centre, deficiency cure desk, order vault, and document submission. | Own institution tenancy only; cannot self-verify compliance or issue statutory orders. |
+| **`COMPLIANCE_OFFICER`** | Institutional Legal & Compliance Team | Compliance Passport, post-approval undertakings, 33-year lease tracking, municipal fire NOC renewals. | Own institution only; cannot act as statutory verifying officer. |
+| **`REGIONAL_OFFICER (RO)`** | Regional Directorate (e.g., Western Region Officer) | Regional scrutiny, deficiency memos, cure verification & sign-off, regional application backlog, local escalations. | Strictly scoped to assigned geographic region; cannot issue final statutory approval/rejection. |
+| **`BUREAU_OFFICER (BO)`** | AICTE Apex Regulatory Bureau (New Delhi) | National workload oversight, cross-regional pendency monitoring, national SLA scans, Tier-2 escalations. | Oversight and supervisory intervention; not the final statutory authority. |
+| **`COMMITTEE_MEMBER`** | Senior Academicians / SAC / CAC / SHC Panelists | Standing Hearing Committee dockets, hearing finding submission, EVC panel review findings. | Panel advisory responsibilities only; cannot overrule Competent Authority decisions. |
+| **`EVC_COORDINATOR`** | Regional Inspection Directorate Officer | EVC eligibility filter, automated 4-way Conflict-of-Interest (COI) evaluation, expert appointment, field roster. | Inspection logistics only; cannot perform statutory approval or compliance verification. |
+| **`COMPETENT_AUTHORITY`** | Chairman / Member Secretary / Authorized Bureau Head | Statutory decision queue, prerequisite checklist verification, irrevocable approval/rejection determination. | Exclusive statutory authority permitted to execute transitions to `APPROVED` or `REJECTED`. |
+| **`SYSTEM_ADMIN`** | Platform Operations & IT Infrastructure | Regulatory Rule Studio, distributed scheduler lease monitor, transactional outbox, real-time audit ledger. | Technical privileges only; strictly zero statutory decision or compliance verification authority. |
 
 ---
 
@@ -219,21 +192,21 @@ To prevent the common pitfall of collapsing all administrative users into a sing
 
 AvedanSetu enforces a deterministic, guarded state machine governing the entire application lifecycle. An application cannot leapfrog intermediate statutory stages, and stale client views cannot execute out-of-sequence mutations.
 
-### Canonical Application Statuses
-- `DRAFT`: Initial institutional data entry and draft document assembly.
-- `SUBMITTED`: Formal fee payment and cryptographic dossier submission.
-- `UNDER_SCRUTINY`: Active technical verification by assigned Regional Officers.
-- `DEFICIENCY_COMMUNICATED`: Itemized deficiency memo issued; institutional cure clock running.
-- `RESUBMITTED`: Institution has cured all open deficiencies with remarks and supporting files.
-- `SCRUTINY_COMPLETED`: Scrutiny successfully passed with zero remaining deficiencies.
-- `AWAITING_EVC_SCHEDULE`: Application queued for Expert Visiting Committee panel appointment.
-- `EVC_SCHEDULED`: Expert panel appointed and field inspection visit date confirmed.
-- `EVC_COMPLETED`: Field visit concluded and comprehensive inspection report filed.
-- `AWAITING_SAC_CAC_REVIEW`: Docket under review by Standing Hearing / Appellate Committee.
-- `AWAITING_COMPETENT_AUTHORITY`: All prerequisites satisfied; awaiting final statutory determination.
-- `APPROVED`: Final statutory Extension of Approval / New Institution order granted.
-- `REJECTED`: Final statutory rejection order issued with detailed legal grounds.
-- `CLOSED`: Administrative closure or application withdrawal recorded.
+### Canonical Application Lifecycle Statuses
+- **`DRAFT`**: Initial institutional data entry and draft document assembly.
+- **`SUBMITTED`**: Formal fee payment and cryptographic dossier submission.
+- **`UNDER_SCRUTINY`**: Active technical verification by assigned Regional Officers.
+- **`DEFICIENCY_COMMUNICATED`**: Itemized deficiency memo issued; institutional cure clock running.
+- **`RESUBMITTED`**: Institution has cured all open deficiencies with remarks and supporting files.
+- **`SCRUTINY_COMPLETED`**: Scrutiny successfully passed with zero remaining deficiencies.
+- **`AWAITING_EVC_SCHEDULE`**: Application queued for Expert Visiting Committee panel appointment.
+- **`EVC_SCHEDULED`**: Expert panel appointed and field inspection visit date confirmed.
+- **`EVC_COMPLETED`**: Field visit concluded and comprehensive inspection report filed.
+- **`AWAITING_SAC_CAC_REVIEW`**: Docket under review by Standing Hearing / Appellate Committee.
+- **`AWAITING_COMPETENT_AUTHORITY`**: All prerequisites satisfied; awaiting final statutory determination.
+- **`APPROVED`**: Final statutory Extension of Approval / New Institution order granted.
+- **`REJECTED`**: Final statutory rejection order issued with detailed legal grounds.
+- **`CLOSED`**: Administrative closure or application withdrawal recorded.
 
 ### Guarded Transition Engine
 - **Optimistic Concurrency Control**: Every application record carries an integer `version` field. State transitions require matching `expected_version`. If another officer updates the record concurrently, the lagging request fails with HTTP 409 Conflict, preventing lost updates.
@@ -249,8 +222,11 @@ Operational transparency is maintained through real-time queue metrics and expla
 1. **Stage Ageing Analysis**: The engine continuously computes the exact elapsed calendar days an application has spent in its active stage against configured SLA thresholds (e.g., Scrutiny SLA: 14 days; Deficiency Cure Window: 10 days; EVC Scheduling Window: 7 days).
 2. **Bottleneck Indicators**: Automatically highlights applications with multiple deficiency return cycles (return loops >= 2), prolonged EVC report submission delays, or pending committee hearings.
 3. **Deterministic Operational Priority Scoring (0–100)**: A transparent, formulaic triage aid designed to assist Regional Officers in prioritizing daily queues:
-   $$\text{Priority Score} = \min(100, (\text{Stage Ageing Days} \times 2.5) + (\text{Open Deficiencies} \times 12) + (\text{Active Escalation Level Weight}))$$
-   *Strict Statutory Invariant:* The priority score is strictly an operational triage aid. It never alters application statutory status, grants automated approval, or infers institutional non-compliance.
+   - Base Score: Elapsed stage days relative to statutory SLA limit.
+   - Deficiency Weight: 12 points per open deficiency item.
+   - Escalation Tier Weight: 15 points for RO escalation, 25 points for BO escalation, 40 points for Member Secretary escalation.
+   - Normalized Range: Capped strictly at 100 points.
+   - *Strict Statutory Invariant:* The priority score is strictly an operational triage aid. It never alters application statutory status, grants automated approval, or infers institutional non-compliance.
 
 ---
 
@@ -265,13 +241,13 @@ Inspection planning requires strict objectivity. AvedanSetu models expert profil
   3. *Cooling-Off Period*: Enforces a mandatory cooling-off window (demonstration default: 3 years), preventing the same expert from inspecting an institution repeatedly.
   4. *Declared Conflict*: Blocks assignment if either the institution or expert has logged an active dispute or personal conflict.
 - **Justified Conflict Overrides**: In specialized disciplines with acute expert scarcity, an EVC Coordinator may execute an override only by recording a substantive, mandatory justification that is permanently captured in the audit ledger.
-- **Invitation Lifecycle**: Expert panel assignments progress through explicit states: `PROPOSED` $\rightarrow$ `INVITED` $\rightarrow$ `ACCEPTED` (or `DECLINED` / `CONFLICT_DETECTED` $\rightarrow$ `REASSIGNED`).
+- **Invitation Lifecycle**: Expert panel assignments progress through explicit states: `PROPOSED` -> `INVITED` -> `ACCEPTED` (or `DECLINED` / `CONFLICT_DETECTED` -> `REASSIGNED`).
 
 ### Pillar D: Continuous Compliance Passport
 Post-approval institutional governance is tracked through the **Compliance Passport**:
 - **Covenants & Conditions**: Approvals frequently mandate time-bound conditions (e.g., establishing sewage treatment plants, barrier-free access ramps, or faculty cadre ratios within 180 days).
 - **Evidence Verification Desk**: Institutions submit digital proof dossiers. Regional Officers review the evidence, marking items as `VERIFIED`, `CORRECTION_REQUIRED`, or `DEFICIENT`.
-- **Zero Evidence Loss**: Submitting revised evidence increments the version counter (`v1` $\rightarrow$ `v2`) while preserving previous files and review remarks.
+- **Zero Evidence Loss**: Submitting revised evidence increments the version counter (`v1` -> `v2`) while preserving previous files and review remarks.
 
 ---
 
@@ -298,51 +274,48 @@ Technical institutions are governed by documents whose validity periods span dec
 
 AvedanSetu acts as a cohesive regulatory operating system bridging institutions, regional directorates, inspection panels, and apex authorities over a single unified data architecture:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    AVEDANSETU COMPREHENSIVE ARCHITECTURE                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  USER EXPERIENCE LAYER (React 18 + TypeScript + Vite + Tailwind CSS)            │
-│  ├── Institution Portal (Applications, Deficiency Cure, Compliance Passport)    │
-│  ├── Regional Directorate Command (Scrutiny, Cure Sign-Off, Local Escalations)  │
-│  ├── Apex Bureau Operations (National Workload, Cross-Regional SLA Balancing)   │
-│  ├── Committee Review Desk (SAC/SHC Hearing Dockets, EVC Review Findings)       │
-│  ├── EVC Inspection Studio (COI Evaluations, Field App, Geotagged Evidence)     │
-│  ├── Competent Authority Desk (Statutory Determination, Irrevocable Orders)     │
-│  └── System Admin & Rule Studio (Policy Life Cycle, Telemetry, Audit Logs)      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  APPLICATION API & SECURITY GATEWAY (FastAPI + Pydantic v2 + Python 3.12)       │
-│  ├── JWT Token Authentication & Database-Backed Session Revocation              │
-│  ├── Strict RBAC & Tenant/Regional Isolation Interceptors                       │
-│  ├── Guarded State Machine Engine & Optimistic Concurrency Locking              │
-│  ├── Server-Sent Events (SSE) Live Stream Broker & Polling Fallback             │
-│  └── CSV Formula Injection Sanitization Filter                                  │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  DOMAIN SERVICES & LOGIC ENGINES                                                │
-│  ├── Workflow Automation Engine       ├── Document Intelligence (pypdf)         │
-│  ├── EVC Panel & COI Engine          ├── Formal Statutory Order Generator (PDF) │
-│  ├── Multi-Vector Deadline Engine    ├── Transactional Outbox Dispatcher        │
-│  └── Case Brief Synthesizer          ├── Deterministic Priority Triage Service  │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│  PERSISTENCE & STORAGE TIER (PostgreSQL 16 Relational Core + Alembic Migrations)│
-│  ├── Applications & Versioned Memos   ├── Document Vault & SHA-256 Checksums    │
-│  ├── Compliance Obligations & Proofs ├── EVC Inspections & Geotagged Evidence  │
-│  ├── Transactional Notification Queue ├── Immutable Relational Audit Ledger     │
-│  └── Distributed Scheduler Leases    └── Rule Version History Tables            │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+### Functional Subsystem Composition
+1. **User Experience Layer (React 18 + TypeScript + Vite + Tailwind CSS)**:
+   - Institution Portal (Applications, Deficiency Cure, Compliance Passport).
+   - Regional Directorate Command (Scrutiny, Cure Sign-Off, Local Escalations).
+   - Apex Bureau Operations (National Workload, Cross-Regional SLA Balancing).
+   - Committee Review Desk (SAC/SHC Hearing Dockets, EVC Review Findings).
+   - EVC Inspection Studio (COI Evaluations, Field App, Geotagged Evidence).
+   - Competent Authority Desk (Statutory Determination, Irrevocable Orders).
+   - System Admin & Rule Studio (Policy Life Cycle, Telemetry, Audit Logs).
+2. **Application API & Security Gateway (FastAPI + Pydantic v2 + Python 3.12)**:
+   - JWT Token Authentication & Database-Backed Session Revocation.
+   - Strict RBAC & Tenant/Regional Isolation Interceptors.
+   - Guarded State Machine Engine & Optimistic Concurrency Locking.
+   - Server-Sent Events (SSE) Live Stream Broker & Polling Fallback.
+   - CSV Formula Injection Sanitization Filter.
+3. **Domain Services & Logic Engines**:
+   - Workflow Automation Engine & Route Selection Service.
+   - EVC Panel & 4-Way Conflict-of-Interest (COI) Engine.
+   - Multi-Vector Deadline Engine & Composite Idempotency Generator.
+   - Local Document Intelligence (pypdf) & Candidate Excerpt Extractor.
+   - Formal Statutory Decision Order Generator (ReportLab PDF + Dynamic QR).
+   - Transactional Notification Outbox Dispatcher.
+   - Deterministic Priority Triage Service & Case Brief Synthesizer.
+4. **Persistence & Storage Tier (PostgreSQL 16 + Alembic Migrations)**:
+   - Authoritative Applications, Deficiency Items, and Version Memos.
+   - Multi-Year Document Vault with SHA-256 Cryptographic Checksums.
+   - Compliance Obligations and Digital Proof Dossiers.
+   - EVC Inspections, Expert Profiles, and Geotagged Field Evidence.
+   - Transactional Notification Queue and Dead-Letter Logs.
+   - Immutable Relational Audit Ledger and Distributed Scheduler Leases.
 
 ---
 
 # 12 System Architecture and Trust Boundaries
 
 The system enforces four distinct trust boundaries:
-1. **Client $\leftrightarrow$ API Gateway Boundary**: All incoming requests pass through JWT Bearer authentication. Tokens encode user identity, role assignments, and tenant/regional scope. Stale tokens revoked via logout are blocked by the database-backed token blacklist.
+1. **Client to API Gateway Boundary**: All incoming requests pass through JWT Bearer authentication. Tokens encode user identity, role assignments, and tenant/regional scope. Stale tokens revoked via logout are blocked by the database-backed token blacklist.
 2. **Multi-Tenant & Regional Isolation Boundary**:
    - Institutional users can query and mutate records scoped *exclusively* to their own `institution_id`.
    - Regional Officers can query and mutate records scoped *exclusively* to their designated `region` (e.g., Western Region). Cross-regional access attempts return HTTP 403 Forbidden.
    - Competent Authority and Bureau Officers operate under national scope, governed by strict action permissions.
-3. **Application $\leftrightarrow$ Database Boundary**: Interacted with via SQLAlchemy parameterized queries, preventing SQL injection vulnerabilities. Write operations execute within explicit database transactions.
+3. **Application to Database Boundary**: Interacted with via SQLAlchemy parameterized queries, preventing SQL injection vulnerabilities. Write operations execute within explicit database transactions.
 4. **Local Document Storage Boundary**: All uploaded files are stored using unguessable UUID-based filenames and registered in the database alongside their SHA-256 digests. Direct filesystem traversal is blocked; non-administrative downloads of unindexed disk paths fail closed with HTTP 404.
 
 ---
@@ -372,46 +345,17 @@ The system enforces four distinct trust boundaries:
 
 The relational database architecture guarantees referential integrity, optimistic concurrency, and auditability across all operational entities:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      CORE ENTITY-RELATIONSHIP ARCHITECTURE                      │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│   ┌─────────────────────┐                 ┌───────────────────────────┐         │
-│   │     Institution     │ 1             * │        Application        │         │
-│   │ ─────────────────── │─────────────────│ ───────────────────────── │         │
-│   │ id (PK)             │                 │ id (PK)                   │         │
-│   │ name, code, region  │                 │ institution_id (FK)       │         │
-│   │ trust_society_name  │                 │ application_number (UQ)   │         │
-│   └─────────────────────┘                 │ application_type, route   │         │
-│              │ 1                          │ current_stage, version    │         │
-│              │                            └───────────────────────────┘         │
-│              │ *                                        │ 1                     │
-│   ┌─────────────────────┐                               ├─────────────────────┐ │
-│   │   DocumentRecord    │ 1                           * │                     │ │
-│   │ ─────────────────── │──┐           ┌────────────────────┐   ┌───────────┐ │ │
-│   │ id (PK), doc_type   │  │           │  AppDeficiencyItem │   │EVCInspect.│ │ │
-│   │ valid_to, status    │  │           │ ────────────────── │   │───────────│ │ │
-│   └─────────────────────┘  │           │ id (PK), code      │   │id (PK)    │ │ │
-│              │ 1           │           │ deficiency_text    │   │status     │ │ │
-│              │ *           │           │ cure_remarks       │   │convener   │ │ │
-│   ┌─────────────────────┐  │           │ status (OPEN/CURED)│   │recommend. │ │ │
-│   │   DocumentVersion   │  │           └────────────────────┘   └───────────┘ │ │
-│   │ ─────────────────── │  │                                                  │ │
-│   │ id (PK), version    │  │                                                  │ │
-│   │ sha256_checksum     │  │ 1                                                │ │
-│   └─────────────────────┘  ├────────────────────────────┐                     │ │
-│                            │ *                          │ *                   │ │
-│                 ┌─────────────────────┐      ┌────────────────────────┐       │ │
-│                 │ComplianceUndertaking│      │   NotificationOutbox   │       │ │
-│                 │ ─────────────────── │      │ ────────────────────── │       │ │
-│                 │ id (PK), title      │      │ id (PK), event_type    │       │ │
-│                 │ due_date, status    │      │ idempotency_key (UQ)   │       │ │
-│                 │ verified_at         │      │ delivery_status        │       │ │
-│                 └─────────────────────┘      └────────────────────────┘       │ │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+### Key Authoritative Entities & Schema Roles
+1. **`Institution`**: Primary multi-tenant boundary storing institutional code, name, regional office jurisdiction, parent educational trust/society, and contact coordinates.
+2. **`Application`**: Core regulatory docket storing unique application number, category, selected workflow route, current statutory stage, monotonic `version` counter, and submission timestamps.
+3. **`AppDeficiencyItem`**: Itemized deficiency record linking specific APH clause violations, deficiency memo text, institutional cure remarks, supporting file IDs, and item status (`OPEN` / `CURED`).
+4. **`DocumentRecord` & `DocumentVersion`**: Manages 33-year land lease deeds, municipal occupancy permits, and fire safety NOCs. Tracks statutory validity dates, issuing authorities, and immutable version history with SHA-256 digests.
+5. **`ComplianceUndertaking` & `ComplianceEvidence`**: Manages post-approval covenants. Stores due dates, category, verification state (`NOT_YET_DUE`, `PENDING_VERIFICATION`, `VERIFIED`, `CORRECTION_REQUIRED`, `DEFICIENT`), reviewer remarks, and proof files.
+6. **`EVCInspection` & `EVCPanelAssignment`**: Inspection lifecycle docket tracking inspection mode, scheduled date, convener, expert members, panel status, mobile check-in coordinates, and final recommendations.
+7. **`NotificationOutbox`**: Transactional messaging queue storing event type, channel, recipient email/phone, composite idempotency key, delivery status, retry count, and provider response.
+8. **`AuditEvent`**: Cryptographically verifiable, append-only operational log recording actor identity, role, timestamp, target entity, action code, and state diff.
+9. **`SchedulerLease`**: Distributed lock coordinator ensuring mutual exclusion across background deadline scan workers.
+10. **`RuleVersionHistory`**: Policy version registry tracking past and active SLA thresholds, deficiency cure windows, and priority weights.
 
 ---
 
@@ -421,10 +365,10 @@ The regulatory route dictates the mandatory sequence of review stages an applica
 
 | Route Code | Regulatory Description | Prescribed Workflow Sequence | Governing Use Case |
 |---|---|---|---|
-| `ONLY_SCRUTINY` | Standard Annual Extension of Approval (EOA) | `SUBMITTED` $\rightarrow$ `UNDER_SCRUTINY` $\rightarrow$ `SCRUTINY_COMPLETED` $\rightarrow$ `AWAITING_COMPETENT_AUTHORITY` $\rightarrow$ `APPROVED / REJECTED` | Routine renewals with zero infrastructure or course changes. Bypasses physical EVC. |
-| `SCRUTINY_EVC` | Setting Up New Technical Institution / Significant Expansion | `SUBMITTED` $\rightarrow$ `UNDER_SCRUTINY` $\rightarrow$ `AWAITING_EVC_SCHEDULE` $\rightarrow$ `EVC_SCHEDULED` $\rightarrow$ `EVC_COMPLETED` $\rightarrow$ `AWAITING_COMPETENT_AUTHORITY` $\rightarrow$ `APPROVED / REJECTED` | New engineering colleges or intake increases requiring physical verification. |
-| `EVC_SAC_SHC` | Disputed Cases / Land Deficiency Appeal / Complex Expansion | `SUBMITTED` $\rightarrow$ `UNDER_SCRUTINY` $\rightarrow$ `EVC_SCHEDULED` $\rightarrow$ `EVC_COMPLETED` $\rightarrow$ `AWAITING_SAC_CAC_REVIEW` $\rightarrow$ `AWAITING_COMPETENT_AUTHORITY` | Applications requiring Expert Committee review and Standing Hearing Committee hearings. |
-| `ONLY_EVC` | Surprise Inspection / Complaint-Triggered Re-Verification | `SUBMITTED` $\rightarrow$ `AWAITING_EVC_SCHEDULE` $\rightarrow$ `EVC_SCHEDULED` $\rightarrow$ `EVC_COMPLETED` $\rightarrow$ `AWAITING_COMPETENT_AUTHORITY` | Special targeted inspections dispatched without pre-scrutiny documentation loops. |
+| **`ONLY_SCRUTINY`** | Standard Annual Extension of Approval (EOA) | `SUBMITTED` -> `UNDER_SCRUTINY` -> `SCRUTINY_COMPLETED` -> `AWAITING_COMPETENT_AUTHORITY` -> `APPROVED / REJECTED` | Routine renewals with zero infrastructure or course changes. Bypasses physical EVC. |
+| **`SCRUTINY_EVC`** | Setting Up New Technical Institution / Significant Expansion | `SUBMITTED` -> `UNDER_SCRUTINY` -> `AWAITING_EVC_SCHEDULE` -> `EVC_SCHEDULED` -> `EVC_COMPLETED` -> `AWAITING_COMPETENT_AUTHORITY` -> `APPROVED / REJECTED` | New engineering colleges or intake increases requiring physical verification. |
+| **`EVC_SAC_SHC`** | Disputed Cases / Land Deficiency Appeal / Complex Expansion | `SUBMITTED` -> `UNDER_SCRUTINY` -> `EVC_SCHEDULED` -> `EVC_COMPLETED` -> `AWAITING_SAC_CAC_REVIEW` -> `AWAITING_COMPETENT_AUTHORITY` | Applications requiring Expert Committee review and Standing Hearing Committee hearings. |
+| **`ONLY_EVC`** | Surprise Inspection / Complaint-Triggered Re-Verification | `SUBMITTED` -> `AWAITING_EVC_SCHEDULE` -> `EVC_SCHEDULED` -> `EVC_COMPLETED` -> `AWAITING_COMPETENT_AUTHORITY` | Special targeted inspections dispatched without pre-scrutiny documentation loops. |
 
 *Statutory Invariant:* Bypassing EVC in the `ONLY_SCRUTINY` route does **not** grant automated approval. All routes converge strictly at the Competent Authority desk for an authorized statutory order.
 
@@ -451,7 +395,7 @@ Traditional regulation suffers from the "post-approval blindspot." AvedanSetu's 
 - **Correction Loop**: Items marked `CORRECTION_REQUIRED` provide detailed reviewer remarks and open a 15-day cure window for the institution without overwriting prior evidence files.
 
 ### Multi-Year Document Vault
-- **Tracked Instruments**: 33-year registered land lease deeds, municipal building stability certificates, and annual fire department safety NOCs.
+- **Tracked Instruments**: 33-year registered land lease deeds, municipal building completion certificates, structural stability certificates, and annual fire department safety NOCs.
 - **Asynchronous Expiry Engine**: Background scans evaluate document validity daily, flagging records reaching T-90, T-60, and T-30 days before expiry.
 - **Renewal Verification**: When an institution uploads a renewed certificate, it is placed in `RENEWAL_SUBMITTED` status. Upon officer sign-off, the new certificate becomes active, while all previous version records remain permanently archived.
 
@@ -474,38 +418,15 @@ To assist officers in reviewing dense legal records, AvedanSetu integrates a lig
 
 The Expert Visiting Committee (EVC) module guarantees uncompromised field verifications:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│               AUTOMATED CONFLICT-OF-INTEREST (COI) EVALUATION                   │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│   Candidate Expert Profile           Target Institution Application             │
-│   ├── Current Affiliation: Inst. X   ├── Applicant: Inst. Y (Pune)              │
-│   ├── Parent Trust: Trust A          ├── Parent Trust: Trust B                  │
-│   ├── Prior Inspections: 2023        ├── Regional Directorate: Western          │
-│   └── Declared Conflicts: None       └── Inspection Discipline: Computer Sci.   │
-│                 │                                  │                            │
-│                 └─────────────────┬────────────────┘                            │
-│                                   ▼                                             │
-│               EVC Conflict-of-Interest Evaluation Rules                         │
-│               ├── Check 1: Institution Affiliation Match?   ──> [PASS]          │
-│               ├── Check 2: Shared Parent Trust / Society?   ──> [PASS]          │
-│               ├── Check 3: 3-Year Cooling-Off Observed?     ──> [PASS]          │
-│               └── Check 4: Declared Personal Conflicts?     ──> [PASS]          │
-│                                   │                                             │
-│                                   ▼                                             │
-│         Determination: NO_CONFLICT_DETECTED (Eligible for Invitation)           │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+### The 4-Way Automated Conflict Evaluation Matrix
+1. **Institutional Affiliation Check**: Matches candidate expert's current academic employer against applicant institution ID. Direct employment returns immediate rejection (`AFFILIATION_CONFLICT`).
+2. **Parent Trust / Society Check**: Compares the registered educational trust of the expert's home institution against the applicant college. Affiliation under the same trust returns immediate rejection (`PARENT_TRUST_CONFLICT`).
+3. **3-Year Cooling-Off Rule**: Inspects past EVC dossiers within the last 36 calendar months. Prior assignment to the same institution returns immediate rejection (`COOLING_OFF_ACTIVE`).
+4. **Declared Personal Conflicts**: Evaluates active disputes, consultancy records, or declared familial conflicts logged in the registry (`DECLARED_CONFLICT`).
 
-1. **Structured Expert Registry**: Tracks senior academicians, professional specializations, institutional affiliations, parent trusts, and inspection histories.
-2. **Automated Conflict Evaluation**: Evaluates proposed panels in real time against four non-negotiable conflict rules:
-   - *Current Affiliation Match*: Rejects experts employed at the applicant institution.
-   - *Shared Parent Trust*: Rejects experts affiliated with another college operated by the same educational trust.
-   - *3-Year Cooling-Off Rule*: Enforces a mandatory 3-year gap before an expert can re-inspect the same institution.
-   - *Declared Personal Conflicts*: Flags mutual conflicts or active grievances.
-3. **Invitation & Reassignment Lifecycle**: Experts receive digital invitations. Upon declining or if an unavoidable conflict arises, the slot is marked `REASSIGNMENT_REQUIRED` and the coordinator appoints an eligible replacement.
+### Justified Overrides & Reassignment
+- When an unavoidable conflict is identified, the engine transitions the assignment to `CONFLICT_DETECTED` and prompts the coordinator for reassignment.
+- In rare, highly specialized engineering disciplines with severe expert scarcity, an authorized coordinator can execute an override only by recording a substantive, mandatory narrative justification permanently logged to the audit ledger.
 
 ---
 
@@ -537,7 +458,7 @@ Deadline enforcement is governed by an automated background engine evaluating fo
 
 ### Deduplicated Multi-Tier Escalation Architecture
 To prevent duplicate alerts during recurring scans, every generated alert computes an idempotency key:
-$$\text{Idempotency Key} = \text{MD5}(\text{obligation\_id} + \text{trigger\_type} + \text{threshold\_days} + \text{escalation\_level})$$
+`Idempotency Key = MD5(obligation_id + trigger_type + threshold_days + escalation_level)`
 Database uniqueness constraints guarantee that an escalation level is triggered **exactly once** per obligation cycle.
 
 ---
@@ -596,7 +517,7 @@ The Executive Command Centre aggregates seven live, database-backed analytical r
 
 ### Regulatory Rule Studio
 Enables authorized Bureau Officers and System Administrators to manage regulatory policies without modifying application code:
-- **Policy Lifecycle**: Governs rule progression through `DRAFT` $\rightarrow$ `VALIDATED` $\rightarrow$ `PUBLISHED` $\rightarrow$ `RETIRED`.
+- **Policy Lifecycle**: Governs rule progression through `DRAFT` -> `VALIDATED` -> `PUBLISHED` -> `RETIRED`.
 - **Dry-Run Simulation**: Allows administrators to simulate rule changes (e.g., adjusting scrutiny SLA from 14 to 10 days) against active database records to project workload impacts before publishing.
 - **Immutable Version History**: Publishing a new rule archives prior configurations into `rule_version_history`.
 
@@ -611,29 +532,14 @@ Generates instant, structured executive case briefs for Competent Authorities pr
 
 AvedanSetu implements rigorous, defense-in-depth security across every architectural layer:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    DEFENSE-IN-DEPTH SECURITY CONTROL MATRIX                     │
-├─────────────────────┬───────────────────────────────────────────────────────────┤
-│ 1. IDENTITY & AUTH  │ JWT tokens, database blacklist revocation, active-role    │
-│                     │ session switching, strong password hashing (bcrypt).      │
-├─────────────────────┼───────────────────────────────────────────────────────────┤
-│ 2. AUTHORIZATION    │ 8-role strict RBAC matrix, non-bypassable FastAPI         │
-│                     │ dependency injection, zero privilege inheritance.        │
-├─────────────────────┼───────────────────────────────────────────────────────────┤
-│ 3. DATA ISOLATION   │ Multi-tenant institutional boundaries, regional director- │
-│                     │ ate query scoping, zero cross-region data leakage.        │
-├─────────────────────┼───────────────────────────────────────────────────────────┤
-│ 4. INPUT VALIDATION │ Strict Pydantic v2 schemas, type coercion, regex pattern  │
-│                     │ constraints, CSV formula-injection sanitization.          │
-├─────────────────────┼───────────────────────────────────────────────────────────┤
-│ 5. STORAGE INTEGRITY│ UUID file naming, SHA-256 tamper-evident sealing, path-   │
-│                     │ traversal defenses, unindexed disk download blocks (404). │
-├─────────────────────┼───────────────────────────────────────────────────────────┤
-│ 6. FAIL-CLOSED BOOT │ Production boots fail closed on missing/weak SECRET_KEY   │
-│                     │ (<32 chars), active DEBUG, active DEMO_MODE, or SQLite.   │
-└─────────────────────┴───────────────────────────────────────────────────────────┘
-```
+| Security Layer | Technical Controls & Invariants Implemented | Defensive Objective |
+|---|---|---|
+| **1. Identity & Session** | JWT tokens with HMAC-SHA256, database token blacklist table, active-role session switching, bcrypt password hashing. | Eliminates session hijacking and ensures immediate server-side revocation on logout. |
+| **2. Role Authorization** | Canonical 8-role RBAC matrix, non-bypassable FastAPI dependency injection, zero privilege inheritance. | Enforces strict principle of least privilege across all API endpoints. |
+| **3. Data Isolation** | Multi-tenant institutional boundaries (`institution_id`), regional query scoping (`region`), cross-region access block (HTTP 403). | Prevents cross-tenant data leaks and unauthorized cross-jurisdiction operations. |
+| **4. Input Validation** | Strict Pydantic v2 schemas, type coercion, regex pattern constraints, CSV formula-injection sanitization. | Defends against SQL injection, cross-site scripting (XSS), and malicious spreadsheet formulas. |
+| **5. Storage Integrity** | UUID-based file naming, SHA-256 tamper-evident sealing, directory traversal defenses, unindexed disk download blocks (HTTP 404). | Prevents arbitrary filesystem probing and guarantees verifiable document integrity. |
+| **6. Fail-Closed Boot** | Production boots immediately abort if `SECRET_KEY` is weak (<32 chars) or contains defaults, if `DEBUG=True`, or if SQLite is detected. | Eliminates catastrophic production misconfigurations and secret leakage. |
 
 ---
 
@@ -686,43 +592,12 @@ To provide evaluators with immediate, hands-on verification of complex regulator
 
 Evaluators can verify the complete regulatory lifecycle using the following 8-step journey on the live deployment ([https://avedansetu.vercel.app](https://avedansetu.vercel.app)):
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    END-TO-END EVALUATION JOURNEY SEQUENCE                       │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  [Step 1: Login] ──> Select persona (e.g. RO Western) via Quick Switcher        │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 2: Scrutiny] ──> Open App #AICTE-2026-REV-77192, review, issue memo      │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 3: Cure] ──> Switch to Institution Admin, provide cure remarks & proof   │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 4: Verify] ──> Switch back to RO Western, sign off scrutiny completion    │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 5: EVC Panel] ──> Switch to EVC Coordinator, run COI check, assign     │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 6: Field App] ──> Open Mobile Field App, verify GPS, upload photos       │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 7: Decision] ──> Switch to Competent Authority, issue Statutory Order    │
-│          │                                                                      │
-│          ▼                                                                      │
-│  [Step 8: Audit] ──> Scan QR code on generated PDF, verify SHA-256 in Ledger    │
-│                                                                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
-
 1. **Step 1: Authenticate via Persona Quick-Switcher**: Access `/login` and select the pre-configured persona **Regional Officer (RO Western - Dr. Sanjay Deshmukh)**.
 2. **Step 2: Scrutiny & Deficiency Issuance**: In the **Regional Command Center**, open application `AICTE-2026-REV-77192`. Review the submitted files and issue an itemized deficiency notice for *"Land carpet area documentation deficiency"*. Status advances to `DEFICIENCY_COMMUNICATED`.
 3. **Step 3: Institutional Cure & Resubmission**: Switch persona to **Institution Admin (Apex Institute)**. Navigate to **Action Centre**, enter specific cure remarks, upload supporting documentation, and click *Resubmit Application*. Status advances to `RESUBMITTED`.
 4. **Step 4: Scrutiny Sign-Off**: Switch back to **RO Western**. Review the cured evidence, confirm satisfaction, and click *Complete Scrutiny*. Status advances to `AWAITING_EVC_SCHEDULE`.
 5. **Step 5: EVC Panel Appointment & COI Evaluation**: Switch persona to **EVC Coordinator (Prof. K. Raman)**. Open **EVC Coordination Desk**. Select the application, evaluate candidate experts, verify the automated Conflict-of-Interest clearance, and appoint the panel. Status advances to `EVC_SCHEDULED`.
-6. **Step 6: Mobile Field Inspection**: Navigate to `/officer/evc/field/:id`. Execute campus check-in (verifying GPS coordinates), complete the 5-point APH checklist, upload inspection photographs, and submit the visit report recommending approval. Status advances to `EVC_COMPLETED` $\rightarrow$ `AWAITING_COMPETENT_AUTHORITY`.
+6. **Step 6: Mobile Field Inspection**: Navigate to `/officer/evc/field/:id`. Execute campus check-in (verifying GPS coordinates), complete the 5-point APH checklist, upload inspection photographs, and submit the visit report recommending approval. Status advances to `EVC_COMPLETED` -> `AWAITING_COMPETENT_AUTHORITY`.
 7. **Step 7: Competent Authority Statutory Order**: Switch persona to **Competent Authority (Dr. Ramesh Chandra)**. Review the consolidated docket (Scrutiny Verified + EVC Recommended Approval). Execute the statutory order by selecting **Grant Approval** with official remarks. Status advances to `APPROVED`.
 8. **Step 8: Dynamic QR Verification & Audit Ledger**: Click *Generate Statutory Order Artifact*. View the generated PDF order, scan the embedded QR code with a smartphone camera, and verify the persisted institutional approval details and SHA-256 document checksum.
 
@@ -836,18 +711,13 @@ Implementing AvedanSetu across AICTE operations projects transformative improvem
 
 # 40 Recommended Pilot Implementation & Phased Rollout Plan
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     RECOMMENDED 12-WEEK PILOT TIMELINE                          │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│ Weeks 1–2: Infrastructure Provisioning, Secret Rotation & DB Sizing             │
-│ Weeks 3–4: Ingestion of Regional Master Data & Policy Template Configuration    │
-│ Weeks 5–6: Stakeholder Orientation (RO Scrutiny Teams & EVC Coordinators)      │
-│ Weeks 7–8: Shadow Pilot Execution alongside Existing Portals (Western Region)   │
-│ Weeks 9–10: SLA Threshold Calibration, Outbox Audit & Gateway Verification      │
-│ Weeks 11–12: Formal Pilot Evaluation Report & National Cutover Decision         │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+### 12-Week Structured Pilot Plan
+- **Weeks 1–2: Infrastructure Provisioning & Environment Hardening**: Deploy PostgreSQL 16 cluster, configure SSL certificates, rotate production secrets, and establish dedicated monitoring channels.
+- **Weeks 3–4: Ingestion of Regional Master Data & Policy Configuration**: Ingest baseline institutional registers and configure regulatory SLA thresholds in Rule Studio.
+- **Weeks 5–6: Stakeholder Orientation & Role Training**: Conduct interactive workshops for Regional Officers, Scrutiny Teams, and EVC Coordinators using the Judge Demonstration Explorer.
+- **Weeks 7–8: Shadow Pilot Execution (Western Region Directorate)**: Run AvedanSetu in parallel with existing systems for annual Extension of Approval (EOA) filings to benchmark processing accuracy.
+- **Weeks 9–10: SLA Threshold Calibration & Outbox Verification**: Review transactional outbox logs, fine-tune escalation thresholds, and verify multi-tier notification delivery.
+- **Weeks 11–12: Formal Pilot Evaluation & National Scaling**: Compile pilot performance report comparing turnaround times against traditional baselines; initiate national cutover.
 
 ---
 
