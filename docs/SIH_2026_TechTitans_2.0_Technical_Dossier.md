@@ -1,8 +1,8 @@
-# ReguFlow 360 (आवेदनसेतु | AvedanSetu)
+# आवेदनसेतु (AvedanSetu)
 
 ### Integrated AICTE Approval Workflow Automation, Compliance Monitoring, Document Validity & Alert Management System
 
-ReguFlow 360 (branded as **आवेदनसेतु | AvedanSetu**) is an integrated, enterprise-grade regulatory workflow automation and continuous compliance monitoring platform engineered for the **All India Council for Technical Education (AICTE)**. Built around the mandate of **SIH 2026 Problem Statement 26262**, the platform unites the entire technical education regulatory lifecycle—spanning application routing, route-aware scrutiny, deficiency cure loops, Expert Visiting Committee (EVC) panel formation with automated Conflict-of-Interest (COI) checks, mobile-first geotagged field inspections, multi-year Document Vault validity tracking (33-year land leases, fire NOCs, building stability certificates), time-bound compliance undertakings, automated multi-tier deadline escalations, and cryptographically verifiable statutory decision orders—into a single, highly auditable, role-governed digital command ecosystem.
+**आवेदनसेतु (AvedanSetu)** is an integrated, enterprise-grade regulatory workflow automation and continuous compliance monitoring platform engineered for the **All India Council for Technical Education (AICTE)**. Built around the mandate of **SIH 2026 Problem Statement 26262**, the platform unites the entire technical education regulatory lifecycle—spanning application routing, route-aware scrutiny, deficiency cure loops, Expert Visiting Committee (EVC) panel formation with automated Conflict-of-Interest (COI) checks, mobile-first geotagged field inspections, multi-year Document Vault validity tracking (33-year land leases, fire NOCs, building stability certificates), time-bound compliance undertakings, automated multi-tier deadline escalations, and cryptographically verifiable statutory decision orders—into a single, highly auditable, role-governed digital command ecosystem.
 
 ---
 
@@ -16,20 +16,20 @@ ReguFlow 360 (branded as **आवेदनसेतु | AvedanSetu**) is an int
 | **Department / Bureau** | **Approval Bureau & Regulation Bureau** |
 | **Theme** | **Smart Automation** |
 | **Category** | **Software** |
-| **Project Name** | **ReguFlow 360 (आवेदनसेतु \| AvedanSetu)** |
+| **Project Name** | **आवेदनसेतु (AvedanSetu)** |
 | **Team Name** | **TechTitans 2.0** |
 | **Team ID** | **197859** |
 | **Institute** | **KIET Deemed to be University, Delhi-NCR, Ghaziabad** |
 | **Team Members** | 1. **Ayush Soni** (Team Leader)<br>2. **Saksham Gupta**<br>3. **Ankit Kumar**<br>4. **Pranjali Sehrawat**<br>5. **Diya Kataria**<br>6. **Diksha Verma** |
 | **Project Repository** | [https://github.com/Saksham2005-coder/sih](https://github.com/Saksham2005-coder/sih) |
 | **Live Web Portal (Vercel)** | [https://avedansetu.vercel.app](https://avedansetu.vercel.app) |
-| **Production API & OpenAPI Docs (Render)** | [https://reguflow-backend.onrender.com/docs](https://reguflow-backend.onrender.com/docs) |
-| **Live Telemetry & Diagnostics Probe** | [https://reguflow-backend.onrender.com/api/health](https://reguflow-backend.onrender.com/api/health) |
+| **Production API & OpenAPI Docs** | [AvedanSetu API Documentation (Swagger)](https://reguflow-backend.onrender.com/docs) |
+| **Live Telemetry & Diagnostics Probe** | [Live System Health Probe](https://reguflow-backend.onrender.com/api/health) |
 | **Demonstration Video** | [https://github.com/Saksham2005-coder/sih#demonstration-video](https://github.com/Saksham2005-coder/sih#demonstration-video) |
 | **Document Version** | **Version 1.0 (Final SIH Technical Dossier)** |
 | **Submission Date** | **27 October 2026** |
 
-> **Prototype & Statutory Disclosure:** ReguFlow 360 (*आवेदनसेतु*) is an advanced, hardened technical prototype developed by Team TechTitans 2.0 for the Smart India Hackathon (SIH 2026). It demonstrates a fully working, explainable, and multi-tenant operational layer. Demo data, simulated institutional profiles, and statutory SLA thresholds are illustrative and configurable. Formal statutory authority remains exclusively with authorized AICTE officials, and generated decision orders carry verifiable cryptographic provenance marked as prototype demonstration records.
+> **Prototype & Statutory Disclosure:** **आवेदनसेतु (AvedanSetu)** is an advanced, hardened technical prototype developed by Team TechTitans 2.0 for the Smart India Hackathon (SIH 2026). It demonstrates a fully working, explainable, and multi-tenant operational layer. Demo data, simulated institutional profiles, and statutory SLA thresholds are illustrative and configurable. Formal statutory authority remains exclusively with authorized AICTE officials, and generated decision orders carry verifiable cryptographic provenance marked as prototype demonstration records.
 
 ---
 
@@ -86,11 +86,11 @@ ReguFlow 360 (branded as **आवेदनसेतु | AvedanSetu**) is an int
 
 # 01 Executive Summary
 
-ReguFlow 360 (आवेदनसेतु | AvedanSetu), conceived and engineered by **Team TechTitans 2.0** from **KIET Deemed to be University**, is a production-grade, state-machine-driven regulatory platform engineered specifically for **AICTE Problem Statement 26262**: *"Integrated AICTE Approval Workflow Automation, Compliance Monitoring and Alert Management System."*
+**आवेदनसेतु (AvedanSetu)**, conceived and engineered by **Team TechTitans 2.0** from **KIET Deemed to be University**, is a production-grade, state-machine-driven regulatory platform engineered specifically for **AICTE Problem Statement 26262**: *"Integrated AICTE Approval Workflow Automation, Compliance Monitoring and Alert Management System."*
 
 Technical education approval in India governs thousands of engineering, management, pharmacy, and polytechnic institutions annually. Historically, approval workflows have faced significant operational hurdles: fragmented data silos across regional offices and apex committees, manual tracking of multi-year validity certificates (such as 33-year land lease deeds and municipal fire NOCs), unmonitored post-approval compliance undertakings, delayed Expert Visiting Committee (EVC) panel formation, and the absence of an automated, deduplicated escalation engine for breached statutory deadlines.
 
-ReguFlow 360 solves these systemic challenges by introducing a unified, rule-driven, and highly observable operational layer. Operating across a single unified PostgreSQL relational core, the system delivers:
+AvedanSetu solves these systemic challenges by introducing a unified, rule-driven, and highly observable operational layer. Operating across a single unified PostgreSQL relational core, the system delivers:
 - **Eight Distinct Role Workspaces**: Eliminates generic dashboards by providing strictly scoped environments for Institution Admins, Compliance Officers, Regional Officers (RO), Bureau Officers (BO), Standing Hearing Committee (SHC/SAC) Members, EVC Coordinators, Competent Authorities (Chairman/Member Secretary), and System Administrators.
 - **Controlled Automation with Human Sovereignty**: Automated routing, deadline calculations, and priority scoring triage and accelerate administrative throughput, while preserving non-negotiable statutory human accountability. Only the authorized Competent Authority can issue formal approval or rejection orders.
 - **Explainable Conflict-of-Interest (COI) Engine**: Automatically evaluates proposed EVC panels against parent-trust affiliations, prior institutional employment, cooling-off intervals, and declared conflicts, preventing compromised inspections.
@@ -104,7 +104,7 @@ ReguFlow 360 solves these systemic challenges by introducing a unified, rule-dri
 
 | System Attribute | Technical Implementation Details |
 |---|---|
-| **Product Names** | ReguFlow 360 / आवेदनसेतु (AvedanSetu) |
+| **Product Name** | आवेदनसेतु (AvedanSetu) |
 | **Target Problem Statement** | SIH 2026 Problem Statement 26262 |
 | **Team Name & ID** | TechTitans 2.0 • Team ID: 197859 |
 | **Institution** | KIET Deemed to be University, Ghaziabad, Uttar Pradesh |
@@ -114,7 +114,7 @@ ReguFlow 360 solves these systemic challenges by introducing a unified, rule-dri
 | **Database & Migrations** | PostgreSQL 16 (production) / SQLite with WAL (local testing), Alembic |
 | **UI Design System** | Civic Precision (Midnight Ink `#152536`, Meridian Teal `#0E746B`, Cool Porcelain `#F4F6F8`) |
 | **Testing & Quality Evidence** | **236 Backend Tests (Pytest)**, **42 Frontend Tests (Vitest)**, 100% build & typecheck clean |
-| **Deployment Targets** | Web: Vercel ([avedansetu.vercel.app](https://avedansetu.vercel.app)) • API: Render Cloud ([reguflow-backend.onrender.com](https://reguflow-backend.onrender.com)) |
+| **Deployment Targets** | Web: Vercel ([avedansetu.vercel.app](https://avedansetu.vercel.app)) • API: Render Cloud ([AvedanSetu Backend API](https://reguflow-backend.onrender.com)) |
 | **Production Defense** | Loopback-bound database, non-root containers, zero unversioned overwrites, fail-closed production boots |
 
 ---
@@ -136,7 +136,7 @@ In traditional, partially fragmented operations, administrative friction manifes
 4. **Document Validity & Multi-Year Expiry Risks**: Mandatory regulatory records—notably 33-year land lease deeds, municipal occupancy certificates, and annual fire safety NOCs—carry independent, asynchronous validity timelines completely disconnected from the annual academic approval window.
 5. **Alert Fatigue & Unreliable Follow-ups**: Generic blast reminders often produce alert fatigue, while unmonitored deadline breaches fail to escalate systematically to Regional and Bureau directors.
 
-ReguFlow 360 directly resolves these challenges by modeling the entire operational lifecycle as an interconnected, observable state machine.
+AvedanSetu directly resolves these challenges by modeling the entire operational lifecycle as an interconnected, observable state machine.
 
 ---
 
@@ -187,11 +187,11 @@ The requirements specified in SIH Problem Statement 26262 decompose into six fou
 
 # 06 Stakeholders & Eight Dedicated Role Workspaces
 
-To prevent the common pitfall of collapsing all administrative users into a single generic dashboard, ReguFlow 360 provides eight dedicated, role-tailored operational workspaces:
+To prevent the common pitfall of collapsing all administrative users into a single generic dashboard, AvedanSetu provides eight dedicated, role-tailored operational workspaces:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      REGUFLOW 360 ROLE WORKSPACE TAXONOMY                       │
+│                      AVEDANSETU ROLE WORKSPACE TAXONOMY                       │
 ├──────────────────────────┬──────────────────────────────────────────────────────┤
 │ 1. INSTITUTION_ADMIN     │ Application filing, deficiency cure desk, order vault│
 │ 2. COMPLIANCE_OFFICER    │ Compliance undertakings, document validity renewals  │
@@ -217,7 +217,7 @@ To prevent the common pitfall of collapsing all administrative users into a sing
 
 # 07 Requirement Pillar A: End-to-End Workflow Automation
 
-ReguFlow 360 enforces a deterministic, guarded state machine governing the entire application lifecycle. An application cannot leapfrog intermediate statutory stages, and stale client views cannot execute out-of-sequence mutations.
+AvedanSetu enforces a deterministic, guarded state machine governing the entire application lifecycle. An application cannot leapfrog intermediate statutory stages, and stale client views cannot execute out-of-sequence mutations.
 
 ### Canonical Application Statuses
 - `DRAFT`: Initial institutional data entry and draft document assembly.
@@ -257,7 +257,7 @@ Operational transparency is maintained through real-time queue metrics and expla
 # 09 Requirement Pillars C & D: EVC Coordination & Undertakings
 
 ### Pillar C: EVC Coordination & Expert Conflict-of-Interest Engine
-Inspection planning requires strict objectivity. ReguFlow 360 models expert profiles with verified academic domains, institutional affiliations, regional locations, and parent trust associations.
+Inspection planning requires strict objectivity. AvedanSetu models expert profiles with verified academic domains, institutional affiliations, regional locations, and parent trust associations.
 
 - **Automated Conflict-of-Interest (COI) Checks**: Before an expert can be assigned to an institution, the engine executes four automated cross-checks:
   1. *Affiliation Conflict*: Blocks assignment if the expert is currently employed by or affiliated with the applicant institution.
@@ -296,11 +296,11 @@ Technical institutions are governed by documents whose validity periods span dec
 
 # 11 Proposed Solution Blueprint
 
-ReguFlow 360 acts as a cohesive regulatory operating system bridging institutions, regional directorates, inspection panels, and apex authorities over a single unified data architecture:
+AvedanSetu acts as a cohesive regulatory operating system bridging institutions, regional directorates, inspection panels, and apex authorities over a single unified data architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    REGUFLOW 360 COMPREHENSIVE ARCHITECTURE                      │
+│                    AVEDANSETU COMPREHENSIVE ARCHITECTURE                      │
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │  USER EXPERIENCE LAYER (React 18 + TypeScript + Vite + Tailwind CSS)            │
 │  ├── Institution Portal (Applications, Deficiency Cure, Compliance Passport)    │
@@ -417,7 +417,7 @@ The relational database architecture guarantees referential integrity, optimisti
 
 # 15 Workflow Routes and Automated Route Determination
 
-The regulatory route dictates the mandatory sequence of review stages an application must undergo. ReguFlow 360 models four canonical routes derived from the AICTE Approval Process Handbook:
+The regulatory route dictates the mandatory sequence of review stages an application must undergo. AvedanSetu models four canonical routes derived from the AICTE Approval Process Handbook:
 
 | Route Code | Regulatory Description | Prescribed Workflow Sequence | Governing Use Case |
 |---|---|---|---|
@@ -444,7 +444,7 @@ The state machine implements five layers of deterministic safeguards:
 # 17 Compliance Passport & Multi-Year Document Vault
 
 ### Compliance Passport: Continuous Post-Approval Governance
-Traditional regulation suffers from the "post-approval blindspot." ReguFlow 360's Compliance Passport establishes continuous monitoring:
+Traditional regulation suffers from the "post-approval blindspot." AvedanSetu's Compliance Passport establishes continuous monitoring:
 - **Mandatory Covenants**: Seeded with core AICTE undertakings (e.g., establishing anti-ragging committees, barrier-free access, 24/7 CCTV surveillance, and faculty cadre ratio compliance).
 - **Time-Bound Due Dates**: Each covenant carries an explicit due date (e.g., T+60 or T+180 days post-approval).
 - **Verification Workflow**: Submissions enter `PENDING_VERIFICATION`. Regional Officers review the proof and record determinations (`VERIFIED`, `CORRECTION_REQUIRED`, `DEFICIENT`).
@@ -459,7 +459,7 @@ Traditional regulation suffers from the "post-approval blindspot." ReguFlow 360'
 
 # 18 Document Intelligence, Semantic Verification & Human Review
 
-To assist officers in reviewing dense legal records, ReguFlow 360 integrates a lightweight, deterministic document intelligence pipeline powered by `pypdf`:
+To assist officers in reviewing dense legal records, AvedanSetu integrates a lightweight, deterministic document intelligence pipeline powered by `pypdf`:
 1. **Local Text Extraction**: Digital PDFs are parsed locally on the server without sending confidential institutional files to third-party cloud APIs.
 2. **Entity & Metadata Cross-Checks**:
    - Compares extracted document numbers against entered institutional records.
@@ -511,7 +511,7 @@ The Expert Visiting Committee (EVC) module guarantees uncompromised field verifi
 
 # 20 Mobile-First Field Inspection & Geotagged Evidence Sealing
 
-Inspections must be conducted with verifiable field evidence. ReguFlow 360 features a dedicated mobile web application (`/officer/evc/field/:id`):
+Inspections must be conducted with verifiable field evidence. AvedanSetu features a dedicated mobile web application (`/officer/evc/field/:id`):
 - **Browser Geolocation Verification**: Captures the inspector's real-time latitude, longitude, and coordinate accuracy radius at the time of check-in, verifying physical presence on the institutional campus.
 - **5-Point APH Core Inspection Checklist**:
   1. *Land & Built-up Carpet Area*: Verifies contiguous land possession, FSI compliance, and instructional area norms.
@@ -544,7 +544,7 @@ Database uniqueness constraints guarantee that an escalation level is triggered 
 
 # 22 Transactional Notification Outbox & Reliable Dispatch
 
-External messaging failures must never compromise business transactions. ReguFlow 360 implements the **Transactional Outbox Pattern**:
+External messaging failures must never compromise business transactions. AvedanSetu implements the **Transactional Outbox Pattern**:
 1. **Atomic Local Commit**: When a workflow event occurs (e.g., deficiency issued or escalation raised), the business record and an outbox message record are committed in the same database transaction.
 2. **Decoupled Worker Processing**: A background worker polls the outbox using PostgreSQL row-level locks (`SELECT ... FOR UPDATE SKIP LOCKED`), ensuring multi-worker concurrency without duplicate dispatches.
 3. **Channel Telemetry & State Tracking**: Tracks delivery state across channels:
@@ -609,7 +609,7 @@ Generates instant, structured executive case briefs for Competent Authorities pr
 
 # 27 Security Architecture & Defense-in-Depth Implementation
 
-ReguFlow 360 implements rigorous, defense-in-depth security across every architectural layer:
+AvedanSetu implements rigorous, defense-in-depth security across every architectural layer:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -746,7 +746,7 @@ The backend exposes a clean, fully typed RESTful API documented via OpenAPI at `
 
 # 33 Deployment Architecture, Docker Orchestration & Multi-Stage Release
 
-ReguFlow 360 supports both containerized micro-services and cloud-native serverless deployments:
+AvedanSetu supports both containerized micro-services and cloud-native serverless deployments:
 - **Cloud Production Topology**:
   - *Frontend Application*: Deployed on **Vercel** edge infrastructure with global CDN caching and automatic HTTPS.
   - *API Engine*: Deployed on **Render Cloud** running Python 3.12 with Uvicorn async workers.
@@ -768,7 +768,7 @@ Deep operational observability is built directly into the core platform:
 
 # 35 Comprehensive Testing Strategy & Verified Quality Evidence
 
-Every capability within ReguFlow 360 is validated through automated test suites:
+Every capability within AvedanSetu is validated through automated test suites:
 - **Backend Test Suite (Pytest)**: **236 Tests Passing (100% Pass Rate)** spanning 15 specialized test modules:
   - `test_workflow.py`: Guarded state transitions, optimistic concurrency, and deficiency cure validation.
   - `test_auth.py`: JWT issuance, active-role switching, and token blacklist revocation.
@@ -785,8 +785,8 @@ Every capability within ReguFlow 360 is validated through automated test suites:
 
 # 36 Government Adoption Model & AICTE Operating Blueprint
 
-To facilitate seamless real-world adoption by the All India Council for Technical Education, ReguFlow 360 is architected for phased integration:
-1. **Phase 1: Shadow Operation & Sandbox Rehearsal (Months 1–2)**: Deploy ReguFlow 360 in parallel with existing portals for a single regional directorate (e.g., Western Region). Regional officers and select institutions operate in shadow mode to calibrate SLA thresholds and rule templates.
+To facilitate seamless real-world adoption by the All India Council for Technical Education, AvedanSetu is architected for phased integration:
+1. **Phase 1: Shadow Operation & Sandbox Rehearsal (Months 1–2)**: Deploy AvedanSetu in parallel with existing portals for a single regional directorate (e.g., Western Region). Regional officers and select institutions operate in shadow mode to calibrate SLA thresholds and rule templates.
 2. **Phase 2: Single-Region Pilot Deployment (Months 3–4)**: Transition one full regional office to primary processing for Extension of Approval (EOA) and Document Vault renewals. Connect government SMTP relays and test SMS gateways.
 3. **Phase 3: National Rollout & SSO Federation (Months 5–6)**: Integrate with Government of India single sign-on (**Parichay / MeriPehchan**), onboard all regional directorates, and enable digital signature certificate (DSC) signing for official orders.
 
@@ -794,9 +794,9 @@ To facilitate seamless real-world adoption by the All India Council for Technica
 
 # 37 Impact Framework, Efficiency Metrics & Measurable Outcomes
 
-Implementing ReguFlow 360 across AICTE operations projects transformative improvements in regulatory efficiency:
+Implementing AvedanSetu across AICTE operations projects transformative improvements in regulatory efficiency:
 
-| Operational Dimension | Traditional Administrative Baseline | ReguFlow 360 Target / Outcome | Projected Efficiency Gain |
+| Operational Dimension | Traditional Administrative Baseline | AvedanSetu Target / Outcome | Projected Efficiency Gain |
 |---|---|---|---|
 | **Deficiency Cure Cycle** | 21–30 calendar days via ad-hoc correspondence | **5–7 calendar days** via itemized cure desk | **75% Reduction in Cure Delays** |
 | **EVC Panel Formation** | 10–14 days manual academician search | **Instant COI clearance (< 1 min)** | **90% Faster Panel Appointment** |
@@ -824,7 +824,7 @@ Implementing ReguFlow 360 across AICTE operations projects transformative improv
 
 # 39 Risk Matrix, Operational Limitations & Technical Mitigations
 
-| Operational Risk | Potential Impact | Technical Mitigation Implemented in ReguFlow 360 |
+| Operational Risk | Potential Impact | Technical Mitigation Implemented in AvedanSetu |
 |---|---|---|
 | **Concurrent Document Updates** | Lost updates or overwritten scrutiny findings | Enforced **Optimistic Concurrency Control** (`expected_version`), aborting conflicting writes with HTTP 409. |
 | **Alert Fatigue & Duplicate Notices** | Officers and institutions ignore spam notifications | Enforced **Composite Idempotency Keys**, guaranteeing zero duplicate alerts per deadline threshold. |
@@ -889,9 +889,9 @@ Implementing ReguFlow 360 across AICTE operations projects transformative improv
 
 # 43 Conclusion: Building a Transparent, Accountable Regulatory Future
 
-ReguFlow 360 (आवेदनसेतु | AvedanSetu), engineered by **Team TechTitans 2.0** for **SIH 2026 Problem Statement 26262**, represents a transformative shift in higher education regulatory governance. By bridging pre-approval scrutiny, conflict-free inspection logistics, post-approval compliance undertakings, multi-year document validity tracking, and hierarchical deadline escalations into a single, cohesive, and auditable operational ecosystem, the platform demonstrates that regulatory rigor and administrative efficiency can co-exist harmoniously.
+**आवेदनसेतु (AvedanSetu)**, engineered by **Team TechTitans 2.0** for **SIH 2026 Problem Statement 26262**, represents a transformative shift in higher education regulatory governance. By bridging pre-approval scrutiny, conflict-free inspection logistics, post-approval compliance undertakings, multi-year document validity tracking, and hierarchical deadline escalations into a single, cohesive, and auditable operational ecosystem, the platform demonstrates that regulatory rigor and administrative efficiency can co-exist harmoniously.
 
-With its robust state-machine foundation, defense-in-depth security, strict human sovereignty, 100% verified test coverage, responsive dual-theme user experience, and interactive demonstration explorer, ReguFlow 360 stands fully prepared for evaluation, pilot onboarding, and national regulatory deployment.
+With its robust state-machine foundation, defense-in-depth security, strict human sovereignty, 100% verified test coverage, responsive dual-theme user experience, and interactive demonstration explorer, AvedanSetu stands fully prepared for evaluation, pilot onboarding, and national regulatory deployment.
 
 ---
 
