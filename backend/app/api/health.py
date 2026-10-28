@@ -103,3 +103,21 @@ def readiness_probe(db: Session = Depends(get_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Service not ready: Database unreachable ({str(e)})"
         )
+
+@router.post("/health/hydrate-database")
+def trigger_database_hydration():
+    """Manually trigger or verify database snapshot hydration for deployment."""
+    from app.seed.restore_snapshot import load_snapshot
+    from app.core.database import engine
+    try:
+        results = load_snapshot(engine)
+        return {
+            "status": "success",
+            "message": "Snapshot restoration executed",
+            "details": results
+        }
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Snapshot hydration failed: {str(exc)}"
+        )

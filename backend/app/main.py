@@ -23,7 +23,8 @@ async def lifespan(app: FastAPI):
 
     db = SessionLocal()
     try:
-        if db.query(Institution).count() == 0 or db.query(Application).count() == 0:
+        from app.models.user import User
+        if db.query(Institution).count() == 0 or db.query(User).count() == 0 or db.query(Application).count() == 0:
             print("AvedanSetu: Fresh database detected. Auto-hydrating records from snapshot...")
             load_snapshot(engine)
             print("AvedanSetu: Auto-hydration complete! All applications, users, and rules loaded.")
