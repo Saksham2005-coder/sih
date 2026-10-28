@@ -165,10 +165,10 @@ export const CompliancePassport: React.FC = () => {
                 )}
               </div>
 
-              <div className="flex md:flex-col justify-end items-end gap-2 shrink-0">
+              <div className="flex sm:flex-col justify-end items-stretch sm:items-end gap-2 shrink-0 w-full sm:w-auto">
                 <button
                   onClick={() => handleOpenUpload(u)}
-                  className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                  className="w-full sm:w-auto px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   {u.evidences?.length > 0 ? 'Submit Revision Evidence' : 'Submit Evidence'}

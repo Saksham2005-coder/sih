@@ -50,7 +50,7 @@ export const InstitutionDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Institution Banner */}
-      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border p-4 sm:p-6 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 dark:bg-[#143633] text-brand-teal dark:text-[#39C6B4] border border-teal-300 dark:border-[#225650]">
@@ -68,7 +68,7 @@ export const InstitutionDashboard: React.FC = () => {
 
         <Link
           to="/institution/applications"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm transition-colors duration-150"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-action hover:bg-brand-action-hover text-white text-xs font-semibold shadow-sm transition-colors duration-150 self-start sm:self-auto"
         >
           <FileText className="w-4 h-4" /> View My Applications
         </Link>
@@ -76,8 +76,8 @@ export const InstitutionDashboard: React.FC = () => {
 
       {/* Critical Action Banner if Deficiency Communicated */}
       {deficientApp && (
-        <div className="bg-amber-50 dark:bg-[#352A18] border border-amber-300 dark:border-[#5C4520] rounded-xl p-5 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
+        <div className="bg-amber-50 dark:bg-[#352A18] border border-amber-300 dark:border-[#5C4520] rounded-xl p-4 sm:p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-amber-100 dark:bg-[#483318] rounded-lg text-[#99630D] dark:text-[#F2C96D] shrink-0">
                 <AlertTriangle className="w-5 h-5" />
@@ -94,7 +94,7 @@ export const InstitutionDashboard: React.FC = () => {
 
             <Link
               to={`/institution/applications/${deficientApp.id}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#99630D] hover:bg-amber-800 dark:bg-[#C5892B] dark:hover:bg-[#A8721F] text-white text-xs font-semibold shadow-sm shrink-0 transition-colors duration-150"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#99630D] hover:bg-amber-800 dark:bg-[#C5892B] dark:hover:bg-[#A8721F] text-white text-xs font-semibold shadow-sm shrink-0 transition-colors duration-150 self-start sm:self-auto"
             >
               Cure & Resubmit <ArrowRight className="w-3.5 h-3.5" />
             </Link>
@@ -103,7 +103,7 @@ export const InstitutionDashboard: React.FC = () => {
       )}
 
       {/* Operational Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           title="Active Applications"
           value={applications.length}
@@ -135,21 +135,21 @@ export const InstitutionDashboard: React.FC = () => {
 
       {/* Applications Table */}
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Regulatory Filings & Progress</h3>
             <p className="text-xs text-brand-muted">Current academic cycle application stages</p>
           </div>
           <Link
             to="/institution/applications"
-            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1 self-start sm:self-auto"
           >
             All Applications <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3">Application Number</th>

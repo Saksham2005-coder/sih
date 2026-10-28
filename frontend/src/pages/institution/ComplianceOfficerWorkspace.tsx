@@ -192,8 +192,8 @@ export const ComplianceOfficerWorkspace: React.FC = () => {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Obligation Title</th>
@@ -256,8 +256,8 @@ export const ComplianceOfficerWorkspace: React.FC = () => {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Document Title</th>

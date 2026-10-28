@@ -140,29 +140,29 @@ export const LoginPage: React.FC = () => {
       </div>
 
       {/* Top Header Branding */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-6">
+      <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-6 px-2">
         <div className="flex flex-col items-center">
           <img
             src="/aicte-logo.png"
             alt="AICTE Official Emblem"
-            className="w-20 h-20 object-contain mb-3 drop-shadow-md rounded-full bg-white/95 p-1 border border-brand-border"
+            className="w-16 h-16 sm:w-20 sm:h-20 object-contain mb-3 drop-shadow-md rounded-full bg-white/95 p-1 border border-brand-border"
           />
-          <div className="text-xs font-semibold uppercase tracking-wider text-brand-teal">
+          <div className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-brand-teal">
             अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE
           </div>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-brand-text-primary flex items-center justify-center gap-2">
+          <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight text-brand-text-primary flex items-center justify-center gap-2">
             <span>आवेदनसेतु</span>
             <span className="text-gray-300 dark:text-gray-600 font-light">|</span>
             <span className="text-brand-teal">AvedanSetu</span>
           </h1>
-          <p className="mt-1 text-xs text-brand-muted max-w-md mx-auto">
+          <p className="mt-1 text-xs text-brand-muted max-w-md mx-auto px-2">
             AICTE Integrated Approval Workflow, Compliance Monitoring & Escalation Platform
           </p>
-          <div className="mt-2.5 flex items-center justify-center gap-2">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-brand-teal-light text-brand-teal border border-teal-200 dark:border-teal-800">
+          <div className="mt-2.5 flex items-center justify-center flex-wrap gap-1.5 sm:gap-2">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] sm:text-[11px] font-bold bg-brand-teal-light text-brand-teal border border-teal-200 dark:border-teal-800">
               <CheckCircle2 className="w-3 h-3" /> SIH 2026 Problem Statement 26262
             </span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] sm:text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
               Academic Year 2026-2027
             </span>
           </div>
@@ -170,14 +170,14 @@ export const LoginPage: React.FC = () => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white dark:bg-brand-surface py-8 px-6 shadow-2xl rounded-2xl border border-brand-border sm:px-10 transition-colors">
+        <div className="bg-white dark:bg-brand-surface py-6 px-4 sm:py-8 sm:px-10 shadow-2xl rounded-2xl border border-brand-border transition-colors">
 
           {/* TWO OPTIONS: INSTITUTION PORTAL vs AICTE OFFICERS PORTAL */}
           <div className="mb-6">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-brand-muted mb-2 text-center">
               Select Your Access Portal
             </label>
-            <div className="grid grid-cols-2 gap-3 p-1.5 bg-brand-porcelain dark:bg-brand-surface-secondary rounded-xl border border-brand-border">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 p-1.5 bg-brand-porcelain dark:bg-brand-surface-secondary rounded-xl border border-brand-border">
               {/* Option 1: Institution Portal */}
               <button
                 type="button"

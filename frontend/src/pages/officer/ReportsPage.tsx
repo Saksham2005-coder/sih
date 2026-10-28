@@ -352,8 +352,8 @@ export const ReportsPage: React.FC = () => {
                 <span className="text-xs text-brand-muted font-normal">Reconciled Counts</span>
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left text-xs min-w-[320px]">
                   <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
                     <tr>
                       <th className="py-2.5 px-3">Regulatory Stage</th>
@@ -386,8 +386,8 @@ export const ReportsPage: React.FC = () => {
                 <span className="text-xs text-brand-muted font-normal">By AICTE Regional Office</span>
               </h3>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left text-xs min-w-[320px]">
                   <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
                     <tr>
                       <th className="py-2.5 px-3">Regional Office Scope</th>
@@ -447,8 +447,8 @@ export const ReportsPage: React.FC = () => {
               Stage-wise SLA Turnaround & Ageing Analysis
             </h3>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left text-xs min-w-[600px]">
                 <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
                   <tr>
                     <th className="py-2.5 px-4">Stage Name</th>
@@ -767,8 +767,8 @@ export const ReportsPage: React.FC = () => {
               <span className="text-xs text-brand-muted font-normal">Reconciled Records</span>
             </h3>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto w-full">
+              <table className="w-full text-left text-xs min-w-[700px]">
                 <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
                   <tr>
                     <th className="py-2.5 px-3">AICTE Region</th>

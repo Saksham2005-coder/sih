@@ -170,7 +170,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs">
           <div className="p-3 bg-brand-porcelain/50 dark:bg-brand-surface-secondary/60 rounded-lg border border-brand-border">
             <span className="text-brand-muted text-[10px] uppercase font-semibold">Repeated Deficiencies:</span>
             <p className="text-base font-bold text-brand-ink mt-0.5">{bottlenecks?.repeated_returns_count ?? 0}</p>
@@ -196,21 +196,21 @@ export const RegionalOfficerWorkspace: React.FC = () => {
 
       {/* Priority Scrutiny Queue Table */}
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Regional Priority Scrutiny & Action Queue</h3>
             <p className="text-xs text-brand-muted">Ranked by explainable urgency score (SLA pendency, past deficiencies, regulatory weights)</p>
           </div>
           <Link
             to="/officer/applications"
-            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1 self-start sm:self-auto"
           >
             All Regional Cases <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Application Number</th>
@@ -267,21 +267,21 @@ export const RegionalOfficerWorkspace: React.FC = () => {
 
       {/* Regional Compliance Evidence Verification Desk */}
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-brand-ink">Compliance Undertaking Verification Desk</h3>
             <p className="text-xs text-brand-muted">Review submitted institutional proofs and issue statutory verification or deficiency orders</p>
           </div>
           <Link
             to="/officer/compliance"
-            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1"
+            className="text-xs font-semibold text-brand-teal hover:underline flex items-center gap-1 self-start sm:self-auto"
           >
             Compliance Module <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Obligation & Rule</th>
@@ -338,7 +338,7 @@ export const RegionalOfficerWorkspace: React.FC = () => {
 
       {/* Regional Document Intelligence & Cross-Check Verification Desk */}
       <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-brand-border flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 border-b border-brand-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
               <Cpu className="w-4 h-4 text-brand-teal" />
@@ -348,13 +348,13 @@ export const RegionalOfficerWorkspace: React.FC = () => {
               Inspect candidate extraction findings, cross-check against recorded dates, and commit statutory review orders
             </p>
           </div>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-teal/10 text-brand-teal border border-brand-teal/20">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-brand-teal/10 text-brand-teal border border-brand-teal/20 self-start sm:self-auto">
             {documents.length} Tracked Documents
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Document Title & Type</th>

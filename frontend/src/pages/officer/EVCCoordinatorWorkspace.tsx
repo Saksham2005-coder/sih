@@ -205,8 +205,8 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
             No applications currently pending EVC scheduling in your regional jurisdiction.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full text-left text-xs min-w-[700px]">
               <thead className="bg-gray-50/75 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] tracking-wider font-semibold border-b border-brand-border">
                 <tr>
                   <th className="px-6 py-3.5">Application Number</th>
@@ -263,8 +263,8 @@ export const EVCCoordinatorWorkspace: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-gray-50/75 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] tracking-wider font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">App Number</th>

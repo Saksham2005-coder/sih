@@ -166,10 +166,10 @@ export const ApplicationDetail: React.FC = () => {
       </div>
 
       {/* View Switcher Tabs */}
-      <div className="flex items-center gap-2 border-b border-brand-border dark:border-brand-border pb-2">
+      <div className="flex items-center gap-2 border-b border-brand-border dark:border-brand-border pb-2 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('OVERVIEW')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
             activeTab === 'OVERVIEW'
               ? 'bg-brand-ink text-white dark:bg-white dark:text-brand-ink shadow-sm'
               : 'text-brand-muted hover:text-brand-ink dark:hover:text-white bg-transparent'
@@ -180,14 +180,14 @@ export const ApplicationDetail: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTab('AUDIT_TRAIL')}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-all ${
             activeTab === 'AUDIT_TRAIL'
               ? 'bg-brand-ink text-white dark:bg-white dark:text-brand-ink shadow-sm'
               : 'text-brand-muted hover:text-brand-ink dark:hover:text-white bg-transparent'
           }`}
         >
           <History className="w-3.5 h-3.5" />
-          Operational Lifecycle Ledger & Audit Trail
+          Lifecycle Ledger & Audit Trail
           {lifecycleData && (
             <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-brand-teal text-white">
               {lifecycleData.timeline.length}

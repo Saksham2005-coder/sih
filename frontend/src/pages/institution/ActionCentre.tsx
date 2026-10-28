@@ -76,7 +76,7 @@ export const ActionCentre: React.FC = () => {
               </h3>
               <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {applications.map(app => (
-                  <div key={app.id} className="py-3 flex items-center justify-between gap-4">
+                  <div key={app.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{app.application_number}</p>
                       <p className="text-[11px] text-brand-muted dark:text-brand-muted">
@@ -85,7 +85,7 @@ export const ActionCentre: React.FC = () => {
                     </div>
                     <Link
                       to={`/institution/applications/${app.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm"
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm self-start sm:self-auto"
                     >
                       Cure & Resubmit <ArrowRight className="w-3 h-3" />
                     </Link>
@@ -97,14 +97,14 @@ export const ActionCentre: React.FC = () => {
 
           {/* Time-Bound Undertakings Requiring Evidence */}
           {undertakings.length > 0 && (
-            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-4 sm:p-6 transition-colors">
               <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 mb-3">
                 <Clock className="w-4 h-4 text-brand-teal" />
                 Time-Bound Undertakings ({undertakings.length})
               </h3>
               <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {undertakings.map(u => (
-                  <div key={u.id} className="py-3 flex items-center justify-between gap-4">
+                  <div key={u.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{u.title}</p>
@@ -116,7 +116,7 @@ export const ActionCentre: React.FC = () => {
                     </div>
                     <Link
                       to="/institution/compliance"
-                      className="px-3 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm"
+                      className="px-3 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors shadow-sm self-start sm:self-auto"
                     >
                       Upload Evidence <ArrowRight className="w-3 h-3" />
                     </Link>
@@ -128,14 +128,14 @@ export const ActionCentre: React.FC = () => {
 
           {/* Expiring Documents Requiring Renewal */}
           {documents.length > 0 && (
-            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-6 transition-colors">
+            <div className="bg-white dark:bg-brand-surface rounded-xl border border-brand-border dark:border-brand-border shadow-sm p-4 sm:p-6 transition-colors">
               <h3 className="text-sm font-bold text-brand-ink dark:text-brand-ink flex items-center gap-2 mb-3">
                 <ShieldAlert className="w-4 h-4 text-red-600 dark:text-red-400" />
                 Prescribed Document Renewals ({documents.length})
               </h3>
               <div className="divide-y divide-brand-border/60 dark:divide-brand-border">
                 {documents.map(d => (
-                  <div key={d.id} className="py-3 flex items-center justify-between gap-4">
+                  <div key={d.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-xs font-bold text-brand-ink dark:text-brand-ink">{d.title}</p>
@@ -147,7 +147,7 @@ export const ActionCentre: React.FC = () => {
                     </div>
                     <Link
                       to="/institution/documents"
-                      className="px-3 py-1.5 rounded-lg border border-brand-teal text-brand-teal hover:bg-brand-teal/10 dark:hover:bg-brand-teal/20 text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors"
+                      className="px-3 py-1.5 rounded-lg border border-brand-teal text-brand-teal hover:bg-brand-teal/10 dark:hover:bg-brand-teal/20 text-xs font-semibold inline-flex items-center gap-1 shrink-0 transition-colors self-start sm:self-auto"
                     >
                       Submit Renewal <ArrowRight className="w-3 h-3" />
                     </Link>

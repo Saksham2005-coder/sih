@@ -93,18 +93,18 @@ export const BureauOfficerWorkspace: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={loadData}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors duration-150"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-ink hover:bg-gray-50 dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors duration-150"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
           </button>
           <button
             onClick={handleRunDeadlineScan}
             disabled={scanning}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal text-white text-xs font-semibold hover:bg-brand-teal-dark shadow-sm transition-colors duration-150"
           >
             <Play className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
             {scanning ? 'Running National Scan...' : 'Trigger National SLA Scan'}
@@ -196,8 +196,8 @@ export const BureauOfficerWorkspace: React.FC = () => {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-secondary text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Escalation Tier</th>

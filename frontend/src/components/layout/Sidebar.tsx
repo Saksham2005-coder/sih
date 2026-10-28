@@ -3,11 +3,16 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, FileText, CheckSquare, FileCheck2, Files,
   Bell, History, Compass, Users, AlertOctagon, BarChart3,
-  Sliders, ShieldAlert, Gavel, Cpu, Globe, Award, Calendar
+  Sliders, ShieldAlert, Gavel, Cpu, Globe, Award, Calendar, X
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const Sidebar: React.FC = () => {
+export interface SidebarProps {
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen = false, onCloseMobile }) => {
   const { user, activeRole } = useAuth();
 
   interface NavItem {
@@ -134,9 +139,33 @@ export const Sidebar: React.FC = () => {
       ];
   }
 
-  return (
-    <aside className="w-64 bg-brand-sidebar-bg border-r border-brand-border flex flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)] transition-colors">
-      <div className="p-4">
+  const renderSidebarContent = (isMobile = false) => (
+    <>
+      <div className="p-4 overflow-y-auto flex-1">
+        {/* Mobile Drawer Header with Close Button */}
+        {isMobile && (
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-brand-border">
+            <div className="flex items-center gap-2">
+              <img
+                src="/aicte-logo.png"
+                alt="AICTE Logo"
+                className="w-7 h-7 object-contain rounded-full bg-white p-0.5 shadow-xs border border-brand-border"
+              />
+              <span className="font-bold text-xs text-brand-text-primary">
+                आवेदनसेतु | AvedanSetu
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="p-1.5 rounded-lg text-brand-text-muted hover:text-brand-text-primary hover:bg-brand-surface-secondary transition-colors cursor-pointer"
+              aria-label="Close navigation drawer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
         {/* Scoped Workspace Identifier */}
         <div className="mb-4 px-3 py-2.5 bg-brand-surface-secondary rounded-lg border border-brand-border">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-brand-text-muted">Operational Scope</p>
@@ -162,6 +191,7 @@ export const Sidebar: React.FC = () => {
               <NavLink
                 key={link.to}
                 to={link.to}
+                onClick={isMobile ? onCloseMobile : undefined}
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors duration-150 ${
                     isActive
@@ -191,6 +221,7 @@ export const Sidebar: React.FC = () => {
           </p>
           <NavLink
             to="/demo/explorer"
+            onClick={isMobile ? onCloseMobile : undefined}
             className={({ isActive }) =>
               `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 ${
                 isActive
@@ -211,7 +242,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* Official AICTE Footer Branding */}
-      <div className="p-3.5 border-t border-brand-border bg-brand-surface-secondary/40">
+      <div className="p-3.5 border-t border-brand-border bg-brand-surface-secondary/40 shrink-0">
         <div className="flex items-center gap-2.5">
           <img
             src="/aicte-logo.png"
@@ -232,7 +263,35 @@ export const Sidebar: React.FC = () => {
           <span className="font-mono">SIH 26262</span>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Docked Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-brand-sidebar-bg border-r border-brand-border flex-col justify-between shrink-0 shadow-sm min-h-[calc(100vh-4rem)] transition-colors">
+        {renderSidebarContent(false)}
+      </aside>
+
+      {/* Mobile Slide-Over Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs transition-opacity duration-200 lg:hidden"
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Slide-Over Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-brand-sidebar-bg border-r border-brand-border flex flex-col justify-between shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        aria-label="Mobile Navigation Drawer"
+      >
+        {renderSidebarContent(true)}
+      </aside>
+    </>
   );
 };
 

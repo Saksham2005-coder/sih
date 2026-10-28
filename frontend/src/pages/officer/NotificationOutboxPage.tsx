@@ -397,8 +397,8 @@ export const NotificationOutboxPage: React.FC = () => {
 
       {/* Outbox Table */}
       <div className="bg-brand-surface rounded-xl border border-brand-border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse text-xs min-w-[800px]">
             <thead>
               <tr className="bg-brand-surface-secondary border-b border-brand-border text-[11px] font-semibold text-brand-text-muted uppercase tracking-wider">
                 <th className="py-3 px-4">Channel & Recipient</th>

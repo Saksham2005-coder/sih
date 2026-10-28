@@ -89,18 +89,18 @@ export const SystemAdminWorkspace: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={loadData}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border dark:border-brand-border text-brand-ink dark:text-brand-ink hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border dark:border-brand-border text-brand-ink dark:text-brand-ink hover:bg-brand-porcelain dark:hover:bg-brand-surface-elevated text-xs font-semibold shadow-sm transition-colors"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh Telemetry
           </button>
           <button
             onClick={handleRunManualScan}
             disabled={scanning}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm transition-colors"
+            className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm transition-colors"
           >
             <Play className={`w-3.5 h-3.5 ${scanning ? 'animate-spin' : ''}`} />
             {scanning ? 'Running Engine...' : 'Run On-Demand Deadline Scan'}
@@ -209,8 +209,8 @@ export const SystemAdminWorkspace: React.FC = () => {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[650px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted dark:text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border dark:border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Rule Code</th>
@@ -279,8 +279,8 @@ export const SystemAdminWorkspace: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-xs min-w-[700px]">
             <thead className="bg-brand-porcelain/60 dark:bg-brand-surface-elevated text-brand-muted dark:text-brand-muted uppercase text-[10px] font-semibold border-b border-brand-border dark:border-brand-border">
               <tr>
                 <th className="px-6 py-3.5">Timestamp</th>

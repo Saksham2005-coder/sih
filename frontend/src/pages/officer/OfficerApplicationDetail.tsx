@@ -192,18 +192,18 @@ export const OfficerApplicationDetail: React.FC = () => {
       </div>
 
       {/* View Switcher: Scrutiny vs Operational Audit Trail */}
-      <div className="flex border-b border-brand-border gap-2 text-xs">
+      <div className="flex border-b border-brand-border gap-2 text-xs overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('SCRUTINY')}
-          className={`px-4 py-2.5 font-bold border-b-2 transition-colors inline-flex items-center gap-1.5 ${activeTab === 'SCRUTINY' ? 'border-brand-teal text-brand-teal' : 'border-transparent text-brand-muted hover:text-brand-ink dark:hover:text-brand-text'}`}
+          className={`px-4 py-2.5 font-bold border-b-2 whitespace-nowrap shrink-0 transition-colors inline-flex items-center gap-1.5 ${activeTab === 'SCRUTINY' ? 'border-brand-teal text-brand-teal' : 'border-transparent text-brand-muted hover:text-brand-ink dark:hover:text-brand-text'}`}
         >
           <FileText className="w-3.5 h-3.5" /> Scrutiny Console & Cures
         </button>
         <button
           onClick={() => setActiveTab('AUDIT_TRAIL')}
-          className={`px-4 py-2.5 font-bold border-b-2 transition-colors inline-flex items-center gap-1.5 ${activeTab === 'AUDIT_TRAIL' ? 'border-brand-teal text-brand-teal' : 'border-transparent text-brand-muted hover:text-brand-ink dark:hover:text-brand-text'}`}
+          className={`px-4 py-2.5 font-bold border-b-2 whitespace-nowrap shrink-0 transition-colors inline-flex items-center gap-1.5 ${activeTab === 'AUDIT_TRAIL' ? 'border-brand-teal text-brand-teal' : 'border-transparent text-brand-muted hover:text-brand-ink dark:hover:text-brand-text'}`}
         >
-          <History className="w-3.5 h-3.5" /> Operational Audit Trail & Lifecycle Ledger
+          <History className="w-3.5 h-3.5" /> Lifecycle Ledger & Audit Trail
           <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-teal-100 text-brand-teal border border-teal-300">
             Non-Repudiable
           </span>

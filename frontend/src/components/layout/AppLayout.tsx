@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
@@ -8,6 +8,12 @@ export const AppLayout: React.FC = () => {
   const { user, activeRole, getWorkspaceHome } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  // Close mobile drawer whenever user navigates to a new route
+  useEffect(() => {
+    setIsMobileNavOpen(false);
+  }, [location.pathname]);
 
   // Guard against route-role desynchronization:
   // When activeRole switches, automatically navigate out of incompatible workspace views
@@ -44,11 +50,17 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-brand-canvas text-brand-text-primary flex flex-col transition-colors duration-150">
-      <Header />
-      <div className="flex flex-1 min-h-0">
-        <Sidebar />
-        <main className="flex-1 min-w-0 p-6 lg:p-8 overflow-y-auto text-brand-text-primary w-full">
-          <div className="max-w-7xl mx-auto w-full space-y-6">
+      <Header
+        isMobileNavOpen={isMobileNavOpen}
+        onToggleMobileNav={() => setIsMobileNavOpen(prev => !prev)}
+      />
+      <div className="flex flex-1 min-h-0 relative">
+        <Sidebar
+          isMobileOpen={isMobileNavOpen}
+          onCloseMobile={() => setIsMobileNavOpen(false)}
+        />
+        <main className="flex-1 min-w-0 p-3.5 sm:p-5 md:p-6 lg:p-8 overflow-y-auto text-brand-text-primary w-full">
+          <div className="max-w-7xl mx-auto w-full space-y-4 sm:space-y-6">
             <Outlet />
           </div>
         </main>

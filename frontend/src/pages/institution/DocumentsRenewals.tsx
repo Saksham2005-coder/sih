@@ -106,16 +106,16 @@ export const DocumentsRenewals: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={() => handleOpenAnalysis(doc)}
-                  className="px-3 py-1.5 rounded-lg border border-brand-teal/40 bg-brand-teal/10 hover:bg-brand-teal/20 text-brand-teal text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                  className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg border border-brand-teal/40 bg-brand-teal/10 hover:bg-brand-teal/20 text-brand-teal text-xs font-semibold shadow-sm inline-flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Cpu className="w-3.5 h-3.5" /> Intelligence Scan
                 </button>
                 <button
                   onClick={() => handleOpenRenew(doc)}
-                  className="px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition-colors"
+                  className="flex-1 sm:flex-initial px-3.5 py-1.5 rounded-lg bg-brand-teal hover:bg-brand-teal-hover text-white text-xs font-semibold shadow-sm inline-flex items-center justify-center gap-1.5 transition-colors"
                 >
                   <Upload className="w-3.5 h-3.5" /> Submit Document Renewal
                 </button>

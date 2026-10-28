@@ -2,14 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Bell, Shield, LogOut, CheckCircle2, AlertTriangle, Layers,
-  Radio, RefreshCw, Send, ExternalLink, X, Compass
+  Radio, RefreshCw, Send, ExternalLink, X, Compass, Menu
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/client';
 import { NotificationItem, LiveSSEEventSummary } from '../../types';
 import { ThemeToggle } from '../common/ThemeToggle';
 
-export const Header: React.FC = () => {
+export interface HeaderProps {
+  isMobileNavOpen?: boolean;
+  onToggleMobileNav?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ isMobileNavOpen = false, onToggleMobileNav }) => {
   const { user, activeRole, switchActiveRole, logout, login, getWorkspaceHome } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -163,27 +168,42 @@ export const Header: React.FC = () => {
   return (
     <>
       <header className="sticky top-0 z-40 w-full bg-[var(--brand-header-bg)] text-[var(--brand-header-text)] border-b border-[var(--brand-header-border)] shadow-md transition-colors">
-        <div className="px-6 h-16 flex items-center justify-between">
-          {/* Brand identity */}
-          <div className="flex items-center gap-3">
-            <img
-              src="/aicte-logo.png"
-              alt="AICTE Official Logo"
-              className="w-10 h-10 object-contain shrink-0 rounded-full bg-white/95 p-0.5 shadow-sm border border-brand-border/40"
-            />
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight text-[var(--brand-header-text)] flex items-center gap-1.5">
-                  <span className="font-semibold text-white tracking-normal">आवेदनसेतु</span>
-                  <span className="text-gray-400 font-light text-xs">/</span>
-                  <span className="text-[#39C6B4]">AvedanSetu</span>
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#143633] text-[#39C6B4] border border-[#225650]">
-                  AICTE PS 26262
-                </span>
+        <div className="px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Brand identity & Mobile Drawer Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {onToggleMobileNav && (
+              <button
+                type="button"
+                onClick={onToggleMobileNav}
+                className="lg:hidden p-2 -ml-1 rounded-lg text-[var(--brand-header-muted)] hover:text-white hover:bg-[#182C40] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal cursor-pointer"
+                aria-label="Toggle navigation drawer"
+              >
+                {isMobileNavOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5" />}
+              </button>
+            )}
+
+            <Link to="/" className="flex items-center gap-2 sm:gap-3">
+              <img
+                src="/aicte-logo.png"
+                alt="AICTE Official Logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 object-contain shrink-0 rounded-full bg-white/95 p-0.5 shadow-sm border border-brand-border/40"
+              />
+              <div>
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="font-bold text-sm sm:text-base tracking-tight text-[var(--brand-header-text)] flex items-center gap-1 sm:gap-1.5">
+                    <span className="font-semibold text-white tracking-normal">आवेदनसेतु</span>
+                    <span className="text-gray-400 font-light text-xs">/</span>
+                    <span className="text-[#39C6B4]">AvedanSetu</span>
+                  </span>
+                  <span className="hidden sm:inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#143633] text-[#39C6B4] border border-[#225650]">
+                    AICTE PS 26262
+                  </span>
+                </div>
+                <p className="hidden md:block text-[11px] text-[var(--brand-header-muted)]">
+                  अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE Regulatory Portal
+                </p>
               </div>
-              <p className="text-[11px] text-[var(--brand-header-muted)]">अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE Regulatory Portal</p>
-            </div>
+            </Link>
 
             <div className="hidden xl:flex items-center gap-2 ml-3 pl-3 border-l border-[#274059]">
               <span className="text-xs text-[var(--brand-header-muted)]">Academic Cycle:</span>
@@ -194,7 +214,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Actions & Profile */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {/* Judge Demo Centre & Live Workflow Explorer Link */}
             <Link
               to="/demo/explorer"
@@ -212,7 +232,7 @@ export const Header: React.FC = () => {
               <select
                 value={user?.email || ''}
                 onChange={(e) => handleDemoUserChange(e.target.value)}
-                className="bg-transparent text-[var(--brand-header-text)] font-medium focus:outline-none cursor-pointer"
+                className="bg-transparent text-[var(--brand-header-text)] font-medium focus:outline-none cursor-pointer max-w-[150px] lg:max-w-[200px] truncate"
               >
                 {demoUsers.map((u) => (
                   <option key={u.email} value={u.email} className="bg-[#101E2D] text-[#EDF3F8]">
@@ -224,7 +244,7 @@ export const Header: React.FC = () => {
 
             {/* Active Role Selector if user has multiple roles */}
             {user && user.roles.length > 1 && (
-              <div className="flex items-center gap-1 bg-[#182C40] px-2 py-1 rounded border border-[#274059] text-xs">
+              <div className="hidden sm:flex items-center gap-1 bg-[#182C40] px-2 py-1 rounded border border-[#274059] text-xs">
                 <Shield className="w-3.5 h-3.5 text-[#39C6B4]" />
                 <select
                   value={activeRole || ''}
@@ -241,7 +261,10 @@ export const Header: React.FC = () => {
             )}
 
             {/* One-Click Theme Switcher Toggle */}
-            <ThemeToggle showLabel className="border-[#274059] bg-[#182C40] text-[var(--brand-header-text)] hover:bg-[#20364C] hover:text-white shadow-sm" />
+            <ThemeToggle
+              showLabel
+              className="border-[#274059] bg-[#182C40] text-[var(--brand-header-text)] hover:bg-[#20364C] hover:text-white shadow-sm [&>span]:hidden sm:[&>span]:inline"
+            />
 
             {/* Notifications Drawer Toggle with Live Telemetry Indicator */}
             <div className="relative">
@@ -327,19 +350,20 @@ export const Header: React.FC = () => {
             </div>
 
             {/* User profile & Logout */}
-            <div className="flex items-center gap-3 pl-2 border-l border-[#274059]">
-              <div className="flex flex-col text-right">
-                <span className="text-xs font-semibold leading-tight text-[var(--brand-header-text)]">{user?.full_name}</span>
-                <span className="text-[10px] text-[var(--brand-header-muted)]">
+            <div className="flex items-center gap-2 sm:gap-3 pl-1.5 sm:pl-2 border-l border-[#274059]">
+              <div className="hidden md:flex flex-col text-right">
+                <span className="text-xs font-semibold leading-tight text-[var(--brand-header-text)] truncate max-w-[130px] lg:max-w-[180px]">{user?.full_name}</span>
+                <span className="text-[10px] text-[var(--brand-header-muted)] truncate max-w-[130px] lg:max-w-[180px]">
                   {user?.institution_name || (user?.region ? `${user.region} Region` : 'AICTE Apex')}
                 </span>
               </div>
               <button
                 onClick={logout}
-                className="p-1.5 rounded-lg text-[var(--brand-header-muted)] hover:text-white hover:bg-[#182C40] transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg text-[var(--brand-header-muted)] hover:text-white hover:bg-[#182C40] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal cursor-pointer"
                 title="Logout"
+                aria-label="Logout"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 sm:w-4 sm:h-4" />
               </button>
             </div>
           </div>
