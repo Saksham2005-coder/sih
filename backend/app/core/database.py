@@ -5,9 +5,11 @@ from app.core.config import settings
 
 # Engine setup
 raw_url = settings.DATABASE_URL
-# Render, Supabase, Neon, and Railway often provision DATABASE_URL with 'postgres://'
+# Render, Supabase, Neon, and Railway often provision DATABASE_URL with 'postgres://' or 'postgresql://'
 if raw_url.startswith("postgres://"):
-    raw_url = raw_url.replace("postgres://", "postgresql://", 1)
+    raw_url = raw_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+"):
+    raw_url = raw_url.replace("postgresql://", "postgresql+psycopg2://", 1)
 elif raw_url.startswith("sqlite:///./"):
     backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     rel_part = raw_url[len("sqlite:///./"):]
