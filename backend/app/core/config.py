@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "ReguFlow 360"
+    PROJECT_NAME: str = "AvedanSetu (आवेदनसेतु)"
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
     API_V1_STR: str = "/api"
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
     SMTP_USE_TLS: bool = True
     SMTP_FROM_EMAIL: str = "notifications@aicte.gov.in"
-    SMTP_FROM_NAME: str = "AICTE ReguFlow 360"
+    SMTP_FROM_NAME: str = "AICTE AvedanSetu (आवेदनसेतु)"
 
     # SMS Dispatch (e.g. NIC / CDAC Gateway)
     SMS_GATEWAY_URL: Optional[str] = None

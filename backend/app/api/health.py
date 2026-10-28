@@ -65,7 +65,7 @@ def health_check(db: Session = Depends(get_db)):
 
     return {
         "status": overall_status,
-        "service": "ReguFlow 360 Unified Regulatory Engine",
+        "service": "AvedanSetu (आवेदनसेतु) [ReguFlow 360] Unified Regulatory Engine",
         "version": "1.0.0",
         "environment": settings.ENVIRONMENT,
         "demo_mode": settings.DEMO_MODE,

@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import or_, func
 from app.models.application import Application, ApplicationStage, Deficiency
 from app.models.evc import EVCInspection
 from app.models.alert import Notification
@@ -171,8 +172,11 @@ def execute_transition(
         # Check that all open deficiencies have a cure submitted
         uncured_defs = db.query(Deficiency).filter(
             Deficiency.application_id == application.id,
-            Deficiency.status == "OPEN",
-            Deficiency.cure_remarks == None
+            or_(
+                Deficiency.status == "OPEN",
+                Deficiency.cure_remarks == None,
+                func.trim(Deficiency.cure_remarks) == ""
+            )
         ).count()
         if uncured_defs > 0:
             raise HTTPException(

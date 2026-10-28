@@ -152,10 +152,15 @@ def acknowledge_escalation(
     user_roles = [r.role for r in current_user.roles]
     # Regional Officer jurisdiction check
     if "REGIONAL_OFFICER" in user_roles and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
-        if esc.region and current_user.region and esc.region != current_user.region:
+        if not current_user.region or not current_user.region.strip():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied: Regional Officer for {current_user.region} cannot acknowledge escalations in {esc.region} region."
+                detail="Access denied: Regional Officer account has no assigned regional jurisdiction (fail-closed)."
+            )
+        if esc.region and current_user.region.strip().lower() != esc.region.strip().lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied: Regional Officer for '{current_user.region}' cannot acknowledge escalations in '{esc.region}' region."
             )
 
     esc.status = "ACKNOWLEDGED"

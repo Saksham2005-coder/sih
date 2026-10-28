@@ -10,4 +10,4 @@ def test_health_endpoint(client):
 def test_root_endpoint(client):
     res = client.get("/")
     assert res.status_code == 200
-    assert "ReguFlow 360" in res.json()["service"]
+    assert "AvedanSetu" in res.json()["service"] or "ReguFlow 360" in res.json()["service"]

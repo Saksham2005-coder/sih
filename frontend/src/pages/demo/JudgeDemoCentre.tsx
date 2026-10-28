@@ -17,7 +17,7 @@ import {
 import { StatusBadge } from '../../components/common/StatusBadge';
 
 export const JudgeDemoCentre: React.FC = () => {
-  const { user, login } = useAuth();
+  const { user, login, getWorkspaceHome } = useAuth();
   const navigate = useNavigate();
 
   const [scenarios, setScenarios] = useState<DemoScenarioItem[]>([]);
@@ -238,7 +238,7 @@ export const JudgeDemoCentre: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-brand-text-muted mt-0.5">
-                  Interactive architectural inspection layer over ReguFlow 360's genuine backend state machine, explainable priority engine, and multi-role workspaces.
+                  Interactive architectural inspection layer over AvedanSetu's (आवेदनसेतु) genuine backend state machine, explainable priority engine, and multi-role workspaces.
                 </p>
               </div>
             </div>
@@ -251,7 +251,15 @@ export const JudgeDemoCentre: React.FC = () => {
                 <Users className="w-3.5 h-3.5 text-brand-teal" /> Recommended Persona:
               </span>
               <button
-                onClick={() => login(activeScenario.recommended_persona.email)}
+                onClick={async () => {
+                  try {
+                    const logged = await login(activeScenario.recommended_persona.email);
+                    const dest = getWorkspaceHome(logged?.roles?.[0]);
+                    navigate(dest);
+                  } catch (err) {
+                    console.error('Failed to switch persona from demo centre:', err);
+                  }
+                }}
                 className="font-bold text-brand-teal hover:underline flex items-center gap-1 cursor-pointer"
                 title={`Switch session to ${activeScenario.recommended_persona.name} (${activeScenario.recommended_persona.role})`}
               >

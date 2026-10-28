@@ -141,22 +141,31 @@ export const LoginPage: React.FC = () => {
 
       {/* Top Header Branding */}
       <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--brand-header-bg)] text-brand-teal shadow-xl mb-3 border border-gray-700/50">
-          <span className="text-3xl font-extrabold tracking-tight">R</span>
-        </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-brand-text-primary">
-          ReguFlow 360
-        </h1>
-        <p className="mt-1 text-xs text-brand-muted max-w-md mx-auto">
-          AICTE Integrated Approval Workflow, Compliance Monitoring & Escalation Engine
-        </p>
-        <div className="mt-2.5 flex items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-brand-teal-light text-brand-teal border border-teal-200 dark:border-teal-800">
-            <CheckCircle2 className="w-3 h-3" /> SIH 2026 Problem Statement 26262
-          </span>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
-            Academic Year 2026-2027
-          </span>
+        <div className="flex flex-col items-center">
+          <img
+            src="/aicte-logo.png"
+            alt="AICTE Official Emblem"
+            className="w-20 h-20 object-contain mb-3 drop-shadow-md rounded-full bg-white/95 p-1 border border-brand-border"
+          />
+          <div className="text-xs font-semibold uppercase tracking-wider text-brand-teal">
+            अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE
+          </div>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-brand-text-primary flex items-center justify-center gap-2">
+            <span>आवेदनसेतु</span>
+            <span className="text-gray-300 dark:text-gray-600 font-light">|</span>
+            <span className="text-brand-teal">AvedanSetu</span>
+          </h1>
+          <p className="mt-1 text-xs text-brand-muted max-w-md mx-auto">
+            AICTE Integrated Approval Workflow, Compliance Monitoring & Escalation Platform
+          </p>
+          <div className="mt-2.5 flex items-center justify-center gap-2">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-brand-teal-light text-brand-teal border border-teal-200 dark:border-teal-800">
+              <CheckCircle2 className="w-3 h-3" /> SIH 2026 Problem Statement 26262
+            </span>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+              Academic Year 2026-2027
+            </span>
+          </div>
         </div>
       </div>
 

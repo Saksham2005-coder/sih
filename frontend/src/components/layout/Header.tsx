@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Bell, Shield, LogOut, CheckCircle2, AlertTriangle, Layers,
   Radio, RefreshCw, Send, ExternalLink, X, Compass
@@ -10,7 +10,8 @@ import { NotificationItem, LiveSSEEventSummary } from '../../types';
 import { ThemeToggle } from '../common/ThemeToggle';
 
 export const Header: React.FC = () => {
-  const { user, activeRole, switchActiveRole, logout, login } = useAuth();
+  const { user, activeRole, switchActiveRole, logout, login, getWorkspaceHome } = useAuth();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [demoUsers, setDemoUsers] = useState<any[]>([]);
@@ -18,6 +19,27 @@ export const Header: React.FC = () => {
   const [liveToast, setLiveToast] = useState<LiveSSEEventSummary | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
   const toastTimeoutRef = useRef<any>(null);
+
+  const handleDemoUserChange = async (targetEmail: string) => {
+    try {
+      const loggedIn = await login(targetEmail);
+      const defaultRole = loggedIn?.roles?.[0];
+      const dest = getWorkspaceHome(defaultRole);
+      navigate(dest);
+    } catch (err) {
+      console.error('Failed to switch demo persona:', err);
+    }
+  };
+
+  const handleRoleChange = async (newRole: string) => {
+    try {
+      await switchActiveRole(newRole);
+      const dest = getWorkspaceHome(newRole);
+      navigate(dest);
+    } catch (err) {
+      console.error('Failed to switch role:', err);
+    }
+  };
 
   const isOfficer = user?.roles?.some(r => [
     'REGIONAL_OFFICER', 'BUREAU_OFFICER', 'COMMITTEE_MEMBER',
@@ -143,23 +165,27 @@ export const Header: React.FC = () => {
       <header className="sticky top-0 z-40 w-full bg-[var(--brand-header-bg)] text-[var(--brand-header-text)] border-b border-[var(--brand-header-border)] shadow-md transition-colors">
         <div className="px-6 h-16 flex items-center justify-between">
           {/* Brand identity */}
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-brand-action flex items-center justify-center font-bold text-lg text-white shadow-inner">
-                R
+          <div className="flex items-center gap-3">
+            <img
+              src="/aicte-logo.png"
+              alt="AICTE Official Logo"
+              className="w-10 h-10 object-contain shrink-0 rounded-full bg-white/95 p-0.5 shadow-sm border border-brand-border/40"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-base tracking-tight text-[var(--brand-header-text)] flex items-center gap-1.5">
+                  <span className="font-semibold text-white tracking-normal">आवेदनसेतु</span>
+                  <span className="text-gray-400 font-light text-xs">/</span>
+                  <span className="text-[#39C6B4]">AvedanSetu</span>
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#143633] text-[#39C6B4] border border-[#225650]">
+                  AICTE PS 26262
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-base tracking-tight text-[var(--brand-header-text)]">ReguFlow 360</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-[#143633] text-[#39C6B4] border border-[#225650]">
-                    AICTE PS 26262
-                  </span>
-                </div>
-                <p className="text-[11px] text-[var(--brand-header-muted)]">Integrated Regulatory Workflow & Compliance Platform</p>
-              </div>
+              <p className="text-[11px] text-[var(--brand-header-muted)]">अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE Regulatory Portal</p>
             </div>
 
-            <div className="hidden lg:flex items-center gap-2 ml-4 pl-4 border-l border-[#274059]">
+            <div className="hidden xl:flex items-center gap-2 ml-3 pl-3 border-l border-[#274059]">
               <span className="text-xs text-[var(--brand-header-muted)]">Academic Cycle:</span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[#182C40] text-[var(--brand-header-text)] border border-[#274059]">
                 2026-2027
@@ -185,7 +211,7 @@ export const Header: React.FC = () => {
               </span>
               <select
                 value={user?.email || ''}
-                onChange={(e) => login(e.target.value)}
+                onChange={(e) => handleDemoUserChange(e.target.value)}
                 className="bg-transparent text-[var(--brand-header-text)] font-medium focus:outline-none cursor-pointer"
               >
                 {demoUsers.map((u) => (
@@ -202,7 +228,7 @@ export const Header: React.FC = () => {
                 <Shield className="w-3.5 h-3.5 text-[#39C6B4]" />
                 <select
                   value={activeRole || ''}
-                  onChange={(e) => switchActiveRole(e.target.value)}
+                  onChange={(e) => handleRoleChange(e.target.value)}
                   className="bg-transparent text-[var(--brand-header-text)] font-semibold focus:outline-none cursor-pointer text-xs"
                 >
                   {user.roles.map(r => (

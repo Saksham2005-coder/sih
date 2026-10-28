@@ -235,7 +235,7 @@ export const NotificationOutboxPage: React.FC = () => {
                   MTA Relay: <span className="font-mono text-brand-text-primary">{emailCh?.details?.host || 'NOT_CONFIGURED'}:{emailCh?.details?.port || 587}</span>
                 </p>
                 <p className="text-[11px] text-brand-text-muted mt-0.5">
-                  Sender: <span className="text-brand-text-primary">{emailCh?.details?.sender || 'AICTE ReguFlow 360'}</span>
+                  Sender: <span className="text-brand-text-primary">{emailCh?.details?.sender || 'AICTE AvedanSetu (आवेदनसेतु)'}</span>
                 </p>
               </div>
               <div className="mt-3 pt-2 border-t border-brand-border text-[10px] text-brand-text-muted flex items-center gap-1.5">

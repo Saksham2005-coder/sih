@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, date, timezone
 from typing import Optional, Dict, Any, List
 from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.orm import Session
@@ -277,8 +277,11 @@ class ComplianceService:
             return "CORRECTION_REQUIRED"
         if undertaking.due_date:
             due = undertaking.due_date
-            if due.tzinfo is None:
-                due = due.replace(tzinfo=timezone.utc)
+            if isinstance(due, datetime):
+                if due.tzinfo is None:
+                    due = due.replace(tzinfo=timezone.utc)
+            elif isinstance(due, date):
+                due = datetime.combine(due, datetime.min.time(), tzinfo=timezone.utc)
             if now > due:
                 return "OVERDUE"
             elif (due - now).days <= 15:

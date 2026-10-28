@@ -14,14 +14,20 @@ export const ActionCentre: React.FC = () => {
   useEffect(() => {
     async function loadData() {
       try {
-        const [apps, under, docs] = await Promise.all([
+        const [appsRes, underRes, docsRes] = await Promise.allSettled([
           api.getApplications(),
           api.getUndertakings(),
           api.getDocuments(),
         ]);
-        setApplications(apps.filter(a => a.current_stage === 'DEFICIENCY_COMMUNICATED' || a.open_deficiencies_count > 0));
-        setUndertakings(under.filter(u => u.status === 'OVERDUE' || u.status === 'DUE_SOON'));
-        setDocuments(docs.filter(d => d.status === 'EXPIRING_SOON' || d.status === 'EXPIRED'));
+        if (appsRes.status === 'fulfilled') {
+          setApplications(appsRes.value.filter(a => a.current_stage === 'DEFICIENCY_COMMUNICATED' || a.open_deficiencies_count > 0));
+        }
+        if (underRes.status === 'fulfilled') {
+          setUndertakings(underRes.value.filter(u => u.status === 'OVERDUE' || u.status === 'DUE_SOON'));
+        }
+        if (docsRes.status === 'fulfilled') {
+          setDocuments(docsRes.value.filter(d => d.status === 'EXPIRING_SOON' || d.status === 'EXPIRED'));
+        }
       } catch (err) {
         console.error(err);
       } finally {

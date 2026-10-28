@@ -77,18 +77,22 @@ export const PublicOrderVerification: React.FC = () => {
       <header className="border-b border-brand-border bg-brand-surface-secondary/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-brand-teal/15 border border-brand-teal/30 flex items-center justify-center text-brand-teal">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
+            <img
+              src="/aicte-logo.png"
+              alt="AICTE Official Logo"
+              className="w-10 h-10 object-contain shrink-0 rounded-full bg-white p-0.5 shadow-xs border border-brand-border/60"
+            />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-brand-text-primary">ReguFlow 360</span>
+                <span className="font-bold text-sm tracking-tight text-brand-text-primary">
+                  आवेदनसेतु <span className="text-brand-text-muted font-normal">|</span> AvedanSetu
+                </span>
                 <span className="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-brand-teal/15 text-brand-teal border border-brand-teal/30">
                   PUBLIC VERIFICATION
                 </span>
               </div>
               <p className="text-[11px] text-brand-text-muted">
-                AICTE Statutory Decision Order Provenance & Integrity Portal
+                अखिल भारतीय तकनीकी शिक्षा परिषद • AICTE Statutory Order Provenance Registry
               </p>
             </div>
           </div>
@@ -316,7 +320,7 @@ export const PublicOrderVerification: React.FC = () => {
 
                   {/* Footer provenance stamp */}
                   <div className="pt-2 border-t border-brand-border flex items-center justify-between text-[11px] text-brand-text-muted">
-                    <span>Verified via AICTE ReguFlow 360 National Regulatory Registry</span>
+                    <span>Verified via AICTE AvedanSetu (आवेदनसेतु) National Regulatory Registry</span>
                     <span>Query Time: {new Date(tokenResult.verified_at).toLocaleString()}</span>
                   </div>
                 </div>
@@ -439,7 +443,7 @@ export const PublicOrderVerification: React.FC = () => {
 
       {/* Footer */}
       <footer className="border-t border-brand-border py-4 bg-brand-surface-secondary text-center text-xs text-brand-text-muted">
-        AICTE ReguFlow 360 Verification Registry • Prototype for SIH 2026 AICTE Problem Statement 26262
+        AICTE AvedanSetu (आवेदनसेतु) Verification Registry • Prototype for SIH 2026 AICTE Problem Statement 26262
       </footer>
     </div>
   );

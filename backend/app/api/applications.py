@@ -23,6 +23,52 @@ from app.services.audit_service import log_audit_event
 
 router = APIRouter(prefix="/applications", tags=["Applications"])
 
+def verify_application_view_access(app: Application, current_user: User, db: Session):
+    """Enforces multi-tenant and role-scoped read isolation across application detail endpoints."""
+    user_roles = [r.role for r in current_user.roles]
+    # National roles bypass local jurisdiction
+    if any(r in user_roles for r in ["SYSTEM_ADMIN", "BUREAU_OFFICER", "COMPETENT_AUTHORITY"]):
+        return
+
+    # Institutional users are isolated to their own institution
+    verify_institution_access(app.institution_id, current_user)
+
+    # Regional Officers are scoped strictly to their assigned region
+    if "REGIONAL_OFFICER" in user_roles:
+        app_region = app.institution.region if app.institution else None
+        verify_regional_access(app_region, current_user)
+
+    # EVC Coordinators are scoped to regional jurisdiction and EVC-participating applications
+    if "EVC_COORDINATOR" in user_roles:
+        app_region = app.institution.region if app.institution else None
+        if current_user.region and app_region and current_user.region.strip().lower() != app_region.strip().lower():
+            raise HTTPException(status_code=403, detail="Forbidden: Application outside assigned regional jurisdiction for EVC coordinator")
+        is_evc_eligible = (
+            app.evc_required or
+            app.current_stage in ["AWAITING_EVC_SCHEDULE", "EVC_SCHEDULED", "EVC_COMPLETED"] or
+            app.workflow_template_code in ["NEW_INSTITUTION", "SCRUTINY_EVC", "EVC_SAC_SHC", "ONLY_EVC"]
+        )
+        if not is_evc_eligible:
+            raise HTTPException(status_code=403, detail="Forbidden: Application does not fall within EVC inspection scope")
+
+    # Committee Members are scoped to committee review lifecycle or specifically assigned inspections
+    if "COMMITTEE_MEMBER" in user_roles:
+        is_committee_lifecycle = app.current_stage in ["AWAITING_SAC_CAC_REVIEW", "AWAITING_COMPETENT_AUTHORITY", "APPROVED", "REJECTED"]
+        is_participant = db.query(ApplicationStage).filter(
+            ApplicationStage.application_id == app.id,
+            ApplicationStage.actor_id == current_user.id
+        ).first() is not None
+        assigned_to_inspection = db.query(EVCInspection).filter(
+            EVCInspection.application_id == app.id,
+            or_(
+                EVCInspection.convener_user_id == current_user.id,
+                EVCInspection.expert_user_id == current_user.id,
+                EVCInspection.completed_by_id == current_user.id
+            )
+        ).first() is not None
+        if not (is_committee_lifecycle or is_participant or assigned_to_inspection):
+            raise HTTPException(status_code=403, detail="Forbidden: Application is not assigned to committee member or awaiting committee review")
+
 @router.get("", response_model=List[ApplicationResponse])
 def list_applications(
     stage: Optional[str] = None,
@@ -137,6 +183,9 @@ def create_application(
         prefix = "INSP"
 
     app_num = f"AICTE-2026-{prefix}-{count:05d}"
+    while db.query(Application).filter(Application.application_number == app_num).first() is not None:
+        count += 1
+        app_num = f"AICTE-2026-{prefix}-{count:05d}"
 
     new_app = Application(
         application_number=app_num,
@@ -210,10 +259,8 @@ def get_application_detail(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    # Isolation check
-    verify_institution_access(app.institution_id, current_user)
-    if app.institution:
-        verify_regional_access(app.institution.region, current_user)
+    # Isolation and role-purview check
+    verify_application_view_access(app, current_user, db)
 
     score, factors = calculate_priority(app, db)
     open_defs = db.query(Deficiency).filter(Deficiency.application_id == app.id, Deficiency.status == "OPEN").count()
@@ -404,13 +451,7 @@ def get_case_brief(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    verify_institution_access(app.institution_id, current_user)
-    
-    # Regional Officer access check
-    user_roles = [r.role for r in current_user.roles]
-    if "REGIONAL_OFFICER" in user_roles and current_user.region and "SYSTEM_ADMIN" not in user_roles and "BUREAU_OFFICER" not in user_roles:
-        if app.institution.region != current_user.region:
-            raise HTTPException(status_code=403, detail="Forbidden: Application outside assigned regional jurisdiction")
+    verify_application_view_access(app, current_user, db)
 
     return CaseBriefService.generate_case_brief(app.id, db)
 
@@ -436,9 +477,7 @@ def get_application_lifecycle_audit_trail(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    verify_institution_access(app.institution_id, current_user)
-    if app.institution:
-        verify_regional_access(app.institution.region, current_user)
+    verify_application_view_access(app, current_user, db)
 
     timeline: List[ApplicationAuditTrailItem] = []
 

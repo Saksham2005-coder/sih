@@ -331,7 +331,11 @@ class DocumentIntelligenceService:
                         base_date_norm = normalize_date_string(m.group(2))
                         if base_date_norm:
                             base_d = date.fromisoformat(base_date_norm)
-                            calc_exp = date(base_d.year + years_dur, base_d.month, base_d.day) - timedelta(days=1)
+                            try:
+                                calc_exp = date(base_d.year + years_dur, base_d.month, base_d.day) - timedelta(days=1)
+                            except ValueError:
+                                # Handle leap day boundary: Feb 29 in non-leap year falls back to Feb 28
+                                calc_exp = date(base_d.year + years_dur, base_d.month, 28) - timedelta(days=1)
                             candidates["expiry_date"] = {
                                 "value": calc_exp.isoformat(),
                                 "confidence": 0.90,

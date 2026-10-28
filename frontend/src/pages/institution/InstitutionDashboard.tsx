@@ -11,11 +11,6 @@ import { ComplianceOfficerWorkspace } from './ComplianceOfficerWorkspace';
 
 export const InstitutionDashboard: React.FC = () => {
   const { user, isComplianceOfficer } = useAuth();
-
-  if (isComplianceOfficer) {
-    return <ComplianceOfficerWorkspace />;
-  }
-
   const [applications, setApplications] = useState<Application[]>([]);
   const [undertakings, setUndertakings] = useState<ComplianceUndertaking[]>([]);
   const [documents, setDocuments] = useState<DocumentRecord[]>([]);
@@ -23,15 +18,16 @@ export const InstitutionDashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
-        const [apps, under, docs] = await Promise.all([
+        const [appsRes, underRes, docsRes] = await Promise.allSettled([
           api.getApplications(),
           api.getUndertakings(),
           api.getDocuments(),
         ]);
-        setApplications(apps);
-        setUndertakings(under);
-        setDocuments(docs);
+        if (appsRes.status === 'fulfilled') setApplications(appsRes.value);
+        if (underRes.status === 'fulfilled') setUndertakings(underRes.value);
+        if (docsRes.status === 'fulfilled') setDocuments(docsRes.value);
       } catch (err) {
         console.error('Failed to load institution dashboard data', err);
       } finally {
@@ -39,7 +35,11 @@ export const InstitutionDashboard: React.FC = () => {
       }
     }
     loadData();
-  }, []);
+  }, [user?.id, user?.institution_id]);
+
+  if (isComplianceOfficer) {
+    return <ComplianceOfficerWorkspace />;
+  }
 
   const totalDeficiencies = applications.reduce((acc, app) => acc + (app.open_deficiencies_count || 0), 0);
   const urgentUndertakings = undertakings.filter(u => u.status === 'OVERDUE' || u.status === 'DUE_SOON').length;

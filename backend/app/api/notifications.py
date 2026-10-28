@@ -393,7 +393,7 @@ async def sse_notification_stream(
             # Yield initial connection confirmation
             connect_payload = {
                 "event_type": "CONNECTED",
-                "message": f"Connected to ReguFlow 360 Live Event Stream as {user_full_name}",
+                "message": f"Connected to AvedanSetu (आवेदनसेतु) Live Event Stream as {user_full_name}",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
             yield f"event: connected\ndata: {json.dumps(connect_payload)}\n\n"

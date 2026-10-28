@@ -239,11 +239,11 @@ class NotificationTemplateEngine:
 <div class="container">
   <div class="header">
     <h1>ALL INDIA COUNCIL FOR TECHNICAL EDUCATION</h1>
-    <p>ReguFlow 360 Regulatory Workflow & Compliance Platform</p>
+    <p>AvedanSetu (आवेदनसेतु) Regulatory Workflow & Compliance Platform</p>
   </div>
   <div class="content">
     <div style="white-space: pre-line;">{text}</div>
-    {f'<p><a href="{params.get("link_url", "#")}" class="button">Access ReguFlow 360 Portal</a></p>' if params.get("link_url") else ''}
+    {f'<p><a href="{params.get("link_url", "#")}" class="button">Access AvedanSetu (आवेदनसेतु) Portal</a></p>' if params.get("link_url") else ''}
   </div>
   <div class="footer">
     <p>This is an automated regulatory notification issued under AICTE Act 1987. Do not reply to this email.</p>

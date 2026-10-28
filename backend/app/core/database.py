@@ -1,14 +1,25 @@
+import os
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, declarative_base
 from app.core.config import settings
 
 # Engine setup
+raw_url = settings.DATABASE_URL
+# Render, Supabase, Neon, and Railway often provision DATABASE_URL with 'postgres://'
+if raw_url.startswith("postgres://"):
+    raw_url = raw_url.replace("postgres://", "postgresql://", 1)
+elif raw_url.startswith("sqlite:///./"):
+    backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    rel_part = raw_url[len("sqlite:///./"):]
+    db_file = os.path.join(backend_dir, rel_part)
+    raw_url = f"sqlite:///{db_file.replace(os.sep, '/')}"
+
 connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if raw_url.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    raw_url,
     connect_args=connect_args,
     pool_pre_ping=True,
     echo=False

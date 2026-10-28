@@ -370,6 +370,7 @@ def submit_evc_report(
         inspection.virtual_meeting_url = request.virtual_meeting_url
     if request.virtual_recording_url:
         inspection.virtual_recording_url = request.virtual_recording_url
+    if request.virtual_meeting_url or request.virtual_recording_url:
         db.commit()
         db.refresh(inspection)
 

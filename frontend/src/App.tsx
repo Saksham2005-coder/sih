@@ -68,6 +68,8 @@ export const App: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/verify-order" element={<PublicOrderVerification />} />
             <Route path="/verify-order/:token" element={<PublicOrderVerification />} />
+            <Route path="/verify" element={<PublicOrderVerification />} />
+            <Route path="/verify/:token" element={<PublicOrderVerification />} />
             <Route path="/" element={<RootRedirect />} />
 
             {/* Protected Portal Routes under AppLayout */}

@@ -12,12 +12,26 @@ from app.services.scheduler import scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist in development mode
-    # In production, schema migrations are executed once per release via Alembic
-    if not settings.is_production:
-        Base.metadata.create_all(bind=engine)
-        if settings.is_demo_allowed:
-            seed_database()
+    # Startup: ensure tables exist (PostgreSQL and SQLite)
+    Base.metadata.create_all(bind=engine)
+
+    # Auto-hydrate database with full regulatory records if fresh (prevents empty database upon deployment)
+    from app.core.database import SessionLocal
+    from app.models.institution import Institution
+    from app.models.application import Application
+    from app.seed.restore_snapshot import load_snapshot
+
+    db = SessionLocal()
+    try:
+        if db.query(Institution).count() == 0 or db.query(Application).count() == 0:
+            print("AvedanSetu: Fresh database detected. Auto-hydrating records from snapshot...")
+            load_snapshot(engine)
+            print("AvedanSetu: Auto-hydration complete! All applications, users, and rules loaded.")
+    except Exception as e:
+        print(f"AvedanSetu startup database hydration check: {e}")
+    finally:
+        db.close()
+
     # Start autonomous background deadline engine
     await scheduler.start(interval_seconds=60)
     yield

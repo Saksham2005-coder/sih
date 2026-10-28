@@ -210,11 +210,26 @@ export const Sidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer Info */}
-      <div className="p-4 border-t border-brand-border bg-brand-surface-secondary/40">
-        <div className="flex items-center justify-between text-[11px] text-brand-text-muted">
-          <span>AICTE PS 26262</span>
-          <span>v1.0.0</span>
+      {/* Official AICTE Footer Branding */}
+      <div className="p-3.5 border-t border-brand-border bg-brand-surface-secondary/40">
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/aicte-logo.png"
+            alt="AICTE Logo"
+            className="w-8 h-8 object-contain shrink-0 rounded-full bg-white p-0.5 shadow-xs border border-brand-border/60"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-bold text-brand-text-primary leading-tight truncate">
+              अखिल भारतीय तकनीकी शिक्षा परिषद
+            </p>
+            <p className="text-[10px] text-brand-text-muted leading-tight truncate">
+              All India Council for Technical Education
+            </p>
+          </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-brand-border/40 flex items-center justify-between text-[10px] text-brand-text-muted">
+          <span className="font-semibold text-brand-teal">आवेदनसेतु | AvedanSetu</span>
+          <span className="font-mono">SIH 26262</span>
         </div>
       </div>
     </aside>
