@@ -1,7 +1,7 @@
 import os
 from typing import List, Union, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import model_validator
+from pydantic import model_validator, field_validator
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AvedanSetu (आवेदनसेतु)"
@@ -34,6 +34,21 @@ class Settings(BaseSettings):
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     ]
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:
+        if isinstance(v, str):
+            if v.strip().startswith("["):
+                import json
+                try:
+                    return json.loads(v)
+                except Exception:
+                    pass
+            return [i.strip() for i in v.split(",") if i.strip()]
+        elif isinstance(v, (list, tuple, set)):
+            return list(v)
+        return []
     
     # Optional AI Case Brief Assistant
     GEMINI_API_KEY: str = ""

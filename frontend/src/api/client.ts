@@ -15,7 +15,7 @@ import {
   DemoScenarioItem, WorkflowRouteDefinition, ExplainabilityResponse, DemoResetResponse, DemoTelemetryResponse
 } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = (((import.meta as any).env?.VITE_API_BASE_URL as string) || '/api').replace(/\/+$/, '');
 
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem('reguflow_token');
