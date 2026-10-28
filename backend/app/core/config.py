@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     TIMEZONE: str = "Asia/Kolkata"
     
     # CORS
-    BACKEND_CORS_ORIGINS: List[str] = [
+    BACKEND_CORS_ORIGINS: Union[str, List[str]] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         "http://localhost:3000",
