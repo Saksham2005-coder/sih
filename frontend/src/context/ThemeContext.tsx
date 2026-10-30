@@ -20,7 +20,7 @@ function getSystemTheme(): 'light' | 'dark' {
 }
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'system';
+  if (typeof window === 'undefined') return 'light';
   try {
     const saved = localStorage.getItem(THEME_STORAGE_KEY);
     if (saved === 'light' || saved === 'dark' || saved === 'system') {
@@ -29,7 +29,7 @@ function getInitialTheme(): Theme {
   } catch {
     // LocalStorage unavailable
   }
-  return 'system';
+  return 'light';
 }
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
